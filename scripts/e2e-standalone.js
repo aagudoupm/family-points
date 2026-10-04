@@ -4,8 +4,11 @@ const http = require('http'), fs = require('fs'), path = require('path');
 const { spawn } = require('child_process');
 let chromium;
 try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
+// Esta prueba cubre el modo «datos en el dispositivo» (sin nube): se construye aparte, en una carpeta temporal
+const docs = fs.mkdtempSync(path.join(require('os').tmpdir(), 'fp-local-'));
+process.env.FP_OUT = docs; process.env.FP_FIREBASE_CONFIG = path.join(docs, 'sin-nube.js');
 require('./build-standalone.js');
-const docs = path.join(__dirname, '..', 'docs'), shots = path.join(__dirname, '..', 'shots');
+const shots = path.join(__dirname, '..', 'shots');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html';
