@@ -2,11 +2,11 @@
 // Uso: npm run e2e   (genera dist/ y capturas en shots/)
 const path = require('path');
 const fs = require('fs');
-require('./build-preview.js');
+if (!process.env.FP_URL) require('./build-preview.js');
 let chromium;
 try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
 
-const url = 'file://' + path.join(__dirname, '..', 'dist', 'index.html');
+const url = process.env.FP_URL || 'file://' + path.join(__dirname, '..', 'dist', 'index.html');
 const shots = path.join(__dirname, '..', 'shots');
 fs.mkdirSync(shots, { recursive: true });
 
@@ -133,7 +133,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.screenshot({ path: path.join(shots, '5-historial.png') });
 
   console.log('Fase 6 · Estadísticas');
-  await page.getByRole('button', { name: 'Estadísticas' }).click();
+  await page.getByRole('button', { name: 'Gráficos' }).click();
   await settle();
   check(await page.locator('.chart-wrap polyline').count() === 3, 'Gráfico con una línea por miembro');
   check(await page.locator('.bar-row').count() > 0, 'Comportamientos más frecuentes');

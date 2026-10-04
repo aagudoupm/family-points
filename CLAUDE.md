@@ -15,6 +15,9 @@ HTML + JS sin dependencias, con persistencia en la base de datos del Artifact (`
 | `app.js` | Interfaz: estado `S`, persistencia, vistas (panel, historial, premios, estadísticas, ajustes), hojas, PIN, sonido y confeti. |
 | `tests/logic.test.js` | Tests unitarios (node:test) de la lógica. |
 | `scripts/e2e.js` | Prueba de extremo a extremo con Playwright en un iPad simulado. Deja capturas en `shots/`. |
+| `scripts/build-standalone.js` | Genera `docs/` (versión independiente para GitHub Pages): HTML completo, manifiesto, iconos y service worker sin conexión. **Regenera `docs/` tras cada cambio** (`npm run build`). |
+| `scripts/e2e-standalone.js` | Sirve `docs/` por HTTP y prueba el recorrido, la instalación, el modo sin conexión y la copia de seguridad en un iPhone simulado. |
+| `scripts/make-icons.js` | Genera `icons/*.png`. |
 | `scripts/build-preview.js` | Envuelve `index.html` con el esqueleto del visor en `dist/` para probar en local. |
 
 Patrón: estado + vista. Las vistas son funciones `renderX()` que devuelven nodos. Cada mutación llama a
@@ -44,10 +47,17 @@ PBKDF2-SHA256 con sal aleatoria, guardado en `config/settings`; nunca se guarda 
 Se pide para: entrar en Ajustes, editar o borrar movimientos del historial, canjear y, si se activa la opción, dar puntos.
 Tras introducirlo queda desbloqueado 3 minutos. Tras 5 fallos hay que esperar 30 s.
 
+### Dos formas de publicarla
+1. **Artifact de claude.ai**: datos en el `db` del artifact, sincronizados entre dispositivos. Necesita un Safari reciente.
+2. **Independiente** (`docs/` en GitHub Pages): datos en `localStorage` del dispositivo, con copia de seguridad JSON
+   (`FP.makeBackup` y `FP.parseBackup`). Fuera del visor (`!window.claude`), las exportaciones usan la hoja de compartir de iOS o una descarga normal.
+
 ## Comandos
 ```bash
 npm test          # tests unitarios de logic.js
 npm run e2e       # prueba completa en iPad simulado (Chromium); capturas en shots/
+npm run build     # regenera docs/
+npm run e2e:standalone  # prueba docs/ en iPhone simulado (instalación, sin conexión, copias)
 ```
 Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic.js` y `app.js`
 y `capabilities: {db: {}, downloads: true}`. Para actualizar, vuelve a publicar en la misma URL (ver README).

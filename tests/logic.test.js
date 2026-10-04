@@ -149,3 +149,19 @@ test('datos de ejemplo: 3 miembros, 10 reglas, 5 recompensas', () => {
   assert.equal(d.rewards.length, 5);
   assert.ok(d.rules.some(r => r.points > 0) && d.rules.some(r => r.points < 0));
 });
+
+test('copia de seguridad: ida y vuelta y validación', () => {
+  const d = FP.exampleData(1);
+  const mv0 = { id: 'm1', memberId: d.members[0].id, points: 2, date: T(2026, 10, 1), kind: 'rule', title: 'x' };
+  const b = FP.makeBackup({ ...d, logs: { '2026-10': { movements: [mv0], redemptions: [] } }, settings: { sound: false } }, 5);
+  const r = FP.parseBackup(JSON.stringify(b));
+  assert.equal(r.members.length, 3);
+  assert.equal(r.rules.length, 10);
+  assert.equal(r.logs['2026-10'].movements.length, 1);
+  assert.equal(r.settings.sound, false);
+  assert.throws(() => FP.parseBackup('no es json'), /no es una copia/);
+  assert.throws(() => FP.parseBackup(JSON.stringify({ app: 'otra' })), /no es una copia/);
+  const bad = FP.parseBackup(JSON.stringify({ ...b, logs: { 'zz': {}, '2026-11': { movements: [{ foo: 1 }] } } }));
+  assert.deepEqual(Object.keys(bad.logs), ['2026-11']);
+  assert.equal(bad.logs['2026-11'].movements.length, 0);
+});

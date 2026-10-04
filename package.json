@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "e2e": "node scripts/e2e.js"
+    "e2e": "node scripts/e2e.js",
+    "build": "node scripts/build-standalone.js",
+    "e2e:standalone": "node scripts/e2e-standalone.js"
   }
 }

@@ -30,9 +30,20 @@ desde otro dispositivo con la misma cuenta. Necesita conexión a internet.
 - No hay widget en la pantalla de inicio.
 - El PIN se guarda cifrado (con hash y sal) en los datos de la app, no en el llavero (Keychain) del iPad.
 
+## Versión independiente (sin Claude)
+La carpeta `docs/` contiene una versión que no depende de claude.ai. Se publica con GitHub Pages en
+`https://<usuario>.github.io/family-points/`.
+- Se instala desde Safari con **Compartir → Añadir a pantalla de inicio** y se abre a pantalla completa con su icono.
+- Funciona **sin conexión**.
+- Los datos se guardan **en el propio dispositivo**: el iPhone y el iPad no se sincronizan entre sí.
+- **Haz una copia de seguridad** de vez en cuando en **Ajustes → Datos → Guardar copia**. Si borras el icono de la
+  pantalla de inicio, iOS borra también sus datos. Con **Restaurar copia** los recuperas o los pasas a otro dispositivo.
+
 ## Para desarrolladores
 ```bash
 npm test        # tests unitarios de la lógica (saldo, canjes, reinicios, PIN…)
 npm run e2e     # prueba completa en un iPad simulado con Chromium + Playwright
+npm run build   # regenera docs/ (versión independiente)
+npm run e2e:standalone  # prueba docs/ por HTTP: recorrido, instalación, sin conexión y copias
 ```
 Los detalles de arquitectura están en `CLAUDE.md`.
