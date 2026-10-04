@@ -35,7 +35,9 @@ La carpeta `docs/` contiene una versión que no depende de claude.ai. Se publica
 `https://<usuario>.github.io/family-points/`.
 - Se instala desde Safari con **Compartir → Añadir a pantalla de inicio** y se abre a pantalla completa con su icono.
 - Funciona **sin conexión**.
-- Los datos se guardan **en el propio dispositivo**: el iPhone y el iPad no se sincronizan entre sí.
+- **Con nube (Firebase)**: si existe `firebase-config.js`, la app pide entrar con la cuenta de la familia y los datos se
+  guardan en internet, sincronizados entre el iPad y el iPhone. Reglas de seguridad: `firestore.rules`.
+- **Sin nube**: los datos se guardan en el propio dispositivo y el iPhone y el iPad no se sincronizan entre sí.
 - **Haz una copia de seguridad** de vez en cuando en **Ajustes → Datos → Guardar copia**. Si borras el icono de la
   pantalla de inicio, iOS borra también sus datos. Con **Restaurar copia** los recuperas o los pasas a otro dispositivo.
 

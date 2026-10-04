@@ -2,15 +2,22 @@
 // Se instala en iPhone/iPad con «Añadir a pantalla de inicio», funciona sin conexión
 // y guarda los datos en el propio dispositivo.
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
-const root = path.join(__dirname, '..'), out = path.join(root, 'docs');
+const root = path.join(__dirname, '..'), out = process.env.FP_OUT || path.join(root, 'docs');
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'icons'), { recursive: true });
+fs.mkdirSync(path.join(out, 'vendor', 'firebase'), { recursive: true });
 
-const page = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+let page = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+// Nube de la familia: si existe firebase-config.js se incluye Firebase (copiado en vendor/, sin CDN externo)
+const cfgPath = process.env.FP_FIREBASE_CONFIG || path.join(root, 'firebase-config.js');
+const cloud = fs.existsSync(cfgPath);
+const FB_FILES = ['vendor/firebase/firebase-app-compat.js', 'vendor/firebase/firebase-auth-compat.js', 'vendor/firebase/firebase-firestore-compat.js', 'firebase-config.js'];
+if (cloud) page = page.replace('<script src="logic.js"></script>', FB_FILES.map(f => `<script src="${f}"></script>`).join('\n') + '\n<script src="logic.js"></script>');
 const split = page.indexOf('<div class="app">');
 const head = page.slice(0, split), body = page.slice(split);
-const files = ['app.js', 'logic.js'];
-const version = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('')).digest('hex').slice(0, 10);
+const files = ['app.js', 'logic.js'].concat(cloud ? FB_FILES : []);
+const src = f => f === 'firebase-config.js' ? cfgPath : path.join(root, f);
+const version = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(src(f), 'utf8')).join('')).digest('hex').slice(0, 10);
 
 fs.writeFileSync(path.join(out, 'index.html'), `<!doctype html>
 <html lang="es">
@@ -32,7 +39,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </body>
 </html>
 `);
-for (const f of files) fs.copyFileSync(path.join(root, f), path.join(out, f));
+for (const f of files) fs.copyFileSync(src(f), path.join(out, f));
 for (const f of fs.readdirSync(path.join(root, 'icons'))) fs.copyFileSync(path.join(root, 'icons', f), path.join(out, 'icons', f));
 
 fs.writeFileSync(path.join(out, 'manifest.webmanifest'), JSON.stringify({
@@ -41,7 +48,7 @@ fs.writeFileSync(path.join(out, 'manifest.webmanifest'), JSON.stringify({
   icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }]
 }, null, 2));
 
-const assets = ['./', 'index.html', 'app.js', 'logic.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+const assets = ['./', 'index.html', 'app.js', 'logic.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'].concat(cloud ? FB_FILES : []);
 fs.writeFileSync(path.join(out, 'sw.js'), `// Generado por scripts/build-standalone.js — no editar a mano.
 const CACHE = 'family-points-${version}';
 const ASSETS = ${JSON.stringify(assets)};
@@ -58,11 +65,12 @@ self.addEventListener('fetch', e => {
   if (url.origin === location.origin) {
     // Archivos de la app: primero la caché (funciona sin conexión)
     e.respondWith(caches.match(req.mode === 'navigate' ? 'index.html' : req, { ignoreSearch: true }).then(r => r || fetch(req)));
-  } else {
-    // Fuentes y librerías externas: red y, si no hay, la copia guardada
+  } else if (/^(fonts\\.googleapis\\.com|fonts\\.gstatic\\.com|cdnjs\\.cloudflare\\.com)$/.test(url.hostname)) {
+    // Fuentes y librerías externas: red y, si no hay, la copia guardada.
+    // La sincronización con la nube (Firebase) nunca pasa por aquí.
     e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); return res; }).catch(() => caches.match(req)));
   }
 });
 `);
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
-console.log('docs/ listo · versión ' + version);
+console.log('docs/ listo · versión ' + version + (cloud ? ' · con nube (Firebase)' : ' · datos en el dispositivo'));

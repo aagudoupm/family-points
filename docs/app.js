@@ -99,6 +99,18 @@
     clearBody: 'Se borran todos los movimientos y canjes y los saldos quedan a cero. Exporta antes si quieres conservarlo.',
     cleared: 'Historial borrado',
     storeCloud: 'Los datos se guardan en tu cuenta de Claude.',
+    storeFirebase: v => 'Los datos se guardan en la nube de la familia (' + v.email + ') y se sincronizan entre dispositivos.',
+    logout: 'Cerrar sesión', logoutQ: '¿Cerrar sesión en este dispositivo?', logoutBody: 'Los datos siguen guardados en la nube. Para volver a verlos, entra con el mismo correo y contraseña.',
+    loginTitle: 'Family Points', loginText: 'Entra con la cuenta de la familia. Usa la misma en el iPad y en el iPhone para ver los mismos puntos.',
+    registerText: 'Crea la cuenta de la familia. Después entra con ella en cada dispositivo.',
+    email: 'Correo electrónico', password: 'Contraseña', password2: 'Repite la contraseña',
+    login: 'Entrar', register: 'Crear la cuenta', toRegister: 'Primera vez: crear la cuenta de la familia', toLogin: 'Ya tengo cuenta: entrar',
+    forgot: 'He olvidado la contraseña', resetSent: v => 'Te hemos enviado un correo a ' + v.email + ' para cambiar la contraseña.',
+    needEmail: 'Escribe primero tu correo', pwMismatch: 'Las contraseñas no coinciden',
+    authWrong: 'Correo o contraseña incorrectos', authExists: 'Ya existe una cuenta con ese correo. Entra con ella.',
+    authWeak: 'La contraseña debe tener al menos 6 caracteres', authEmail: 'Ese correo no es válido',
+    authNet: 'No hay conexión. Prueba de nuevo cuando tengas internet.', authMany: 'Demasiados intentos. Espera unos minutos.', authOther: 'No se ha podido entrar. Prueba de nuevo.',
+    needOnline: 'La primera vez necesitas conexión a internet para abrir la app.', retry: 'Reintentar',
     storeLocal: 'Los datos se guardan en este dispositivo. Haz una copia de seguridad de vez en cuando.',
     backupTitle: 'Copia de seguridad', backupSave: 'Guardar copia', backupRestore: 'Restaurar copia',
     backupNote: 'Guarda un archivo con todos los datos. Sirve para no perderlos o para pasarlos a otro dispositivo.',
@@ -178,9 +190,12 @@
   // =====================================================================
   // Estado y persistencia
   // =====================================================================
+  function defaultSettings() {
+    return { resetMode: 'manual', lastResetKey: '', sound: true, confetti: true, pinForPoints: false, pinHash: '', pinSalt: '', onboarded: false };
+  }
   const S = {
     members: new Map(), rules: new Map(), rewards: new Map(), logs: new Map(),
-    settings: { resetMode: 'manual', lastResetKey: '', sound: true, confetti: true, pinForPoints: false, pinHash: '', pinSalt: '', onboarded: false },
+    settings: defaultSettings(),
     loaded: new Set(), ready: false, mode: 'loading',
     tab: 'panel', unlockedUntil: 0,
     hist: { memberId: '', type: 'all', range: '30', from: '', to: '' },
@@ -298,25 +313,66 @@
       for (const [id, it] of S[coll]) if (busy(coll + '/' + id)) next.set(id, it);
       S[coll] = next;
     }
-    S.loaded.add(coll);
-    if (!S.ready && S.loaded.size === 5) { S.ready = true; onReady(); }
+    // Solo damos por cargada una colección cuando llega la versión del servidor (o si no hay conexión),
+    // para no mostrar la bienvenida ni reiniciar puntos con datos incompletos de la caché.
+    if (!(snap.metadata && snap.metadata.fromCache) || navigator.onLine === false) markLoaded(coll);
     changed();
+  }
+  function markLoaded(coll) {
+    S.loaded.add(coll);
+    if (!S.ready && S.loaded.size === COLLS.length) { S.ready = true; onReady(); }
+  }
+
+  const COLLS = ['members', 'rules', 'rewards', 'log', 'config'];
+  let unsubs = [], loadTimer = null;
+  function subscribeAll() {
+    unsubs = COLLS.map(coll => DB.collection(coll).onSnapshot(snap => applySnapshot(coll, snap), err => {
+      console.error('Suscripción', coll, err);
+      if (!S.loaded.has(coll)) { markLoaded(coll); changed(); }
+    }));
+    // Si el servidor tarda demasiado, seguimos con lo que haya
+    clearTimeout(loadTimer);
+    loadTimer = setTimeout(() => { COLLS.forEach(c => { if (!S.loaded.has(c)) markLoaded(c); }); changed(); }, 8000);
+  }
+  function unsubscribeAll() {
+    unsubs.forEach(u => { try { u(); } catch (e) { /* ya cerrada */ } });
+    unsubs = []; clearTimeout(loadTimer);
+    S.members = new Map(); S.rules = new Map(); S.rewards = new Map(); S.logs = new Map();
+    S.settings = defaultSettings(); S.unlockedUntil = 0;
+    S.loaded = new Set(); S.ready = false; shown.clear();
+  }
+
+  // Nube propia de la familia (Firebase), solo en la versión independiente
+  const FB_CONFIG = window.FP_FIREBASE || null;
+  function startFirebase() {
+    if (!window.firebase) { S.mode = 'firebase'; S.auth = 'noscript'; render(); return; }
+    if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    const fs = firebase.firestore();
+    try { fs.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch (e) { /* sin caché sin conexión */ }
+    S.mode = 'firebase'; S.auth = 'checking';
+    firebase.auth().onAuthStateChanged(user => {
+      unsubscribeAll();
+      if (user) {
+        S.auth = 'in'; S.user = { email: user.email || '' };
+        // Cada cuenta familiar tiene su propio espacio: users/{uid}/...
+        const base = 'users/' + user.uid + '/';
+        DB = { doc: p => fs.doc(base + p), collection: c => fs.collection(base + c) };
+        subscribeAll();
+      } else { S.auth = 'out'; S.user = null; DB = null; S.tab = 'panel'; }
+      renderNav(); render();
+    });
   }
 
   async function init() {
     renderNav();
     let db = null;
     try { if (window.claude && typeof window.claude.use === 'function') db = await window.claude.use('db'); } catch (e) { db = null; }
-    DB = db || localDB();
-    S.mode = db ? 'cloud' : 'local';
+    if (db) { DB = db; S.mode = 'cloud'; subscribeAll(); return; }
+    if (FB_CONFIG) { startFirebase(); return; }
+    DB = localDB(); S.mode = 'local';
     // Pide al sistema que no borre los datos locales por falta de espacio
-    if (!db && navigator.storage && navigator.storage.persist) { try { navigator.storage.persist(); } catch (e) { /* opcional */ } }
-    for (const coll of ['members', 'rules', 'rewards', 'log', 'config']) {
-      DB.collection(coll).onSnapshot(snap => applySnapshot(coll, snap), err => {
-        console.error('Suscripción', coll, err);
-        if (!S.loaded.has(coll)) { S.loaded.add(coll); if (!S.ready && S.loaded.size === 5) { S.ready = true; onReady(); } changed(); }
-      });
-    }
+    if (navigator.storage && navigator.storage.persist) { try { navigator.storage.persist(); } catch (e) { /* opcional */ } }
+    subscribeAll();
   }
 
   function onReady() {
@@ -560,7 +616,12 @@
   function render() {
     const view = $('#view');
     let el;
-    if (!S.ready) el = h('div', { class: 'empty', role: 'status' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '⭐'), h('p', null, t('loading')));
+    const out = S.mode === 'firebase' && S.auth !== 'in';
+    $('#tabs').hidden = out;
+    if (out && S.auth === 'out') el = renderLogin();
+    else if (out && S.auth === 'noscript') el = h('div', { class: 'empty', role: 'alert' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '📶'), h('p', null, t('needOnline')),
+      h('button', { class: 'btn primary', type: 'button', onclick: () => location.reload() }, t('retry')));
+    else if (!S.ready) el = h('div', { class: 'empty', role: 'status' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '⭐'), h('p', null, t('loading')));
     else if (!S.settings.onboarded && S.members.size === 0 && S.rules.size === 0) el = renderWelcome();
     else el = ({ panel: renderPanel, history: renderHistory, rewards: renderRewards, stats: renderStats, settings: renderSettings })[S.tab]();
     view.replaceChildren(el);
@@ -573,6 +634,54 @@
   }
   function balanceEl(m, b) {
     return h('span', { class: 'balance', 'data-balance': m.id, 'data-value': b }, icon('star'), h('span', { class: 'n' }, shown.has(m.id) ? shown.get(m.id) : b));
+  }
+
+  // ---------- Entrar (cuenta familiar en la nube) ----------
+  const login = { mode: 'login', email: '', msg: '', busy: false };
+  function authMessage(e) {
+    const c = (e && e.code) || '';
+    if (/wrong-password|user-not-found|invalid-credential|invalid-login/.test(c)) return t('authWrong');
+    if (/email-already-in-use/.test(c)) return t('authExists');
+    if (/weak-password/.test(c)) return t('authWeak');
+    if (/invalid-email/.test(c)) return t('authEmail');
+    if (/network-request-failed/.test(c)) return t('authNet');
+    if (/too-many-requests/.test(c)) return t('authMany');
+    return t('authOther');
+  }
+  function renderLogin() {
+    const reg = login.mode === 'register';
+    const email = h('input', { class: 'input', id: 'l-email', type: 'email', autocomplete: 'username', inputmode: 'email', autocapitalize: 'off', value: login.email });
+    const pass = h('input', { class: 'input', id: 'l-pass', type: 'password', autocomplete: reg ? 'new-password' : 'current-password', minlength: '6' });
+    const pass2 = reg ? h('input', { class: 'input', id: 'l-pass2', type: 'password', autocomplete: 'new-password', minlength: '6' }) : null;
+    const msg = h('p', { class: 'pin-msg', role: 'alert' }, login.msg);
+    const submit = async e => {
+      e.preventDefault();
+      if (login.busy) return;
+      login.email = email.value.trim();
+      if (reg && pass.value !== pass2.value) { msg.textContent = t('pwMismatch'); return; }
+      login.busy = true; btn.disabled = true; msg.textContent = '';
+      try {
+        if (reg) await firebase.auth().createUserWithEmailAndPassword(login.email, pass.value);
+        else await firebase.auth().signInWithEmailAndPassword(login.email, pass.value);
+        login.msg = '';
+      } catch (err) { msg.textContent = login.msg = authMessage(err); }
+      login.busy = false; btn.disabled = false;
+    };
+    const btn = h('button', { class: 'btn primary', type: 'submit' }, reg ? t('register') : t('login'));
+    return h('section', { class: 'welcome' },
+      h('div', { class: 'stars', 'aria-hidden': 'true', html: ICONS.star + ICONS.star + ICONS.star }),
+      h('h1', null, t('loginTitle')),
+      h('p', { class: 'sub' }, reg ? t('registerText') : t('loginText')),
+      h('form', { class: 'form card', style: { padding: '1.25rem', width: '100%', 'max-width': '26rem', 'text-align': 'left' }, onsubmit: submit },
+        h('label', { class: 'field', for: 'l-email' }, h('span', null, t('email')), email),
+        h('label', { class: 'field', for: 'l-pass' }, h('span', null, t('password')), pass),
+        reg ? h('label', { class: 'field', for: 'l-pass2' }, h('span', null, t('password2')), pass2) : null,
+        msg, btn,
+        h('button', { class: 'btn ghost small', type: 'button', onclick: () => { login.mode = reg ? 'login' : 'register'; login.email = email.value.trim(); login.msg = ''; render(); } }, reg ? t('toLogin') : t('toRegister')),
+        reg ? null : h('button', { class: 'btn small', type: 'button', style: { background: 'transparent' }, onclick: async () => {
+          const em = email.value.trim(); if (!em) { msg.textContent = t('needEmail'); email.focus(); return; }
+          try { await firebase.auth().sendPasswordResetEmail(em); msg.textContent = t('resetSent', { email: em }); } catch (err) { msg.textContent = authMessage(err); }
+        } }, t('forgot'))));
   }
 
   // ---------- Bienvenida ----------
@@ -1261,7 +1370,10 @@
     const allEntries = () => FP.historyEntries(movements(), redemptions());
     const dataCard = h('section', { class: 'card set-card' },
       h('h2', null, t('data')),
-      h('p', { class: 'note' }, S.mode === 'cloud' ? t('storeCloud') : t('storeLocal')),
+      h('p', { class: 'note' }, S.mode === 'cloud' ? t('storeCloud') : S.mode === 'firebase' ? t('storeFirebase', { email: (S.user && S.user.email) || '' }) : t('storeLocal')),
+      S.mode === 'firebase' ? h('div', { style: { 'padding-bottom': '.6rem' } }, h('button', { class: 'btn small', type: 'button', onclick: async () => {
+        if (await confirmSheet({ title: t('logoutQ'), body: t('logoutBody'), ok: t('logout') })) { S.unlockedUntil = 0; firebase.auth().signOut(); }
+      } }, t('logout'))) : null,
       h('div', { class: 'chips', style: { 'padding-bottom': '.6rem' } },
         h('button', { class: 'btn small', type: 'button', onclick: () => exportCSV(allEntries()) }, t('exportCSV')),
         h('button', { class: 'btn small', type: 'button', onclick: () => exportPDF(allEntries()) }, t('exportPDF')),

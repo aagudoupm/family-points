@@ -47,6 +47,14 @@ PBKDF2-SHA256 con sal aleatoria, guardado en `config/settings`; nunca se guarda 
 Se pide para: entrar en Ajustes, editar o borrar movimientos del historial, canjear y, si se activa la opción, dar puntos.
 Tras introducirlo queda desbloqueado 3 minutos. Tras 5 fallos hay que esperar 30 s.
 
+### Tres modos de datos (`S.mode`)
+- `cloud`: Artifact de claude.ai (`db` del visor).
+- `firebase`: versión independiente con `firebase-config.js` en la raíz (define `window.FP_FIREBASE`). Hay cuenta familiar
+  con correo y contraseña; los datos van en Firestore bajo `users/{uid}/…` con las mismas rutas que el `db`. Reglas en
+  `firestore.rules`. El SDK compat 10.14.1 está copiado en `vendor/firebase/` (sin CDN). Al cerrar sesión se vacía todo el estado.
+- `local`: versión independiente sin configuración de Firebase (`localStorage`).
+Una colección cuenta como cargada solo con un snapshot del servidor (`fromCache: false`), sin conexión o tras 8 s.
+
 ### Dos formas de publicarla
 1. **Artifact de claude.ai**: datos en el `db` del artifact, sincronizados entre dispositivos. Necesita un Safari reciente.
 2. **Independiente** (`docs/` en GitHub Pages): datos en `localStorage` del dispositivo, con copia de seguridad JSON
@@ -58,6 +66,7 @@ npm test          # tests unitarios de logic.js
 npm run e2e       # prueba completa en iPad simulado (Chromium); capturas en shots/
 npm run build     # regenera docs/
 npm run e2e:standalone  # prueba docs/ en iPhone simulado (instalación, sin conexión, copias)
+npm run e2e:cloud # dos dispositivos con la misma cuenta familiar (Firebase simulado: tests/fake-firebase.js)
 ```
 Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic.js` y `app.js`
 y `capabilities: {db: {}, downloads: true}`. Para actualizar, vuelve a publicar en la misma URL (ver README).
