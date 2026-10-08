@@ -148,7 +148,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(await page.locator('.tip').isVisible(), 'Tooltip al pasar el dedo por el gráfico');
   await page.screenshot({ path: path.join(shots, '6-estadisticas.png') });
 
-  console.log('Fase 9 · Retos, confirmación, insignias y ruleta');
+  console.log('Fase 9 · Retos, confirmación e insignias');
   const pinIfAsked = async () => { await page.waitForTimeout(300); if (await page.locator('.pin-pad').count()) { for (const d of '1234') await page.getByRole('button', { name: 'Cifra ' + d, exact: true }).click(); await page.waitForTimeout(400); } };
   const sheet = () => page.locator('.sheet').last();
   await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
@@ -187,24 +187,28 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(await page.evaluate(() => window.__FP_APP__.achievements().filter(a => a.status === 'confirmed').length) === 2, 'Mateo recibe su insignia del reto libre');
   check(/Superado/.test(await free.innerText()), 'El reto libre aparece como superado');
   await page.screenshot({ path: path.join(shots, '14-retos.png'), fullPage: true });
-  // Ruleta del lunes
+  // El editor de retos no muestra «null» con ningún tipo
+  await page.getByRole('button', { name: /Nuevo reto/ }).click(); await pinIfAsked();
+  const nulls = [];
+  for (const tp of ['Constancia', 'Racha', 'Semana limpia', 'En familia', 'Libre']) {
+    await sheet().locator('.seg button', { hasText: tp }).click(); await page.waitForTimeout(150);
+    if (/\bnull\b|undefined/.test(await sheet().innerText())) nulls.push(tp);
+  }
+  check(!nulls.length, 'Editor de retos sin «null» en ningún tipo' + (nulls.length ? ': ' + nulls.join(', ') : ''));
+  await page.screenshot({ path: path.join(shots, '15-editor-reto.png') });
+  await sheet().getByRole('button', { name: 'Cancelar' }).click(); await settle();
+  check(await page.locator('text=Ruleta').count() === 0 && await page.locator('text=ruleta').count() === 0, 'No queda rastro de la ruleta en Retos');
   await page.getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
-  await page.locator('#s-roulette').click(); await settle();
-  check(await page.evaluate(() => [...window.__FP_APP__.S.challenges.values()].filter(c => c.pool).length) >= 4, 'Al activar la ruleta se rellena el bote de ideas');
-  await page.getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
-  check(/Gira la ruleta/.test(await page.locator('.banners').innerText()), 'Aviso semanal para girar la ruleta');
-  await page.locator('.banners').getByRole('button', { name: 'Girar la ruleta' }).click();
-  await sheet().getByRole('button', { name: /Girar la ruleta/ }).click();
-  await page.waitForTimeout(3200);
-  await page.screenshot({ path: path.join(shots, '15-ruleta.png') });
-  await sheet().getByRole('button', { name: /Aceptar retos/ }).click(); await settle();
-  const spun = await page.evaluate(() => [...window.__FP_APP__.S.challenges.values()].filter(c => c.source === 'roulette').map(c => c.memberIds.length));
-  check(spun.length === 2 && spun.every(n => n === 1), 'La ruleta da un reto distinto a cada niño');
-  check(await page.locator('h1', { hasText: 'Retos' }).count() === 1, 'Tras aceptar se muestran los retos');
-  await page.getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
-  check(!/Gira la ruleta/.test(await page.locator('.banners').innerText()), 'La ruleta no se vuelve a proponer esta semana');
+  check(!/ruleta/i.test(await page.locator('#view').innerText()), 'No queda rastro de la ruleta en Ajustes');
   await page.getByRole('button', { name: 'Más', exact: true }).click(); await settle();
-  check(await page.locator('.more-tile').count() >= 8, 'Pantalla «Más» con accesos');
+  check(await page.locator('.more-tile').count() >= 8 && !/ruleta/i.test(await page.locator('#view').innerText()), 'Pantalla «Más» con accesos y sin ruleta');
+  // Ningún texto «null» en las pantallas principales
+  const leaks = [];
+  for (const tab of ['Panel', 'Retos', 'Premios', 'Resumen', 'Más', 'Ajustes']) {
+    await page.locator('#tabs').getByRole('button', { name: tab, exact: true }).click(); await pinIfAsked(); await page.waitForTimeout(200);
+    if (/\bnull\b|undefined|NaN/.test(await page.locator('#view').innerText())) leaks.push(tab);
+  }
+  check(!leaks.length, 'Ninguna pantalla muestra «null», «undefined» o «NaN»' + (leaks.length ? ': ' + leaks.join(', ') : ''));
 
   console.log('Persistencia');
   await page.reload();

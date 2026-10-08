@@ -284,6 +284,7 @@
   // 'clean' (ninguna vez una regla negativa en toda la semana), 'family' (entre todos N estrellas)
   // y 'free' (objetivo libre que marca un adulto).
   // Duración (period): 'weekly' (se repite cada semana), 'week' (solo la semana weekStart) u 'open' (sin fecha).
+  // (Los retos con pool: true venían de la antigua ruleta y se ignoran.)
   // Un reto conseguido nunca se premia solo: queda «listo para confirmar» hasta que un adulto lo acepta o lo descarta.
   // Cada decisión se guarda como un logro (achievement): {challengeId, periodKey, memberId, status: 'confirmed'|'dismissed'}.
   const CHALLENGE_TYPES = ['count', 'streak', 'clean', 'family', 'free'];
@@ -422,33 +423,6 @@
     return 'Reto especial';
   }
 
-  // Ideas para la ruleta a partir de las reglas existentes
-  function defaultPool(rules, now) {
-    const pos = rules.filter(r => r.points > 0).slice(0, 4), neg = rules.filter(r => r.points < 0).slice(0, 2);
-    const mk = (o, rule) => Object.assign({ id: uid(), pool: true, active: true, period: 'week', memberIds: [], createdAt: now || Date.now(), ruleId: rule ? rule.id : '', reward: '' }, o, { title: challengeTitle(o, rule) });
-    const out = [];
-    pos.forEach(r => {
-      out.push(mk({ type: 'count', target: 4, stars: 4, icon: r.icon }, r));
-      out.push(mk({ type: 'streak', target: 3, stars: 5, icon: '🔥' }, r));
-    });
-    neg.forEach(r => out.push(mk({ type: 'clean', target: 7, stars: 6, icon: '🧼' }, r)));
-    out.push(mk({ type: 'family', target: 40, stars: 0, icon: '👨‍👩‍👧', reward: 'Noche de peli en familia' }));
-    return out;
-  }
-
-  // Ruleta: convierte ideas del bote en retos de esta semana. mode 'each' = uno por niño; 'all' = uno para todos.
-  function rouletteChallenges(pool, members, mode, now, rnd) {
-    rnd = rnd || Math.random;
-    const ideas = pool.filter(c => c.active !== false);
-    if (!ideas.length) return [];
-    const make = (tpl, memberIds) => Object.assign({}, tpl, { id: uid(), pool: false, active: true, period: 'week', weekStart: weekStart(now), memberIds, source: 'roulette', createdAt: now });
-    if (mode === 'all') return [make(ideas[Math.floor(rnd() * ideas.length)], [])];
-    const kids = members.filter(m => m.role !== 'adult');
-    const individual = ideas.filter(c => c.type !== 'family');
-    const list = individual.length ? individual : ideas;
-    return (kids.length ? kids : members).map(m => make(list[Math.floor(rnd() * list.length)], [m.id]));
-  }
-
   // ---------- Copia de seguridad ----------
   function makeBackup(data, now) {
     return {
@@ -489,7 +463,7 @@
     isValidPin, hashPin, createPinRecord, verifyPin, milestoneCrossed,
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
-    confirmChallenge, dismissChallenge, badgesFor, challengeTitle, defaultPool, rouletteChallenges
+    confirmChallenge, dismissChallenge, badgesFor, challengeTitle
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

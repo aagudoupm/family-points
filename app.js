@@ -18,7 +18,7 @@
     typeHelpCount: 'Hacer una regla varias veces en la semana.', typeHelpStreak: 'Hacer una regla varios días seguidos.',
     typeHelpClean: 'Que una regla negativa no ocurra en toda la semana. Se comprueba el domingo por la noche.',
     typeHelpFamily: 'Entre todos, conseguir un número de estrellas en la semana.', typeHelpFree: 'Un objetivo especial. Lo marca un adulto cuando se consiga.',
-    newChallenge: 'Nuevo reto', editChallenge: 'Editar reto', newIdea: 'Nueva idea para la ruleta', editIdea: 'Editar idea de la ruleta',
+    newChallenge: 'Nuevo reto', editChallenge: 'Editar reto',
     challengeType: 'Tipo de reto', challengeRule: 'Regla', noRuleOfType: 'Primero crea una regla de ese tipo en Ajustes.', chooseRule: 'Elige una regla',
     targetCount: 'Veces en la semana', targetStreak: 'Días seguidos', targetFamily: 'Estrellas entre todos',
     bonusStars: 'Estrellas extra al conseguirlo', bonusStarsFamily: 'Estrellas extra para cada uno',
@@ -36,20 +36,10 @@
     freeDoneQ: v => '¿Ha conseguido ' + v.name + ' «' + v.title + '»?', freeDoneBody: 'Al confirmarlo recibirá la insignia y las estrellas extra.',
     celebrateTitle: '¡Reto superado!', newBadge: 'Nueva insignia', plusStarsEach: v => '+' + v.n + ' estrellas' + (v.many ? ' para cada uno' : ''),
     familyPrize: v => 'Premio familiar: ' + v.reward, great: '¡Genial!', dismissed: 'Reto no contado',
-    noChallenges: 'Todavía no hay retos esta semana', noChallengesSub: 'Crea uno, usa los de ejemplo o gira la ruleta.',
+    noChallenges: 'Todavía no hay retos esta semana', noChallengesSub: 'Crea uno o empieza con los de ejemplo.', forAll: 'Para todos',
     exampleChallenges: 'Crear retos de ejemplo', exampleReward: 'Noche de peli en familia',
     cardChallenges: v => '🏆 ' + v.done + '/' + v.total, challengeRowLabel: v => v.name + ': ' + v.status + ', ' + v.prog,
     starsBonus: v => '+' + v.n + ' ⭐',
-    // Ruleta
-    roulette: 'Ruleta', rouletteTitle: 'Ruleta de retos', spin: 'Girar la ruleta', spinAgain: 'Volver a girar', rouletteAccept: '¡Aceptar retos!',
-    rouletteBanner: '¡Nueva semana! Gira la ruleta de retos', rouletteDone: 'Ya habéis girado la ruleta esta semana. Si vuelves a girar, se cambian los retos que salieron.',
-    rouletteEmpty: 'El bote de la ruleta está vacío.', rouletteSaved: 'Retos de la semana listos', rouletteForAll: 'Para todos',
-    rouletteSettings: 'Ruleta de los lunes', rouletteOn: 'Proponer la ruleta cada semana', rouletteMode: 'Reparto',
-    rouletteEach: 'Un reto para cada niño', rouletteAll: 'Uno para todos', roulettePool: 'Ideas del bote', rouletteFill: 'Rellenar con ideas',
-    roulettePoolEmpty: 'No hay ideas en el bote.', rouletteNote: 'Al empezar cada semana aparece un aviso en el panel para girarla. Los retos que salen duran esa semana.',
-    rouletteFilled: 'Bote rellenado con ideas',
-    challengesS: 'Retos', challengesNote: 'Se comprueban solos. Cuando alguien consigue un reto, un adulto lo confirma antes de dar las estrellas y la insignia.',
-    challengesNone: 'No hay retos creados.',
     // Insignias
     badgesTitle: 'Insignias', noBadges: 'Aún no hay insignias. ¡Supera retos para conseguirlas!', badgeLabel: v => v.title + ', conseguida ' + v.n + (v.n === 1 ? ' vez' : ' veces'),
     removeBadge: 'Quitar insignia', removeBadgeQ: v => '¿Quitar una insignia «' + v.title + '»?', removeBadgeBody: 'También se quitan las estrellas extra que dio.', badgeRemoved: 'Insignia quitada',
@@ -199,6 +189,8 @@
     }
     return el;
   }
+  // Sustituye el contenido de un elemento ignorando los huecos vacíos (null/false), que si no se verían como «null».
+  function fill(el, ...kids) { el.replaceChildren(...kids.flat(Infinity).filter(k => k != null && k !== false)); }
   const ICONS = {
     star: '<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.6l2.85 5.95 6.55.9-4.78 4.55 1.2 6.5L12 17.38 6.18 20.5l1.2-6.5L2.6 9.45l6.55-.9z"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg>',
@@ -239,7 +231,7 @@
   // =====================================================================
   function defaultSettings() {
     return { resetMode: 'manual', lastResetKey: '', sound: true, confetti: true, pinForPoints: false, pinHash: '', pinSalt: '', onboarded: false,
-      roulette: { enabled: false, mode: 'each' }, rouletteWeek: '' };
+    };
   }
   const S = {
     members: new Map(), rules: new Map(), rewards: new Map(), challenges: new Map(), logs: new Map(),
@@ -440,6 +432,8 @@
   }
 
   function onReady() {
+    // La ruleta se eliminó: se borran las ideas que quedaran guardadas en el bote
+    challengesList().filter(c => c.pool).forEach(c => deleteItem('challenges', c.id));
     // Reinicio automático semanal o mensual
     const due = FP.dueAutoReset(S.settings, Date.now());
     if (due) {
@@ -462,9 +456,9 @@
         const seqs = {
           plus: [[660, 0], [990, .08]], minus: [[392, 0], [262, .12]],
           redeem: [[523, 0], [659, .09], [784, .18], [1047, .27]], milestone: [[784, 0], [988, .1], [1175, .2], [1568, .3]],
-          challenge: [[523, 0], [659, .1], [784, .2], [1047, .32], [1319, .46], [1568, .6]], tick: [[1400, 0]]
+          challenge: [[523, 0], [659, .1], [784, .2], [1047, .32], [1319, .46], [1568, .6]]
         };
-        const now = this.ctx.currentTime, len = kind === 'tick' ? .05 : .28, vol = kind === 'tick' ? .05 : .16;
+        const now = this.ctx.currentTime, len = .28, vol = .16;
         for (const [f, at] of seqs[kind] || []) {
           const o = this.ctx.createOscillator(), g = this.ctx.createGain();
           o.type = kind === 'minus' ? 'triangle' : 'sine';
@@ -1121,7 +1115,6 @@
       h('div', { class: 'more-grid' },
         tile('⚙️', t('tabSettings'), () => goTab('settings')),
         tile('🏅', t('badgesTitle'), () => { S.rewardsView = 'badges'; goTab('rewards'); }),
-        tile('🎡', t('rouletteTitle'), () => openRoulette()),
         tile('🗒️', t('viewHistory'), () => { S.summaryView = 'history'; goTab('summary'); }),
         tile('📈', t('viewStats'), () => { S.summaryView = 'stats'; goTab('summary'); }),
         tile('📄', t('exportCSV'), () => exportCSV(allEntries())),
@@ -1261,18 +1254,14 @@
   function pendingNow() {
     return FP.pendingChallenges(challengesList(), members(), movements(), achievements(), Date.now());
   }
-  const weekKey = () => FP.ymd(FP.weekStart(Date.now()));
   const namesOf = ids => ids.map(id => (S.members.get(id) || { name: '—' }).name).join(', ').replace(/, ([^,]*)$/, ' y $1');
 
-  // Avisos del panel y de Retos: retos por confirmar y ruleta de la semana
+  // Aviso del panel y de Retos: retos conseguidos por confirmar
   function challengeBanners() {
     const pend = pendingNow();
-    const rl = S.settings.roulette || {};
     return h('div', { class: 'banners' },
       pend.length ? h('div', { class: 'banner' }, h('span', { style: { 'font-size': '1.8rem' }, 'aria-hidden': 'true' }, '🏆'), h('p', null, t('pendingBanner', { n: pend.length })),
-        h('button', { class: 'btn small primary', type: 'button', onclick: reviewPending }, t('review'))) : null,
-      rl.enabled && S.settings.rouletteWeek !== weekKey() ? h('div', { class: 'banner' }, h('span', { style: { 'font-size': '1.8rem' }, 'aria-hidden': 'true' }, '🎡'), h('p', null, t('rouletteBanner')),
-        h('button', { class: 'btn small primary', type: 'button', onclick: () => openRoulette() }, t('spin'))) : null);
+        h('button', { class: 'btn small primary', type: 'button', onclick: reviewPending }, t('review'))) : null);
   }
 
   function renderChallenges() {
@@ -1284,14 +1273,12 @@
     const head = h('div', { class: 'page-head' },
       h('div', null, h('h1', null, t('challengesTitle')), h('p', { class: 'sub' }, t('challengesSub'))),
       h('div', { class: 'chips' },
-        h('button', { class: 'btn small', type: 'button', onclick: () => openRoulette() }, '🎡 ' + t('roulette')),
         h('button', { class: 'btn small primary', type: 'button', onclick: async () => { if (await requirePin()) editChallenge(); } }, icon('plus'), t('newChallenge'))));
     if (!board.length) {
       return h('div', null, head, challengeBanners(), h('div', { class: 'empty card' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '🏆'),
         h('p', null, h('strong', null, t('noChallenges'))), h('p', null, t('noChallengesSub')),
         h('div', { class: 'chips', style: { 'justify-content': 'center' } },
-          h('button', { class: 'btn primary', type: 'button', onclick: createExampleChallenges }, t('exampleChallenges')),
-          h('button', { class: 'btn', type: 'button', onclick: () => openRoulette() }, '🎡 ' + t('spin')))));
+          h('button', { class: 'btn primary', type: 'button', onclick: createExampleChallenges }, t('exampleChallenges')))));
     }
     return h('div', null, head, challengeBanners(),
       kids.length > 1 ? h('div', { class: 'filters' }, memberChips(sel, id => { S.chalMember = id; render(); }, true)) : null,
@@ -1320,7 +1307,7 @@
         return h('div', { class: 'chal-row', 'aria-label': t('challengeRowLabel', { name: namesOf(r.memberIds), status: t(STATUS_LABEL[r.status]), prog: label }) },
           h('span', { class: 'chal-who', 'aria-hidden': 'true' }, ms.slice(0, 4).map(m => avatar(m))),
           h('span', { class: 'grow', 'aria-hidden': 'true' },
-            h('span', { class: 'chal-name' }, st.family ? t('rouletteForAll') : namesOf(r.memberIds)),
+            h('span', { class: 'chal-name' }, st.family ? t('forAll') : namesOf(r.memberIds)),
             h('span', { class: 'bar' + (r.status === 'failed' ? ' failed' : '') }, h('i', { style: { width: pct + '%', background: color } })),
             h('span', { class: 'chal-meta' }, label)),
           action);
@@ -1428,12 +1415,10 @@
     list.forEach(c => { c.id = FP.uid(); c.order = order++; c.title = FP.challengeTitle(c, rs.find(r => r.id === c.ruleId)); saveItem('challenges', c); });
   }
 
-  // Editor de retos (también de las ideas de la ruleta, con pool: true)
-  function editChallenge(existing, opts) {
-    opts = opts || {};
+  // Editor de retos
+  function editChallenge(existing) {
     const now = Date.now();
-    const isPool = existing ? !!existing.pool : !!opts.pool;
-    const c = existing ? clone(existing) : { id: FP.uid(), type: 'count', title: '', icon: '', ruleId: '', target: 5, stars: 5, memberIds: [], period: isPool ? 'week' : 'weekly', reward: '', active: true, pool: isPool, createdAt: now, order: nextOrder(challengesList()) };
+    const c = existing ? clone(existing) : { id: FP.uid(), type: 'count', title: '', icon: '', ruleId: '', target: 5, stars: 5, memberIds: [], period: 'weekly', reward: '', active: true, createdAt: now, order: nextOrder(challengesList()) };
     const DEF_TARGET = { count: 5, streak: 3, family: 40, clean: 7, free: 1 };
     openSheet({
       build: ctx => {
@@ -1458,7 +1443,7 @@
           if (c.type !== 'free' && c.period === 'open') c.period = 'weekly';
           const rangeFor = { count: [1, 21], streak: [2, 7], family: [5, 999] }[c.type];
           if (rangeFor) c.target = Math.max(rangeFor[0], Math.min(rangeFor[1], Number(c.target) || DEF_TARGET[c.type]));
-          body.replaceChildren(
+          fill(body,
             h('div', { class: 'field' }, h('span', null, t('challengeType')),
               seg(FP.CHALLENGE_TYPES.map(tp => [tp, FP.CHALLENGE_ICONS[tp] + ' ' + t(TYPE_LABEL[tp])]), c.type, v => {
                 if (v === c.type) return;
@@ -1476,14 +1461,14 @@
             h('label', { class: 'field', for: 'c-title' }, h('span', null, t('titleAuto')), titleIn),
             h('div', { class: 'field' }, h('span', null, t('icon')), emojiPicker(['🏆', '🎯', '🔥', '🧼', '🏅', '🌟', '💪', '📚', '🛏️', '🪥', '🧸', '🧹', '🥦', '🤝', '💛', '😴', '👟', '🎨', '🎵', '⚽', '👨‍👩‍👧', '🍕', '🎬'],
               c.icon || FP.CHALLENGE_ICONS[c.type], e => { c.icon = e; }, 'c-emoji')),
-            !isPool ? h('div', { class: 'field' }, h('span', null, t('forWhom')),
+            h('div', { class: 'field' }, h('span', null, t('forWhom')),
               h('div', { class: 'chips', role: 'group', 'aria-label': t('forWhom') },
                 h('button', { class: 'chip text', type: 'button', 'aria-pressed': c.memberIds.length ? 'false' : 'true', onclick: () => { c.memberIds = []; paint(); } }, t('allKids')),
                 members().map(m => h('button', { class: 'chip', type: 'button', 'aria-pressed': c.memberIds.includes(m.id) ? 'true' : 'false', onclick: () => {
                   c.memberIds = c.memberIds.includes(m.id) ? c.memberIds.filter(x => x !== m.id) : c.memberIds.concat(m.id); paint();
-                } }, avatar(m), m.name)))) : null,
-            !isPool ? h('div', { class: 'field' }, h('span', null, t('duration')),
-              seg([['weekly', t('periodWeekly')], ['week', t('periodWeek')]].concat(c.type === 'free' ? [['open', t('periodOpen')]] : []), c.period, v => { c.period = v; paint(); }, t('duration'))) : null,
+                } }, avatar(m), m.name)))),
+            h('div', { class: 'field' }, h('span', null, t('duration')),
+              seg([['weekly', t('periodWeekly')], ['week', t('periodWeek')]].concat(c.type === 'free' ? [['open', t('periodOpen')]] : []), c.period, v => { c.period = v; paint(); }, t('duration'))),
             h('div', { class: 'switch' }, h('label', { for: 'c-active' }, t('challengeActive')), toggle('c-active', c.active !== false, v => { c.active = v; }, t('challengeActive'))),
             err,
             h('div', { class: 'form-actions' },
@@ -1501,78 +1486,7 @@
               } }, t('save'))));
         };
         paint();
-        return [sheetHead(ctx, existing ? (isPool ? t('editIdea') : t('editChallenge')) : (isPool ? t('newIdea') : t('newChallenge'))), body];
-      }
-    });
-  }
-
-  // Ruleta de retos
-  function fillPool() {
-    const ideas = FP.defaultPool(rules(), Date.now());
-    let order = nextOrder(challengesList());
-    ideas.forEach(c => { c.order = order++; saveItem('challenges', c); });
-    toast(t('rouletteFilled'));
-  }
-  async function openRoulette() {
-    const wk = weekKey();
-    const already = S.settings.rouletteWeek === wk;
-    const mode = (S.settings.roulette && S.settings.roulette.mode) || 'each';
-    openSheet({
-      wide: true,
-      build: ctx => {
-        const pool = challengesList().filter(c => c.pool && c.active !== false);
-        if (!pool.length) {
-          return [sheetHead(ctx, t('rouletteTitle'), h('span', { style: { 'font-size': '2.2rem' }, 'aria-hidden': 'true' }, '🎡')),
-            h('div', { class: 'empty' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '🎡'), h('p', null, t('rouletteEmpty')),
-              h('button', { class: 'btn primary', type: 'button', onclick: async () => { if (await requirePin()) { fillPool(); ctx.close(); setTimeout(openRoulette, 50); } } }, t('rouletteFill')))];
-        }
-        const kids = members().filter(m => m.role !== 'adult');
-        const targets = mode === 'all' ? [null] : (kids.length ? kids : members());
-        const slots = targets.map(m => {
-          const disp = h('span', { class: 'slot-text' }, h('span', { class: 'ico', 'aria-hidden': 'true' }, '❔'), h('span', null, '…'));
-          return { m, disp, el: h('div', { class: 'slot' }, m ? avatar(m, 'md') : h('span', { class: 'chal-ico', 'aria-hidden': 'true' }, '👨‍👩‍👧'),
-            h('span', { class: 'grow' }, h('span', { class: 'chal-name' }, m ? m.name : t('rouletteForAll')), disp)) };
-        });
-        const show = (slot, c) => slot.disp.replaceChildren(h('span', { class: 'ico', 'aria-hidden': 'true' }, c.icon || FP.CHALLENGE_ICONS[c.type]),
-          h('span', null, c.title, c.stars > 0 ? ' · ' + t('starsBonus', { n: c.stars }) : ''));
-        let picks = null, spinning = false;
-        const live = h('p', { class: 'sr', 'aria-live': 'polite' });
-        const accept = h('button', { class: 'btn good', type: 'button', hidden: true }, '✓ ' + t('rouletteAccept'));
-        const spinBtn = h('button', { class: 'btn primary', type: 'button' }, '🎡 ' + (already ? t('spinAgain') : t('spin')));
-        const animate = (slot, pick, extra) => new Promise(res => {
-          if (reduceMotion()) { show(slot, pick); res(); return; }
-          slot.el.classList.add('spinning');
-          const t0 = performance.now(), dur = 1700 + extra; let last = 0;
-          (function f(now) {
-            const k = (now - t0) / dur;
-            if (k >= 1) { slot.el.classList.remove('spinning'); show(slot, pick); Sound.play('plus'); res(); return; }
-            if (now - last > 50 + 280 * k * k) { last = now; show(slot, pool[Math.floor(Math.random() * pool.length)]); Sound.play('tick'); }
-            requestAnimationFrame(f);
-          })(t0);
-        });
-        spinBtn.addEventListener('click', async () => {
-          if (spinning) return;
-          if (already && !picks && !(await requirePin())) return;
-          spinning = true; spinBtn.disabled = true; accept.hidden = true;
-          picks = FP.rouletteChallenges(pool, members(), mode, Date.now());
-          await Promise.all(slots.map((sl, i) => animate(sl, picks[i], i * 450)));
-          live.textContent = picks.map((p, i) => (slots[i].m ? slots[i].m.name : t('rouletteForAll')) + ': ' + p.title).join('. ');
-          spinning = false; spinBtn.disabled = false; spinBtn.textContent = '🎡 ' + t('spinAgain'); accept.hidden = false;
-        });
-        accept.addEventListener('click', () => {
-          if (!picks) return;
-          const ws = FP.weekStart(Date.now());
-          challengesList().filter(c => c.source === 'roulette' && c.weekStart === ws).forEach(c => deleteItem('challenges', c.id));
-          let order = nextOrder(challengesList());
-          picks.forEach(c => { c.order = order++; saveItem('challenges', c); });
-          saveSettings({ rouletteWeek: wk });
-          ctx.close(); confetti(90); Sound.play('redeem'); toast(t('rouletteSaved'));
-          if (S.tab !== 'challenges') goTab('challenges');
-        });
-        return [sheetHead(ctx, t('rouletteTitle'), h('span', { style: { 'font-size': '2.2rem' }, 'aria-hidden': 'true' }, '🎡')),
-          already ? h('p', { class: 'note' }, t('rouletteDone')) : null,
-          h('div', { class: 'slots' }, slots.map(sl => sl.el)), live,
-          h('div', { class: 'form-actions', style: { 'justify-content': 'center' } }, spinBtn, accept)];
+        return [sheetHead(ctx, existing ? t('editChallenge') : t('newChallenge')), body];
       }
     });
   }
@@ -1788,30 +1702,15 @@
       h('h2', null, t('rewards'), h('span', { class: 'chips' }, h('button', { class: 'btn small', type: 'button', onclick: () => openTemplates('rewards') }, t('templates')), addBtn(t('add'), () => editReward()))),
       orderedList('rewards', rewards(), r => [h('span', { class: 'ico', 'aria-hidden': 'true' }, r.icon), h('span', { class: 'grow' }, h('div', { class: 'title' }, r.title), r.active === false ? h('div', { class: 'meta' }, t('inactive')) : null),
         h('span', { class: 'pill neu' }, '★ ' + r.cost)], editReward));
-    const rl = st.roulette || { enabled: false, mode: 'each' };
     const chalRow = c => [h('span', { class: 'ico', 'aria-hidden': 'true' }, c.icon || FP.CHALLENGE_ICONS[c.type]),
       h('span', { class: 'grow' }, h('div', { class: 'title' }, c.title),
-        h('div', { class: 'meta' }, [t(TYPE_LABEL[c.type]), c.pool ? '' : t(PERIOD_LABEL[c.period] || 'periodWeekly'), c.pool || !c.memberIds || !c.memberIds.length ? '' : namesOf(c.memberIds), c.active === false ? t('paused') : ''].filter(Boolean).join(' · '))),
+        h('div', { class: 'meta' }, [t(TYPE_LABEL[c.type]), t(PERIOD_LABEL[c.period] || 'periodWeekly'), !c.memberIds || !c.memberIds.length ? '' : namesOf(c.memberIds), c.active === false ? t('paused') : ''].filter(Boolean).join(' · '))),
       c.stars > 0 ? h('span', { class: 'pill pos' }, '+' + c.stars) : null];
     const chalList = challengesList().filter(c => !c.pool && !(c.period === 'week' && c.weekStart < FP.weekStart(Date.now()) - 7 * FP.DAY));
-    const poolList = challengesList().filter(c => c.pool);
     const challengesCard = h('section', { class: 'card set-card' },
       h('h2', null, t('challengesS'), addBtn(t('add'), () => editChallenge())),
       h('p', { class: 'note' }, t('challengesNote')),
       chalList.length ? orderedList('challenges', chalList, chalRow, c => editChallenge(c)) : h('p', { class: 'note' }, t('challengesNone')));
-    const rouletteCard = h('section', { class: 'card set-card' },
-      h('h2', null, t('rouletteSettings')),
-      h('div', { class: 'switch' }, h('label', { for: 's-roulette' }, t('rouletteOn')), toggle('s-roulette', rl.enabled, v => {
-        saveSettings({ roulette: Object.assign({}, rl, { enabled: v }) });
-        if (v && !challengesList().some(c => c.pool)) fillPool();
-      }, t('rouletteOn'))),
-      h('div', { class: 'field', style: { margin: '.4rem 0 .6rem' } }, h('span', { class: 'note', style: { margin: 0 } }, t('rouletteMode')),
-        seg([['each', t('rouletteEach')], ['all', t('rouletteAll')]], rl.mode || 'each', v => saveSettings({ roulette: Object.assign({}, rl, { mode: v }) }), t('rouletteMode'))),
-      h('p', { class: 'note' }, t('rouletteNote')),
-      h('h3', { class: 'col-title' }, t('roulettePool'), h('span', { class: 'chips', style: { 'margin-left': 'auto' } },
-        h('button', { class: 'btn small', type: 'button', onclick: fillPool }, t('rouletteFill')),
-        addBtn(t('add'), () => editChallenge(null, { pool: true })))),
-      poolList.length ? orderedList('challenges', poolList, chalRow, c => editChallenge(c)) : h('p', { class: 'note' }, t('roulettePoolEmpty')));
     const resetCard = h('section', { class: 'card set-card' },
       h('h2', null, t('resetTitleS')),
       seg([['manual', t('resetManual')], ['weekly', t('resetWeekly')], ['monthly', t('resetMonthly')]], st.resetMode, v => saveSettings({ resetMode: v, lastResetKey: FP.periodKey(v, Date.now()) })),
@@ -1860,7 +1759,7 @@
         h('button', { class: 'btn small primary', type: 'button', onclick: setNewPin }, t('createPin'))) : null,
       h('div', { class: 'settings' },
         h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, membersCard, rulesCard, rewardsCard, challengesCard),
-        h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, secCard, rouletteCard, resetCard, fxCard, dataCard)));
+        h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, secCard, resetCard, fxCard, dataCard)));
   }
   function saveBackup() {
     const logs = {};

@@ -337,15 +337,6 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 .celebrate .cb { margin: 0; color: var(--muted); font-weight: 600; }
 .celebrate .btn { margin-top: .75rem; min-width: 12rem; }
 
-/* Ruleta */
-.slots { display: grid; gap: .75rem; margin: .5rem 0 1rem; }
-.slot { display: flex; align-items: center; gap: .9rem; padding: .9rem 1rem; border-radius: 20px; background: var(--surface); border: 3px dashed var(--star); min-height: 5.5rem; }
-.slot .grow { flex: 1; min-width: 0; }
-.slot-text { display: flex; align-items: center; gap: .6rem; font-weight: 700; font-size: 1.05rem; }
-.slot-text .ico { font-size: 2.4rem; line-height: 1; }
-.slot.spinning { border-style: solid; animation: wobble .18s infinite alternate; }
-@keyframes wobble { to { transform: translateY(-2px) rotate(-.4deg); } }
-
 /* Insignias */
 .badges { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); }
 .badge { display: grid; justify-items: center; gap: .35rem; padding: .9rem .5rem; border-radius: 18px; background: var(--surface-2); text-align: center; font-weight: 700; font-size: .85rem; line-height: 1.2; }

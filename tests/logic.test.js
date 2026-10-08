@@ -292,21 +292,6 @@ test('insignias agrupadas por reto', () => {
   assert.equal(FP.badgesFor('l', a).length, 0);
 });
 
-test('ruleta: un reto por niño o uno para todos, desde el bote de ideas', () => {
-  const rules = [{ id: 'r1', title: 'Cama', icon: '🛏️', points: 1 }, { id: 'r2', title: 'Pelear', icon: '😠', points: -2 }];
-  const pool = FP.defaultPool(rules, 1);
-  assert.ok(pool.length >= 4);
-  assert.ok(pool.every(c => c.pool && c.title));
-  assert.ok(pool.some(c => c.type === 'clean' && c.ruleId === 'r2'));
-  const now = T(2026, 10, 6, 10);
-  const each = FP.rouletteChallenges(pool, fam, 'each', now, () => 0);
-  assert.equal(each.length, 2);
-  assert.ok(each.every(c => !c.pool && c.period === 'week' && c.weekStart === MON && c.memberIds.length === 1 && c.type !== 'family' && c.source === 'roulette'));
-  const all = FP.rouletteChallenges(pool, fam, 'all', now, () => 0.999);
-  assert.equal(all.length, 1); assert.deepEqual(all[0].memberIds, []);
-  assert.deepEqual(FP.rouletteChallenges([], fam, 'each', now), []);
-});
-
 test('copia de seguridad incluye retos y logros', () => {
   const c = ch({ id: 'cc1', type: 'free' });
   const ach = FP.confirmChallenge(c, { key: 'open' }, ['a'], 5).achievements;

@@ -49,14 +49,13 @@ Tras introducirlo queda desbloqueado 3 minutos. Tras 5 fallos hay que esperar 30
 
 ### Retos (`challenges/{id}`)
 `{id, type: 'count'|'streak'|'clean'|'family'|'free', title, icon, ruleId, target, stars, memberIds[] (vacío = todos los niños),
-period: 'weekly'|'week'|'open', weekStart, reward, active, pool, source: 'roulette'?, order, createdAt}`.
-- `pool: true` = idea del bote de la ruleta (no es un reto activo). La ruleta copia ideas como retos `period: 'week'` (uno por niño o uno para todos).
+period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
+- La ruleta de retos se eliminó: los retos antiguos con `pool: true` se ignoran y se borran al cargar (`onReady`).
 - El progreso se calcula siempre a partir de los movimientos (`FP.challengeProgress`); nunca se guarda.
 - Un reto conseguido queda **pendiente de confirmar** (`FP.pendingChallenges`, semana actual y anterior). Al confirmar (con PIN) se crean
   logros en `log/{YYYY-MM}.achievements` (`status: 'confirmed'`) que son las insignias, y movimientos `kind: 'challenge'` con las estrellas extra.
   «No contar» guarda un logro `status: 'dismissed'` para no volver a preguntar.
 - Los bonus de retos (`kind: 'challenge'`) y los reinicios no cuentan para los retos; sí para saldo, ranking y gráficos.
-- Ajustes: `settings.roulette = {enabled, mode: 'each'|'all'}` y `settings.rouletteWeek` (semana ya girada).
 
 ### Navegación
 Barra inferior de 5: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Resumen (Historial | Gráficos) · Más.
@@ -87,6 +86,7 @@ Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic
 y `capabilities: {db: {}, downloads: true}`. Para actualizar, vuelve a publicar en la misma URL (ver README).
 
 ## Reglas de estilo
+- Para rellenar un contenedor con partes opcionales usa `fill(el, ...)` (ignora `null`/`false`); `replaceChildren` y `append` los pintarían como «null».
 - Todo texto visible pasa por `t('clave')` y el catálogo `STR` de `app.js` (español). No escribas literales en las vistas.
 - Colores siempre con tokens CSS (`--bg`, `--fg`, `--good`, `--bad`, `--star`…), definidos para claro y oscuro.
 - Tamaños en `rem`: el `html` usa `-apple-system-body`, así que la app sigue el tamaño de texto del iPad (Dynamic Type).
