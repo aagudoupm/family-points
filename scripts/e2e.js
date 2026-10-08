@@ -107,8 +107,8 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(await balance('Lucía') === 0, 'Reinicio manual deja el saldo a 0');
 
   console.log('Fase 3 · Historial');
-  await page.getByRole('button', { name: 'Resumen', exact: true }).click();
-  await page.locator('.view-switch .seg button', { hasText: 'Historial' }).click();
+  await page.locator('#tabs').getByRole('button', { name: 'Más', exact: true }).click();
+  await page.locator('.more-tile', { hasText: 'Historial' }).click();
   await settle();
   const rows = await page.locator('.list .row').count();
   check(rows === 11, 'Historial con 11 entradas (9 movimientos + 1 canje + 1 reinicio): ' + rows);
@@ -134,8 +134,8 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.screenshot({ path: path.join(shots, '5-historial.png') });
 
   console.log('Fase 6 · Estadísticas');
-  await page.getByRole('button', { name: 'Resumen', exact: true }).click();
-  await page.locator('.view-switch .seg button', { hasText: 'Gráficos' }).click();
+  await page.locator('#tabs').getByRole('button', { name: 'Más', exact: true }).click();
+  await page.locator('.more-tile', { hasText: 'Gráficos' }).click();
   await settle();
   check(await page.locator('.chart-wrap polyline').count() === 3, 'Gráfico con una línea por miembro');
   check(await page.locator('.bar-row').count() > 0, 'Comportamientos más frecuentes');
@@ -204,10 +204,17 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(await page.locator('.more-tile').count() >= 8 && !/ruleta/i.test(await page.locator('#view').innerText()), 'Pantalla «Más» con accesos y sin ruleta');
   // Ningún texto «null» en las pantallas principales
   const leaks = [];
-  for (const tab of ['Panel', 'Retos', 'Premios', 'Resumen', 'Más', 'Ajustes']) {
+  for (const tab of ['Panel', 'Retos', 'Premios', 'Más', 'Ajustes']) {
     await page.locator('#tabs').getByRole('button', { name: tab, exact: true }).click(); await pinIfAsked(); await page.waitForTimeout(200);
     if (/\bnull\b|undefined|NaN/.test(await page.locator('#view').innerText())) leaks.push(tab);
   }
+  for (const tile of ['Historial', 'Gráficos']) {
+    await page.locator('#tabs').getByRole('button', { name: 'Más', exact: true }).click(); await page.locator('.more-tile', { hasText: tile }).click(); await page.waitForTimeout(200);
+    if (/\bnull\b|undefined|NaN/.test(await page.locator('#view').innerText())) leaks.push(tile);
+  }
+  check(await page.locator('#tabs .tab:visible').count() === 5 && await page.locator('#tabs .tab[aria-current="page"]', { hasText: 'Más' }).count() === 1, 'Barra lateral del iPad: 4 apartados + Ajustes, y «Más» marcado en Historial/Gráficos');
+  await page.locator('.view-switch').getByRole('button', { name: /Más/ }).click(); await page.waitForTimeout(200);
+  check(await page.locator('h1', { hasText: 'Más' }).count() === 1, 'Botón «‹ Más» para volver desde Historial/Gráficos');
   check(!leaks.length, 'Ninguna pantalla muestra «null», «undefined» o «NaN»' + (leaks.length ? ': ' + leaks.join(', ') : ''));
 
   console.log('Persistencia');

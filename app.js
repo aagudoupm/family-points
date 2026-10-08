@@ -650,12 +650,12 @@
     });
   }
 
-  // Barra inferior: 5 apartados. Ajustes va en la rueda del panel y en «Más»; en la barra lateral del iPad, abajo del todo.
+  // Barra inferior sencilla para los niños: 4 apartados. Historial, gráficos, exportar y ajustes (cosas de adultos) van en «Más».
+  // Ajustes también está en la rueda del panel y, en la barra lateral del iPad, abajo del todo.
   const TABS = [
     { id: 'panel', icon: 'home', label: 'tabPanel' },
     { id: 'challenges', icon: 'trophy', label: 'tabChallenges' },
     { id: 'rewards', icon: 'gift', label: 'tabRewards' },
-    { id: 'summary', icon: 'chart', label: 'tabSummary' },
     { id: 'more', icon: 'dots', label: 'tabMore' },
     { id: 'settings', icon: 'gear', label: 'tabSettings', railOnly: true }
   ];
@@ -670,7 +670,7 @@
   function renderNav() {
     $('#tabs').replaceChildren(
       h('div', { class: 'brand', 'aria-hidden': 'true', html: ICONS.star }),
-      ...TABS.map(tb => h('button', { class: 'tab' + (tb.railOnly ? ' rail-only' : ''), type: 'button', 'aria-current': S.tab === tb.id ? 'page' : null, onclick: () => goTab(tb.id) },
+      ...TABS.map(tb => h('button', { class: 'tab' + (tb.railOnly ? ' rail-only' : ''), type: 'button', 'aria-current': S.tab === tb.id || (tb.id === 'more' && S.tab === 'summary') ? 'page' : null, onclick: () => goTab(tb.id) },
         icon(tb.icon), h('span', null, t(tb.label)))));
   }
 
@@ -1104,7 +1104,7 @@
   function renderSummary() {
     const v = S.summaryView;
     return h('div', null,
-      h('div', { class: 'view-switch' }, seg([['history', '🗒️ ' + t('viewHistory')], ['stats', '📈 ' + t('viewStats')]], v, x => { S.summaryView = x; render(); }, t('tabSummary'))),
+      h('div', { class: 'view-switch' }, h('button', { class: 'btn small ghost', type: 'button', onclick: () => goTab('more') }, '‹ ' + t('tabMore')), seg([['history', '🗒️ ' + t('viewHistory')], ['stats', '📈 ' + t('viewStats')]], v, x => { S.summaryView = x; render(); }, t('tabSummary'))),
       v === 'stats' ? renderStats() : renderHistory());
   }
   function renderMore() {

@@ -47,7 +47,7 @@ server.listen(0, async () => {
   check(await page.evaluate(() => !!navigator.serviceWorker.controller), 'Service worker activo');
   await page.screenshot({ path: path.join(shots, '9-iphone.png') });
   let wide = [];
-  for (const tab of ['Panel', 'Retos', 'Premios', 'Resumen', 'Más']) {
+  for (const tab of ['Panel', 'Retos', 'Premios', 'Más']) {
     await page.getByRole('button', { name: tab, exact: true }).click(); await page.waitForTimeout(250);
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push(tab);
   }
@@ -57,6 +57,12 @@ server.listen(0, async () => {
   await page.screenshot({ path: path.join(shots, '16-iphone-retos.png') });
   await page.getByRole('button', { name: 'Más', exact: true }).click(); await page.waitForTimeout(250);
   await page.screenshot({ path: path.join(shots, '17-iphone-mas.png') });
+  check(await page.locator('#tabs .tab:visible').count() === 4, 'Barra inferior del iPhone con 4 apartados');
+  for (const tile of ['Historial', 'Gráficos']) {
+    await page.getByRole('button', { name: 'Más', exact: true }).click(); await page.locator('.more-tile', { hasText: tile }).click(); await page.waitForTimeout(250);
+    if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push(tile);
+  }
+  await page.screenshot({ path: path.join(shots, '18-iphone-graficos.png') });
   check(!wide.length, 'Sin desbordamiento horizontal en iPhone' + (wide.length ? ': ' + wide.join(', ') : ''));
   await page.getByRole('button', { name: 'Panel', exact: true }).click();
   await ctx.setOffline(true);

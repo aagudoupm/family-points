@@ -58,8 +58,10 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 - Los bonus de retos (`kind: 'challenge'`) y los reinicios no cuentan para los retos; sí para saldo, ranking y gráficos.
 
 ### Navegación
-Barra inferior de 5: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Resumen (Historial | Gráficos) · Más.
-Ajustes: rueda del panel, mosaico en «Más» y, en la barra lateral del iPad, abajo del todo (`.tab.rail-only`). No añadir una 6.ª pestaña: usar «Más».
+Barra inferior de 4, pensada para que la usen los niños: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Más.
+«Más» reúne lo de adultos: Ajustes, Insignias, Historial y Gráficos (vista `summary`, con botón «‹ Más»), exportar, copia y sonido.
+Ajustes también está en la rueda del panel y, en la barra lateral del iPad, abajo del todo (`.tab.rail-only`).
+No añadir pestañas a la barra: lo nuevo va en «Más».
 
 ### Tres modos de datos (`S.mode`)
 - `cloud`: Artifact de claude.ai (`db` del visor).
