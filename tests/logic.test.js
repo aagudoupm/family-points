@@ -165,3 +165,16 @@ test('copia de seguridad: ida y vuelta y validación', () => {
   assert.deepEqual(Object.keys(bad.logs), ['2026-11']);
   assert.equal(bad.logs['2026-11'].movements.length, 0);
 });
+
+test('series diarias: últimos 30 días', () => {
+  const now = T(2026, 10, 8, 18);
+  const movs = [mv('a', 2, T(2026, 10, 8, 9)), mv('a', 1, T(2026, 10, 7)), mv('a', 5, T(2026, 9, 9, 10)), mv('a', 9, T(2026, 9, 8, 10)), mv('a', 4, T(2026, 10, 7), 'reset')];
+  const s = FP.series([ana], movs, 'day', 30, now);
+  assert.equal(s.starts.length, 30);
+  assert.equal(s.starts[29], T(2026, 10, 8, 0));
+  assert.equal(s.starts[0], T(2026, 9, 9, 0));
+  assert.equal(s.data.a[29], 2);
+  assert.equal(s.data.a[28], 1); // el reinicio no cuenta
+  assert.equal(s.data.a[0], 5);  // 9 sept entra; 8 sept queda fuera
+  assert.equal(s.data.a.reduce((x, y) => x + y, 0), 8);
+});

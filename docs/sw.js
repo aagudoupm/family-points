@@ -1,5 +1,5 @@
 // Generado por scripts/build-standalone.js — no editar a mano.
-const CACHE = 'family-points-a796eb44ed';
+const CACHE = 'family-points-282f63da94';
 const ASSETS = ["./","index.html","app.js","logic.js","manifest.webmanifest","icons/icon-180.png","icons/icon-192.png","icons/icon-512.png","vendor/firebase/firebase-app-compat.js","vendor/firebase/firebase-auth-compat.js","vendor/firebase/firebase-firestore-compat.js","firebase-config.js"];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));

@@ -57,8 +57,8 @@
     rewardLabel: v => v.title + ', cuesta ' + v.cost + ' estrellas' + (v.ok ? '' : ', faltan ' + v.missing),
     noRewards: 'No hay premios activos', recentRedemptions: 'Últimos canjes', noRedemptions: 'Todavía no hay canjes',
     // Estadísticas
-    statsTitle: 'Gráficos', weeks: 'Semanas', months: 'Meses',
-    evolution: 'Puntos por periodo', evolutionSubW: 'Puntos netos de cada semana (últimas 8)', evolutionSubM: 'Puntos netos de cada mes (últimos 6)',
+    statsTitle: 'Gráficos', days: 'Días', weeks: 'Semanas', months: 'Meses',
+    evolution: 'Puntos por periodo', evolutionSubD: 'Puntos netos de cada día (últimos 30)', evolutionSubW: 'Puntos netos de cada semana (últimas 8)', evolutionSubM: 'Puntos netos de cada mes (últimos 6)',
     topBehaviors: 'Lo que más se repite', topSub: 'En el mismo periodo',
     earned: 'Ganados', lost: 'Perdidos', redemptionsN: 'Canjes',
     showTable: 'Ver tabla', hideTable: 'Ocultar tabla', period: 'Periodo',
@@ -1057,13 +1057,13 @@
       svg.append(s('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), class: v === 0 ? 'zero' : 'grid' }));
       svg.append(s('text', { x: L - 8, y: y(v) + 4, 'text-anchor': 'end', class: 'axis' }, v));
     }
-    const every = labels.length > 6 ? 2 : 1;
+    const every = Math.max(1, Math.ceil(labels.length / 7));
     labels.forEach((lab, i) => { if ((labels.length - 1 - i) % every === 0) svg.append(s('text', { x: x(i), y: H - 8, 'text-anchor': i === labels.length - 1 ? 'end' : 'middle', class: 'axis' }, lab)); });
     const cross = s('line', { y1: T, y2: H - B, x1: -10, x2: -10, stroke: 'var(--muted)', 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0 });
     svg.append(cross);
     series.forEach(se => {
       svg.append(s('polyline', { points: se.values.map((v, i) => x(i) + ',' + y(v)).join(' '), fill: 'none', stroke: se.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
-      se.values.forEach((v, i) => svg.append(s('circle', { cx: x(i), cy: y(v), r: i === se.values.length - 1 ? 5 : 3.5, fill: se.color, stroke: 'var(--surface)', 'stroke-width': 2 })));
+      se.values.forEach((v, i) => svg.append(s('circle', { cx: x(i), cy: y(v), r: i === se.values.length - 1 ? 5 : labels.length > 12 ? 2.5 : 3.5, fill: se.color, stroke: 'var(--surface)', 'stroke-width': 2 })));
     });
     // Etiquetas directas al final de cada línea, separadas para que no se pisen
     const ends = series.map(se => ({ se, y: y(se.values[se.values.length - 1]) })).sort((a, b) => a.y - b.y);
@@ -1096,9 +1096,9 @@
     const all = members();
     const ms = st.memberId ? all.filter(m => m.id === st.memberId) : all;
     const now = Date.now();
-    const count = st.gran === 'week' ? 8 : 6;
+    const count = { day: 30, week: 8, month: 6 }[st.gran] || 8;
     const ser = FP.series(ms, movements(), st.gran, count, now);
-    const labels = ser.starts.map(s0 => st.gran === 'week' ? fmtShort.format(s0) : fmtMonth.format(s0));
+    const labels = ser.starts.map(s0 => st.gran === 'month' ? fmtMonth.format(s0) : fmtShort.format(s0));
     const from = ser.starts[0];
     const movs = movements().filter(m => m.kind !== 'reset' && m.date >= from && (!st.memberId || m.memberId === st.memberId) && S.members.has(m.memberId));
     const reds = redemptions().filter(r => r.date >= from && (!st.memberId || r.memberId === st.memberId));
@@ -1109,7 +1109,7 @@
     const series = ms.map(m => ({ name: m.name, color: m.color, values: ser.data[m.id] }));
     const hasData = movs.length > 0;
     const chartCard = h('section', { class: 'card chart-card', 'aria-labelledby': 'evo-h' },
-      h('h2', { id: 'evo-h' }, t('evolution')), h('p', { class: 'sub' }, st.gran === 'week' ? t('evolutionSubW') : t('evolutionSubM')),
+      h('h2', { id: 'evo-h' }, t('evolution')), h('p', { class: 'sub' }, t({ day: 'evolutionSubD', week: 'evolutionSubW', month: 'evolutionSubM' }[st.gran] || 'evolutionSubW')),
       hasData ? [
         lineChart(labels, series),
         series.length > 1 ? h('div', { class: 'legend' }, series.map(se => h('span', null, h('i', { style: { background: se.color }, 'aria-hidden': 'true' }), se.name))) : null,
@@ -1126,7 +1126,7 @@
         h('span', { class: 'track', 'aria-hidden': 'true' }, h('span', { class: 'fill ' + (b.positive ? 'pos' : 'neg'), style: { display: 'block', width: (b.count / maxC * 100) + '%' } })),
         h('span', { class: 'n', 'aria-hidden': 'true' }, '×' + b.count)))) : h('p', { class: 'sub' }, t('noStats')));
     return h('div', null,
-      h('div', { class: 'page-head' }, h('h1', null, t('statsTitle')), seg([['week', t('weeks')], ['month', t('months')]], st.gran, v => setS({ gran: v }))),
+      h('div', { class: 'page-head' }, h('h1', null, t('statsTitle')), seg([['day', t('days')], ['week', t('weeks')], ['month', t('months')]], st.gran, v => setS({ gran: v }))),
       h('div', { class: 'filters' }, memberChips(st.memberId, id => setS({ memberId: id }), true)),
       h('div', { class: 'tiles' },
         h('div', { class: 'card tile' }, h('span', { style: { 'font-size': '1.8rem' }, 'aria-hidden': 'true' }, '⬆️'), h('div', null, h('div', { class: 'v', style: { color: 'var(--good)' } }, signed(earned)), h('div', { class: 'l' }, t('earned')))),

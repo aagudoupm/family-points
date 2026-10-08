@@ -23,6 +23,7 @@
   }
   function monthStart(t) { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); }
   function addWeeks(t, n) { const d = new Date(t); d.setDate(d.getDate() + 7 * n); return d.getTime(); }
+  function addDays(t, n) { const d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); }
   function addMonths(t, n) { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth() + n, 1).getTime(); }
   function monthKey(t) { const d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
   function periodStart(mode, t) { return mode === 'monthly' ? monthStart(t) : weekStart(t); }
@@ -145,12 +146,14 @@
   }
 
   // ---------- Estadísticas ----------
-  // Puntos netos por periodo para cada miembro (sin reinicios).
+  // Puntos netos por periodo para cada miembro (sin reinicios). gran: 'day' | 'week' | 'month'.
   function series(members, movements, gran, count, now) {
+    const first = { day: dayStart, week: weekStart, month: monthStart }[gran] || weekStart;
+    const step = (t, n) => gran === 'month' ? addMonths(t, n) : gran === 'day' ? addDays(t, n) : addWeeks(t, n);
     const starts = [];
-    let s = gran === 'month' ? monthStart(now) : weekStart(now);
-    for (let i = 0; i < count; i++) { starts.unshift(s); s = gran === 'month' ? addMonths(s, -1) : addWeeks(s, -1); }
-    const end = gran === 'month' ? addMonths(starts[starts.length - 1], 1) : addWeeks(starts[starts.length - 1], 1);
+    let s = first(now);
+    for (let i = 0; i < count; i++) { starts.unshift(s); s = step(s, -1); }
+    const end = step(starts[starts.length - 1], 1);
     const data = {};
     for (const m of members) data[m.id] = starts.map(() => 0);
     for (const mv of movements) {
@@ -308,7 +311,7 @@
   }
 
   const api = {
-    DAY, uid, ymd, dayStart, weekStart, monthStart, addWeeks, addMonths, monthKey, periodStart, periodKey,
+    DAY, uid, ymd, dayStart, weekStart, monthStart, addDays, addWeeks, addMonths, monthKey, periodStart, periodKey,
     balance, balances, weeklyRanking, canRedeem, makeRedemption, movementFromRule, customMovement,
     resetMovements, dueAutoReset, historyEntries, filterHistory, series, topBehaviors, toCSV,
     isValidPin, hashPin, createPinRecord, verifyPin, milestoneCrossed,

@@ -137,6 +137,11 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await settle();
   check(await page.locator('.chart-wrap polyline').count() === 3, 'Gráfico con una línea por miembro');
   check(await page.locator('.bar-row').count() > 0, 'Comportamientos más frecuentes');
+  await page.locator('.seg button', { hasText: 'Días' }).click();
+  await page.waitForTimeout(300);
+  check(await page.locator('.chart-wrap polyline').first().getAttribute('points').then(p => p.trim().split(' ').length) === 30, 'Botón «Días»: 30 puntos por línea');
+  check(/últimos 30/.test(await page.locator('#evo-h + .sub').innerText()), 'Subtítulo de los últimos 30 días');
+  await page.screenshot({ path: path.join(shots, '6b-estadisticas-dias.png') });
   await page.locator('.chart-wrap rect').hover();
   check(await page.locator('.tip').isVisible(), 'Tooltip al pasar el dedo por el gráfico');
   await page.screenshot({ path: path.join(shots, '6-estadisticas.png') });
