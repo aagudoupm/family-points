@@ -57,6 +57,17 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
   «No contar» guarda un logro `status: 'dismissed'` para no volver a preguntar.
 - Los bonus de retos (`kind: 'challenge'`) y los reinicios no cuentan para los retos; sí para saldo, ranking y gráficos.
 
+### Tema Aventura (aspecto)
+- Fondo `.scene` fijo: cielo, sol, nubes y colinas; en modo oscuro el mismo paisaje de noche (luna y estrellas). Todo con tokens en `:root`.
+- Tarjetas con relieve (`--shadow`), botones «de juego» (`.btn` con `--b`/`--e`: canto inferior que se hunde al tocar), barra flotante.
+- Fuentes: Baloo 2 (títulos y números) y Nunito (texto), con Dynamic Type.
+- **Iconos 3D**: Fluent Emoji 3D (Microsoft, MIT) en `emoji/`, mapa en `emoji-map.js`. `h()` convierte en icono cualquier texto que sea
+  un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Emojis sin icono se ven como texto.
+  Si añades emojis nuevos al código, regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>`.
+- **Niveles** (`FP.levelFor`, `FP.earnedTotal`): por estrellas ganadas en total; lugares del mapa (Pradera, Bosque, Río…).
+  Subir de nivel lanza una celebración. Las celebraciones van en fila (`showCelebration`).
+- **Camino de premios** (`FP.trail`) en cada tarjeta del panel: hasta 4 paradas y el avatar avanzando.
+
 ### Navegación
 Barra inferior de 4, pensada para que la usen los niños: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Más.
 «Más» reúne lo de adultos: Ajustes, Insignias, Historial y Gráficos (vista `summary`, con botón «‹ Más»), exportar, copia y sonido.

@@ -2,6 +2,11 @@
 
 Estrellas por portarse bien y premios para canjearlas. Pensada para usarla en familia sobre el iPad.
 
+## Aspecto
+Estilo «Aventura»: cielo con sol, nubes y colinas (y de noche, luna y estrellas), iconos 3D, botones de juego,
+un camino hacia el siguiente premio en cada tarjeta y niveles que se van desbloqueando (Pradera, Bosque, Río…).
+Iconos: [Fluent Emoji 3D](https://github.com/microsoft/fluentui-emoji) de Microsoft (licencia MIT).
+
 ## Qué hace
 - **Panel**: una tarjeta grande por persona con su saldo de estrellas, y el ranking de la semana (de lunes a domingo).
 - **Dar puntos**: toca a alguien y elige una regla. Las verdes suman y las rojas restan. Puedes dar puntos personalizados

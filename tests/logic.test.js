@@ -300,3 +300,28 @@ test('copia de seguridad incluye retos y logros', () => {
   assert.equal(r.challenges.length, 1);
   assert.equal(r.logs['2026-10'].achievements.length, 1);
 });
+
+// ---------- Aventura ----------
+test('niveles por estrellas ganadas en total (no bajan al canjear ni al reiniciar)', () => {
+  const movs = [mv('a', 15, 1), mv('a', -3, 2), mv('a', 10, 3), mv('a', -22, 4, 'reset'), { id: 'x', memberId: 'a', points: 5, date: 5, kind: 'challenge' }];
+  assert.equal(FP.earnedTotal('a', movs), 30);
+  const lv = FP.levelFor(30);
+  assert.equal(lv.n, 2); assert.equal(lv.name, 'Bosque'); assert.equal(lv.to, 'al Bosque'); assert.equal(lv.next, 50);
+  assert.ok(Math.abs(lv.progress - 10 / 30) < 1e-9);
+  assert.equal(FP.levelFor(0).name, 'Pradera');
+  assert.equal(FP.levelFor(99999).next, null);
+  assert.equal(FP.levelFor(99999).progress, 1);
+});
+
+test('camino de premios: paradas alrededor del saldo y lo que falta', () => {
+  const rw = [10, 15, 20, 40, 60, 80].map((c, i) => ({ id: 'r' + i, title: 'P' + c, icon: '🎁', cost: c, active: true }));
+  let tr = FP.trail(17, rw);
+  assert.deepEqual(tr.stops.map(s => s.cost), [15, 20, 40, 60]);
+  assert.equal(tr.next.cost, 20); assert.equal(tr.missing, 3);
+  assert.deepEqual(tr.stops.map(s => s.reached), [true, false, false, false]);
+  tr = FP.trail(0, rw);
+  assert.deepEqual(tr.stops.map(s => s.cost), [10, 15, 20, 40]); assert.equal(tr.pos, 0);
+  tr = FP.trail(100, rw);
+  assert.equal(tr.next, null); assert.equal(tr.pos, 1); assert.deepEqual(tr.stops.map(s => s.cost), [20, 40, 60, 80]);
+  assert.equal(FP.trail(5, [{ ...rw[0], active: false }]).stops.length, 0);
+});

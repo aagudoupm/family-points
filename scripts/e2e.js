@@ -166,7 +166,15 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(await sheet().locator('.celebrate').count() === 1 && /Lucía/.test(await sheet().innerText()), 'Celebración con insignia al confirmar');
   await page.screenshot({ path: path.join(shots, '13-celebracion.png') });
   await sheet().getByRole('button', { name: '¡Genial!' }).click();
+  await page.waitForTimeout(900);
+  const lvl = sheet().locator('.celebrate', { hasText: 'Lucía llega al Bosque' });
+  check(await lvl.count() === 1, 'Subida de nivel: Lucía llega al Bosque (20 estrellas ganadas)');
+  await page.screenshot({ path: path.join(shots, '13b-nivel.png') });
+  if (await lvl.count()) await sheet().getByRole('button', { name: '¡Genial!' }).click();
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  check(/Nivel 2 · Bosque/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el nuevo nivel');
+  check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.trail .stop').count() > 0, 'Camino de premios en la tarjeta');
+  check(await page.locator('img.emo').count() > 10, 'Iconos 3D en el panel');
   check(await balance('Lucía') === bal0 + 4 + 5, 'Al confirmar se suman las 5 estrellas extra');
   check(!(await page.locator('.banners').innerText()).includes('esperando'), 'El aviso desaparece tras confirmar');
   await page.getByRole('button', { name: 'Premios', exact: true }).click();

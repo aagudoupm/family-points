@@ -45,11 +45,14 @@
     removeBadge: 'Quitar insignia', removeBadgeQ: v => '¿Quitar una insignia «' + v.title + '»?', removeBadgeBody: 'También se quitan las estrellas extra que dio.', badgeRemoved: 'Insignia quitada',
     // Más
     moreTitle: 'Más', moreSound: 'Sonido', moreBackup: 'Guardar copia',
-    hello: '¡Hola, familia!',
-    tapToGive: 'Toca a alguien para darle puntos',
+    hello: '¡Hola, aventureros!',
+    tapToGive: 'Toca a alguien para darle estrellas',
+    levelChip: v => 'Nivel ' + v.n + ' · ' + v.name,
+    trailMissing: v => 'Faltan ' + v.n + ' para ' + v.title, trailAll: '¡Puede canjear cualquier premio!', trailNone: 'Añade premios para ver el camino',
+    levelUpTitle: '¡Nuevo nivel!', levelUpText: v => v.name + ' llega ' + v.place, levelUpSub: v => 'Nivel ' + v.n + (v.next ? ' · siguiente parada: ' + v.next : ''),
     stars: v => v.n === 1 || v.n === -1 ? v.n + ' estrella' : v.n + ' estrellas',
     thisWeek: v => (v.n > 0 ? '+' : '') + v.n + ' esta semana',
-    cardLabel: v => v.name + ', ' + v.stars + '. Toca para dar puntos',
+    cardLabel: v => v.name + ', ' + v.stars + ', ' + v.level + (v.goal ? ', ' + v.goal : '') + '. Toca para dar estrellas',
     weekRanking: 'Ranking de la semana',
     sinceMonday: 'Desde el lunes',
     rankItem: v => 'Puesto ' + v.pos + ': ' + v.name + ', ' + v.pts + ' puntos esta semana',
@@ -169,6 +172,17 @@
   // Utilidades DOM
   // =====================================================================
   const $ = sel => document.querySelector(sel);
+  // Iconos 3D (Fluent Emoji, MIT) incluidos en emoji/ y listados en emoji-map.js. Si un emoji no está, se ve el del sistema.
+  const EMAP = window.FP_EMOJI_MAP || {};
+  const EMO_RE = /^((?:\p{Extended_Pictographic}(?:\uFE0F|[\u{1F3FB}-\u{1F3FF}])?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*|[0-9#*]\uFE0F\u20E3))(?:\s+([\s\S]+))?$/u;
+  const emoFile = ch => ch && (EMAP[ch] || EMAP[String(ch).replace(/\uFE0F/g, '')]);
+  function emo(ch, cls) {
+    const f = emoFile(ch);
+    if (!f) return document.createTextNode(ch || '');
+    const img = document.createElement('img');
+    img.className = 'emo' + (cls ? ' ' + cls : ''); img.src = 'emoji/' + f; img.alt = ''; img.draggable = false;
+    return img;
+  }
   function h(tag, props, ...kids) {
     const el = document.createElement(tag);
     if (props) {
@@ -185,7 +199,11 @@
     }
     for (const kid of kids.flat(Infinity)) {
       if (kid == null || kid === false) continue;
-      el.append(kid.nodeType ? kid : String(kid));
+      if (kid.nodeType) { el.append(kid); continue; }
+      const str = String(kid);
+      const m = tag !== 'option' && tag !== 'textarea' && EMO_RE.exec(str);
+      if (m && emoFile(m[1])) { el.append(emo(m[1])); if (m[2]) el.append(' ' + m[2]); continue; }
+      el.append(str);
     }
     return el;
   }
@@ -653,11 +671,11 @@
   // Barra inferior sencilla para los niños: 4 apartados. Historial, gráficos, exportar y ajustes (cosas de adultos) van en «Más».
   // Ajustes también está en la rueda del panel y, en la barra lateral del iPad, abajo del todo.
   const TABS = [
-    { id: 'panel', icon: 'home', label: 'tabPanel' },
-    { id: 'challenges', icon: 'trophy', label: 'tabChallenges' },
-    { id: 'rewards', icon: 'gift', label: 'tabRewards' },
-    { id: 'more', icon: 'dots', label: 'tabMore' },
-    { id: 'settings', icon: 'gear', label: 'tabSettings', railOnly: true }
+    { id: 'panel', emoji: '🏠', label: 'tabPanel' },
+    { id: 'challenges', emoji: '🏆', label: 'tabChallenges' },
+    { id: 'rewards', emoji: '🎁', label: 'tabRewards' },
+    { id: 'more', emoji: '🧭', label: 'tabMore' },
+    { id: 'settings', emoji: '⚙️', label: 'tabSettings', railOnly: true }
   ];
   async function goTab(id) {
     if (id === S.tab) return;
@@ -669,9 +687,9 @@
   }
   function renderNav() {
     $('#tabs').replaceChildren(
-      h('div', { class: 'brand', 'aria-hidden': 'true', html: ICONS.star }),
+      h('div', { class: 'brand', 'aria-hidden': 'true' }, emo('⭐')),
       ...TABS.map(tb => h('button', { class: 'tab' + (tb.railOnly ? ' rail-only' : ''), type: 'button', 'aria-current': S.tab === tb.id || (tb.id === 'more' && S.tab === 'summary') ? 'page' : null, onclick: () => goTab(tb.id) },
-        icon(tb.icon), h('span', null, t(tb.label)))));
+        h('span', { class: 'tab-ico', 'aria-hidden': 'true' }, emo(tb.emoji)), h('span', null, t(tb.label)))));
   }
 
   function render() {
@@ -694,7 +712,7 @@
       m.photo ? h('img', { src: m.photo, alt: '' }) : (m.emoji || '🙂'));
   }
   function balanceEl(m, b) {
-    return h('span', { class: 'balance', 'data-balance': m.id, 'data-value': b }, icon('star'), h('span', { class: 'n' }, shown.has(m.id) ? shown.get(m.id) : b));
+    return h('span', { class: 'balance', 'data-balance': m.id, 'data-value': b }, emo('⭐', 'star'), h('span', { class: 'n' }, shown.has(m.id) ? shown.get(m.id) : b));
   }
 
   // ---------- Entrar (cuenta familiar en la nube) ----------
@@ -730,7 +748,7 @@
     };
     const btn = h('button', { class: 'btn primary', type: 'submit' }, reg ? t('register') : t('login'));
     return h('section', { class: 'welcome' },
-      h('div', { class: 'stars', 'aria-hidden': 'true', html: ICONS.star + ICONS.star + ICONS.star }),
+      h('div', { class: 'stars', 'aria-hidden': 'true' }, emo('⭐'), emo('🧭'), emo('⭐')),
       h('h1', null, t('loginTitle')),
       h('p', { class: 'sub' }, reg ? t('registerText') : t('loginText')),
       h('form', { class: 'form card', style: { padding: '1.25rem', width: '100%', 'max-width': '26rem', 'text-align': 'left' }, onsubmit: submit },
@@ -748,7 +766,7 @@
   // ---------- Bienvenida ----------
   function renderWelcome() {
     return h('section', { class: 'welcome' },
-      h('div', { class: 'stars', 'aria-hidden': 'true', html: ICONS.star + ICONS.star + ICONS.star }),
+      h('div', { class: 'stars', 'aria-hidden': 'true' }, emo('⭐'), emo('🧭'), emo('⭐')),
       h('h1', null, t('welcomeTitle')),
       h('p', { class: 'sub' }, t('welcomeText')),
       h('div', { class: 'actions' },
@@ -774,8 +792,8 @@
       h('div', null, h('h1', null, t('hello')), h('p', { class: 'sub' }, ms.length ? t('tapToGive') : t('addFirstMember'))),
       h('div', { class: 'chips' },
         h('button', { class: 'icon-btn', type: 'button', 'aria-pressed': S.settings.sound ? 'true' : 'false', 'aria-label': S.settings.sound ? t('soundOn') : t('soundOff'),
-          onclick: () => saveSettings({ sound: !S.settings.sound }) }, icon(S.settings.sound ? 'soundOn' : 'soundOff')),
-        h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('openSettings'), onclick: () => goTab('settings') }, icon('gear'))));
+          onclick: () => saveSettings({ sound: !S.settings.sound }) }, emo(S.settings.sound ? '🔊' : '🔇')),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('openSettings'), onclick: () => goTab('settings') }, emo('⚙️'))));
     if (!ms.length) {
       return h('div', null, head, h('div', { class: 'empty card' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '👨‍👩‍👧'), h('p', null, t('noMembers')),
         h('button', { class: 'btn primary', type: 'button', onclick: () => goTab('settings') }, t('goSettings'))));
@@ -786,13 +804,26 @@
       for (const b of board) for (const r of b.st.rows) if (!b.st.family && r.memberIds[0] === id) { total++; if (r.status === 'confirmed' || r.status === 'ready') done++; }
       return { total, done };
     };
-    const cards = h('div', { class: 'members' }, ms.map(m => h('button', {
-      class: 'mcard', type: 'button', style: { '--c': m.color },
-      'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }) }),
-      onclick: () => openAssign(m)
-    }, avatar(m, 'lg'), h('span', { class: 'name' }, m.name), balanceEl(m, bal[m.id]),
-    h('span', { class: 'week' }, t('thisWeek', { n: week[m.id] || 0 })),
-    (c => c.total ? h('span', { class: 'week' }, t('cardChallenges', c)) : null)(chalCount(m.id)))));
+    const rws = rewards();
+    const cards = h('div', { class: 'members' }, ms.map(m => {
+      const lv = FP.levelFor(FP.earnedTotal(m.id, movs));
+      const tr = FP.trail(Math.max(0, bal[m.id]), rws);
+      const goal = !tr.stops.length ? t('trailNone') : tr.next ? t('trailMissing', { n: tr.missing, title: tr.next.title }) : t('trailAll');
+      const c = chalCount(m.id);
+      return h('button', {
+        class: 'mcard', type: 'button', style: { '--c': m.color },
+        'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }), level: t('levelChip', lv), goal: tr.stops.length ? goal : '' }),
+        onclick: () => openAssign(m)
+      },
+      h('span', { class: 'mc-top', 'aria-hidden': 'true' }, avatar(m, 'lg'),
+        h('span', { class: 'mc-id' }, h('span', { class: 'name' }, m.name), h('span', { class: 'lvl' }, lv.icon + ' ' + t('levelChip', lv))),
+        balanceEl(m, bal[m.id])),
+      tr.stops.length ? trailEl(m, tr) : null,
+      h('span', { class: 'goal', 'aria-hidden': 'true' }, tr.next ? tr.next.icon + ' ' + goal : goal),
+      h('span', { class: 'mc-foot', 'aria-hidden': 'true' },
+        h('span', { class: 'week' }, t('thisWeek', { n: week[m.id] || 0 })),
+        c.total ? h('span', { class: 'week' }, t('cardChallenges', c)) : null));
+    }));
     const medals = ['🥇', '🥈', '🥉'];
     const ranking = h('section', { class: 'ranking', 'aria-labelledby': 'rank-h' },
       h('h2', { id: 'rank-h' }, t('weekRanking')), h('p', { class: 'sub' }, t('sinceMonday')),
@@ -803,6 +834,59 @@
     return h('div', null, head, challengeBanners(), h('div', { class: 'dash' }, cards, ranking));
   }
 
+  // Camino de premios: paradas con el icono de cada premio y el avatar avanzando
+  function trailEl(m, tr) {
+    const pos = v => (Math.min(v, tr.max) / tr.max * 100).toFixed(1) + '%';
+    return h('span', { class: 'trail', 'aria-hidden': 'true' },
+      h('span', { class: 'trail-fill', style: { width: (tr.pos * 100).toFixed(1) + '%' } }),
+      tr.stops.map(st => h('span', { class: 'stop' + (st.reached ? ' reached' : ''), style: { left: pos(st.cost) } }, st.icon || '🎁')),
+      h('span', { class: 'walker', style: { left: (tr.pos * 100).toFixed(1) + '%' } }, m.photo ? h('img', { src: m.photo, alt: '' }) : (m.emoji || '🙂')));
+  }
+
+  // Animaciones de Aventura: la estrella vuela hasta el contador y el avatar salta (o se sacude)
+  function flyStar(fromEl, toEl) {
+    if (reduceMotion() || !fromEl || !toEl) return;
+    const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+    const star = emo('⭐', 'fly');
+    if (!star.style) return;
+    star.style.left = (a.left + a.width / 2 - 22) + 'px'; star.style.top = (a.top + a.height / 2 - 22) + 'px';
+    document.body.append(star);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      star.style.transform = 'translate(' + (b.left + b.width / 2 - a.left - a.width / 2) + 'px,' + (b.top + b.height / 2 - a.top - a.height / 2) + 'px) scale(.7) rotate(220deg)';
+      star.style.opacity = '0';
+    }));
+    setTimeout(() => star.remove(), 900);
+  }
+  function wiggle(el, good) {
+    if (!el || reduceMotion()) return;
+    el.classList.remove('bounce', 'shake'); void el.offsetWidth; el.classList.add(good ? 'bounce' : 'shake');
+  }
+  // Las celebraciones (reto superado, nuevo nivel) se muestran de una en una, en fila
+  const celebQueue = []; let celebOpen = false;
+  function showCelebration(fx, build) {
+    if (celebOpen) { celebQueue.push([fx, build]); return; }
+    celebOpen = true;
+    fx();
+    openSheet({ build, onClose: () => { celebOpen = false; const nx = celebQueue.shift(); if (nx) setTimeout(() => showCelebration(nx[0], nx[1]), 250); } });
+  }
+  // Subida de nivel: celebración con el nuevo lugar del mapa
+  function checkLevelUp(memberId, before) {
+    const m = S.members.get(memberId); if (!m) return;
+    const a = FP.levelFor(before), b = FP.levelFor(FP.earnedTotal(memberId, movements()));
+    if (b.n <= a.n) return;
+    setTimeout(() => {
+      showCelebration(() => { Sound.play('challenge'); confetti(150); }, ctx => [
+          sheetHead(ctx, t('levelUpTitle')),
+          h('div', { class: 'celebrate' },
+            h('div', { class: 'big-badge', 'aria-hidden': 'true' }, b.icon),
+            h('div', { class: 'chal-who', 'aria-hidden': 'true' }, avatar(m, 'md')),
+            h('p', { class: 'ct' }, t('levelUpText', { name: m.name, place: b.to })),
+            h('p', { class: 'cb' }, t('levelUpSub', { n: b.n, next: b.nextName })),
+            h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('great')))
+        ]);
+    }, 700);
+  }
+
   // ---------- Asignar puntos ----------
   async function openAssign(m) {
     if (S.settings.pinForPoints && !(await requirePin())) return;
@@ -810,6 +894,7 @@
       wide: true,
       build: ctx => {
         const balBox = h('span', null);
+        const headAvatar = avatar(m, 'md');
         const paintBal = () => {
           const cur = S.members.get(m.id); if (!cur) { ctx.close(); return; }
           balBox.replaceChildren(balanceEl(cur, balanceOf(m.id))); animateBalances(balBox);
@@ -818,7 +903,11 @@
         paintBal();
         const give = (mv, btn) => {
           const before = balanceOf(m.id);
+          const earnedBefore = FP.earnedTotal(m.id, movements());
           addMovement(mv);
+          if (mv.points > 0) flyStar(btn, balBox); 
+          wiggle(headAvatar, mv.points >= 0);
+          if (mv.points > 0) checkLevelUp(m.id, earnedBefore);
           const after = before + mv.points;
           Sound.play(mv.points >= 0 ? 'plus' : 'minus');
           haptic(mv.points >= 0 ? 15 : 40);
@@ -856,7 +945,7 @@
           h('label', { class: 'field', for: 'custom-reason' }, h('span', null, t('customReason')), reason),
           h('div', null, go));
         return [
-          sheetHead(ctx, m.name, avatar(m, 'md')),
+          sheetHead(ctx, m.name, headAvatar),
           h('div', { style: { margin: '-0.5rem 0 1rem' } }, balBox),
           h('div', { class: 'assign-cols' }, col(t('good'), pos, 'var(--good)'), col(t('bad'), neg, 'var(--bad)')),
           custom
@@ -1308,7 +1397,9 @@
           h('span', { class: 'chal-who', 'aria-hidden': 'true' }, ms.slice(0, 4).map(m => avatar(m))),
           h('span', { class: 'grow', 'aria-hidden': 'true' },
             h('span', { class: 'chal-name' }, st.family ? t('forAll') : namesOf(r.memberIds)),
-            h('span', { class: 'bar' + (r.status === 'failed' ? ' failed' : '') }, h('i', { style: { width: pct + '%', background: color } })),
+            ['count', 'streak', 'clean'].includes(ch.type) && r.prog.target <= 10
+              ? h('span', { class: 'steps' + (r.status === 'failed' ? ' failed' : '') }, Array.from({ length: r.prog.target }, (_, i) => h('span', { class: 'step' + (i < r.prog.value ? ' on' : '') }, i < r.prog.value ? '⭐' : null)))
+              : h('span', { class: 'bar' + (r.status === 'failed' ? ' failed' : '') }, h('i', { style: { width: pct + '%', background: color } })),
             h('span', { class: 'chal-meta' }, label)),
           action);
       }));
@@ -1321,7 +1412,9 @@
     if (accept) {
       const res = FP.confirmChallenge(item.ch, item.period, item.memberIds, now);
       res.achievements.forEach(addAchievement);
+      const before = {}; item.memberIds.forEach(id => { before[id] = FP.earnedTotal(id, movements()); });
       res.movements.forEach(addMovement);
+      item.memberIds.forEach(id => checkLevelUp(id, before[id]));
       celebrate(item.ch, item.memberIds);
     } else {
       FP.dismissChallenge(item.ch, item.period, item.memberIds, now).forEach(addAchievement);
@@ -1356,10 +1449,8 @@
     if (ok) decide({ ch, period, memberIds, family: false }, true);
   }
   function celebrate(ch, memberIds) {
-    Sound.play('challenge'); confetti(170); haptic(40);
     const ms = memberIds.map(id => S.members.get(id)).filter(Boolean);
-    openSheet({
-      build: ctx => [
+    showCelebration(() => { Sound.play('challenge'); confetti(170); haptic(40); }, ctx => [
         sheetHead(ctx, t('celebrateTitle')),
         h('div', { class: 'celebrate' },
           h('div', { class: 'big-badge', 'aria-hidden': 'true' }, ch.icon || FP.CHALLENGE_ICONS[ch.type]),
@@ -1369,8 +1460,7 @@
           h('p', { class: 'cb' }, '🏅 ' + t('newBadge') + (ch.stars > 0 ? ' · ' + t('plusStarsEach', { n: ch.stars, many: memberIds.length > 1 }) : '')),
           ch.type === 'family' && ch.reward ? h('p', { class: 'cb' }, '🎁 ' + t('familyPrize', { reward: ch.reward })) : null,
           h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('great')))
-      ]
-    });
+      ]);
   }
 
   // Insignias por miembro

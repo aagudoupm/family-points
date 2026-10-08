@@ -3,44 +3,46 @@
 <meta name="apple-mobile-web-app-title" content="Family Points">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap">
 <style>
 /* Layout: tablero de pegatinas. Barra lateral de pestañas en horizontal, barra inferior en vertical/estrecho. */
+/* Tema Aventura: cielo, sol, nubes y colinas detrás; tarjetas blancas con relieve; botones «de juego» que se hunden.
+   De noche (modo oscuro), el mismo paisaje con luna y estrellas. */
 :root {
-  --bg: #F3F5FA;
-  --surface: #FFFFFF;
-  --surface-2: #E9EDF5;
-  --fg: #1B2233;
-  --muted: #5B6680;
-  --line: #D8DEEA;
-  --star: #F5B301;
-  --star-ink: #6E4E00;
-  --good: #1E8F50;
-  --good-bg: #E1F4E8;
-  --bad: #CC3B36;
-  --bad-bg: #FBE5E4;
-  --ink: #26345C;
-  --ink-fg: #FFFFFF;
-  --shadow: 0 1px 2px rgba(27, 34, 51, .06), 0 6px 18px rgba(27, 34, 51, .06);
+  --bg: #BFE6FF; --surface: #FFFFFF; --surface-2: #EEF4FA; --fg: #16304F; --muted: #4E6886; --line: #DCE6F1;
+  --star: #FFB703; --star-ink: #7A5200; --good: #2EA44F; --good-bg: #E2F6E6; --good-edge: #208A3D; --bad: #E4533C; --bad-bg: #FDE6E1; --bad-edge: #B63A27;
+  --ink: #2563C9; --ink-fg: #FFFFFF; --ink-edge: #1A4A9C; --edge: #D3DEEB;
+  --sky-1: #5DBBFF; --sky-2: #A9DEFF; --sky-3: #DDF3FF; --hill-1: #8BD46A; --hill-2: #6DC24F; --hill-3: #A6E08A;
+  --sun: #FFD84D; --sun-glow: rgba(255, 216, 77, .35); --cloud: rgba(255, 255, 255, .92); --night-stars: 0;
+  --shadow: 0 6px 0 rgba(22, 48, 79, .08), 0 14px 30px rgba(22, 48, 79, .12);
+  --tab-on: #FFF0B8; --tab-on-fg: #7A5200;
   --font-display: "Baloo 2", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --radius: 22px;
+  --font-body: "Nunito", ui-rounded, system-ui, -apple-system, sans-serif;
+  --radius: 26px;
   --tap: 3.5rem;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0F131C; --surface: #191F2C; --surface-2: #232B3C; --fg: #EDF0F7; --muted: #A2ABC0; --line: #2D3549;
-    --star: #FFC83D; --star-ink: #FFE29A; --good: #4CCB84; --good-bg: #163828; --bad: #FF726A; --bad-bg: #42201F;
-    --ink: #C9D4F5; --ink-fg: #121726; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+    --bg: #0E1A3D; --surface: #17244A; --surface-2: #213263; --fg: #EAF1FF; --muted: #A9B9DA; --line: #2B3C6E;
+    --star: #FFCF4A; --star-ink: #FFE7A3; --good: #4CD07A; --good-bg: #173A2C; --good-edge: #2F9A55; --bad: #FF7B66; --bad-bg: #432124; --bad-edge: #C9533F;
+    --ink: #6FA8FF; --ink-fg: #0B1430; --ink-edge: #3F74C9; --edge: #0B1430;
+    --sky-1: #08122E; --sky-2: #1A2A5E; --sky-3: #2E3F7C; --hill-1: #1E4A3A; --hill-2: #163A2D; --hill-3: #275C47;
+    --sun: #F4F1DE; --sun-glow: rgba(244, 241, 222, .18); --cloud: rgba(170, 190, 240, .18); --night-stars: 1;
+    --shadow: 0 6px 0 rgba(0, 0, 0, .25), 0 14px 30px rgba(0, 0, 0, .3);
+    --tab-on: rgba(255, 207, 74, .18); --tab-on-fg: #FFCF4A;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0F131C; --surface: #191F2C; --surface-2: #232B3C; --fg: #EDF0F7; --muted: #A2ABC0; --line: #2D3549;
-  --star: #FFC83D; --star-ink: #FFE29A; --good: #4CCB84; --good-bg: #163828; --bad: #FF726A; --bad-bg: #42201F;
-  --ink: #C9D4F5; --ink-fg: #121726; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
-  color-scheme: dark;
+    --bg: #0E1A3D; --surface: #17244A; --surface-2: #213263; --fg: #EAF1FF; --muted: #A9B9DA; --line: #2B3C6E;
+    --star: #FFCF4A; --star-ink: #FFE7A3; --good: #4CD07A; --good-bg: #173A2C; --good-edge: #2F9A55; --bad: #FF7B66; --bad-bg: #432124; --bad-edge: #C9533F;
+    --ink: #6FA8FF; --ink-fg: #0B1430; --ink-edge: #3F74C9; --edge: #0B1430;
+    --sky-1: #08122E; --sky-2: #1A2A5E; --sky-3: #2E3F7C; --hill-1: #1E4A3A; --hill-2: #163A2D; --hill-3: #275C47;
+    --sun: #F4F1DE; --sun-glow: rgba(244, 241, 222, .18); --cloud: rgba(170, 190, 240, .18); --night-stars: 1;
+    --shadow: 0 6px 0 rgba(0, 0, 0, .25), 0 14px 30px rgba(0, 0, 0, .3);
+    --tab-on: rgba(255, 207, 74, .18); --tab-on-fg: #FFCF4A;
+    color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
 /* Dynamic Type: en iPad el tamaño base sigue el ajuste de texto del sistema */
@@ -379,8 +381,149 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* =====================================================================
+   Tema Aventura (sobrescribe los estilos base)
+   ===================================================================== */
+body { background: var(--sky-2); font-weight: 600; }
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 45%, var(--sky-3) 75%); }
+.scene::before { content: ""; position: absolute; inset: 0 0 40% 0; opacity: var(--night-stars);
+  background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 28% 8%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 26%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 61% 12%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 73% 30%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 88% 16%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 36% 40%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 8% 44%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 93% 42%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 54% 6%, #fff 50%, transparent 51%);
+  background-size: 420px 300px; }
+.scene .sun { position: absolute; width: 9rem; height: 9rem; right: 6%; top: 2.5rem; border-radius: 50%; background: var(--sun);
+  box-shadow: 0 0 0 1.4rem var(--sun-glow), 0 0 0 2.8rem color-mix(in srgb, var(--sun-glow) 50%, transparent); }
+.scene .cloud { position: absolute; height: 2.6rem; border-radius: 99px; background: var(--cloud); animation: drift 70s linear infinite; }
+.scene .cloud::before, .scene .cloud::after { content: ""; position: absolute; border-radius: 50%; background: inherit; }
+.scene .cloud::before { width: 3.4rem; height: 3.4rem; left: 18%; top: -1.6rem; }
+.scene .cloud::after { width: 2.4rem; height: 2.4rem; left: 50%; top: -1rem; }
+.scene .c1 { width: 8.5rem; top: 12%; left: -10%; animation-duration: 80s; }
+.scene .c2 { width: 6rem; top: 28%; left: -20%; animation-duration: 110s; animation-delay: -40s; transform: scale(.8); }
+.scene .c3 { width: 7rem; top: 6%; left: -15%; animation-duration: 95s; animation-delay: -70s; }
+@keyframes drift { from { translate: 0 0; } to { translate: 130vw 0; } }
+.scene .hill { position: absolute; border-radius: 50%; }
+.scene .h1 { width: 140vw; height: 42vh; left: -20vw; bottom: -26vh; background: var(--hill-2); }
+.scene .h2 { width: 90vw; height: 40vh; right: -25vw; bottom: -20vh; background: var(--hill-1); }
+.scene .h3 { width: 80vw; height: 38vh; left: -25vw; bottom: -17vh; background: var(--hill-3); }
+.app { position: relative; z-index: 1; }
+
+h1 { font-weight: 800; letter-spacing: -.01em; }
+.page-head h1 { font-size: 2.2rem; }
+.page-head .sub, .page-head p.sub { color: var(--fg); opacity: .78; font-weight: 700; }
+.emo { width: 1.25em; height: 1.25em; object-fit: contain; vertical-align: -0.28em; display: inline-block; flex: none; }
+.ico .emo, .big .emo, .medal .emo, .big-badge .emo, .chal-ico .emo, .avatar > .emo { width: 1em; height: 1em; vertical-align: middle; }
+
+/* Superficies con relieve */
+.card, .ranking, .mcard, .reward, .chal, .set-card, .more-tile, .tile, .list.card, .who.card, .pending.card {
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border: 0; }
+.sheet { background: var(--surface); }
+.input { border-radius: 16px; background: var(--surface); border-color: var(--line); }
+.banner { background: var(--surface); box-shadow: var(--shadow); border: 3px solid var(--star); border-radius: 22px; }
+
+/* Botones «de juego»: canto inferior que se hunde al tocar */
+.btn { --b: var(--surface-2); --e: var(--edge); background: var(--b); color: var(--fg); box-shadow: 0 5px 0 var(--e); border-radius: 18px; font-weight: 800; transition: transform .07s, box-shadow .07s; }
+.btn.primary { --b: var(--ink); --e: var(--ink-edge); color: var(--ink-fg); }
+.btn.good { --b: var(--good); --e: var(--good-edge); color: #fff; }
+.btn.bad { --b: var(--bad); --e: var(--bad-edge); color: #fff; }
+.btn.ghost { --b: transparent; --e: transparent; border: 2px solid var(--line); box-shadow: none; }
+.btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--e); }
+.btn.small { border-radius: 14px; }
+.icon-btn { background: var(--surface); box-shadow: 0 4px 0 var(--edge); width: 3.1rem; height: 3.1rem; font-size: 1.5rem; }
+.icon-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge); }
+.chip { background: var(--surface); border-color: transparent; box-shadow: 0 3px 0 var(--edge); }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--surface); }
+.seg { background: color-mix(in srgb, var(--surface) 70%, transparent); box-shadow: inset 0 2px 0 rgba(0, 0, 0, .05); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--ink-fg); box-shadow: 0 3px 0 var(--ink-edge); }
+
+/* Barra: píldora flotante abajo; panel redondeado a la izquierda en el iPad */
+.tabs { left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: .4rem; border-top: 0; border-radius: 28px;
+  background: var(--surface); box-shadow: var(--shadow); }
+.tab { color: var(--muted); font-weight: 800; border-radius: 20px; }
+.tab .tab-ico { font-size: 1.9rem; line-height: 1; display: inline-flex; transition: transform .2s; }
+.tab[aria-current="page"] { background: var(--tab-on); color: var(--tab-on-fg); }
+.tab[aria-current="page"] .tab-ico { transform: translateY(-2px) scale(1.08); }
+.main { padding-block: 1.25rem calc(7.5rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 900px) {
+  .tabs { left: auto; right: auto; bottom: auto; margin: 12px 0 12px 12px; height: calc(100dvh - 24px); border-radius: 30px; }
+  .main { padding-block: 1.5rem 2rem; }
+  .toast { bottom: 2rem; }
+}
+.toast { bottom: calc(7.2rem + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--surface); }
+.brand { background: transparent; font-size: 2.6rem; width: auto; height: auto; }
+
+/* Panel: tarjetas de aventureros */
+.members { grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+.mcard { --c: var(--ink); display: grid; gap: .65rem; align-items: stretch; text-align: left; padding: 1rem 1.1rem 1rem; overflow: visible; }
+.mcard::before { height: 4.6rem; border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, var(--surface)), color-mix(in srgb, var(--c) 12%, var(--surface))); }
+.mc-top { display: flex; align-items: center; gap: .8rem; }
+.mc-id { display: grid; min-width: 0; flex: 1; }
+.mcard .name { font-size: 1.6rem; line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lvl { font-size: .82rem; font-weight: 800; color: var(--good); }
+.mcard .avatar.lg { width: 4.6rem; height: 4.6rem; font-size: 3rem; box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .14), 0 0 0 4px var(--surface), 0 0 0 7px var(--c); }
+.mcard .balance { font-size: 2.6rem; margin-left: auto; }
+.balance .emo.star { width: .8em; height: .8em; vertical-align: -0.05em; }
+.goal { display: flex; align-items: center; gap: .35rem; font-size: .9rem; font-weight: 800; color: var(--fg); }
+.goal .emo { width: 1.5rem; height: 1.5rem; }
+.mc-foot { display: flex; gap: .4rem .9rem; flex-wrap: wrap; }
+.mcard .week { font-size: .8rem; }
+.mcard:active { transform: scale(.985); }
+
+.trail { position: relative; display: block; height: 3.4rem; margin: .3rem .9rem 0; }
+.trail::before { content: ""; position: absolute; left: 0; right: 0; top: 60%; border-top: 5px dashed color-mix(in srgb, var(--star) 55%, var(--line)); transform: translateY(-50%); }
+.trail-fill { position: absolute; left: 0; top: 60%; height: 5px; background: var(--star); border-radius: 9px; transform: translateY(-50%); transition: width .6s ease; }
+.trail .stop { position: absolute; top: 60%; transform: translate(-50%, -50%); width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--surface-2);
+  display: grid; place-items: center; font-size: 1.45rem; box-shadow: 0 3px 0 var(--edge); }
+.trail .stop.reached { background: var(--star); }
+.trail .walker { position: absolute; top: 60%; width: 2rem; height: 2rem; font-size: 1.6rem; display: grid; place-items: center; transform: translate(-50%, -125%); transition: left .6s ease; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .2)); }
+.trail .walker img { width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; }
+
+.ranking h2 { font-size: 1.4rem; }
+.rank-list li.first { background: color-mix(in srgb, var(--star) 22%, var(--surface)); }
+.rank-pos .emo { width: 1.6rem; height: 1.6rem; }
+
+/* Dar estrellas: fichas con relieve */
+.rule { box-shadow: 0 5px 0 var(--e, var(--edge)); border: 0; transition: transform .07s, box-shadow .07s; }
+.rule.pos { --e: color-mix(in srgb, var(--good) 45%, var(--good-bg)); }
+.rule.neg { --e: color-mix(in srgb, var(--bad) 40%, var(--bad-bg)); }
+.rule:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--e); }
+.rule .ico { font-size: 2.8rem; }
+.fly { position: fixed; z-index: 90; width: 2.8rem; height: 2.8rem; pointer-events: none; transition: transform .7s cubic-bezier(.5, -0.35, .7, 1), opacity .2s .55s; }
+.bounce { animation: bounce .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes bounce { 35% { transform: translateY(-12px) scale(1.1); } }
+.shake { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px) rotate(-5deg); } 40%, 80% { transform: translateX(6px) rotate(5deg); } }
+.sheet-head .avatar.md { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--c); }
+
+/* Premios y retos */
+.reward { padding-top: 1.4rem; }
+.reward .ico { font-size: 3.6rem; }
+.reward:not(.locked) { outline: 3px solid var(--star); outline-offset: -3px; }
+.reward:not(.locked) .need { box-shadow: 0 4px 0 color-mix(in srgb, var(--star) 60%, #7a5200); }
+.chal-ico { font-size: 2.6rem; }
+.steps { display: flex; gap: .3rem; flex-wrap: wrap; }
+.step { width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-size: 1.15rem; box-shadow: inset 0 2px 0 rgba(0, 0, 0, .07); }
+.step.on { background: color-mix(in srgb, var(--star) 30%, var(--surface)); box-shadow: 0 0 0 2px var(--star); }
+.steps.failed .step { background: var(--bad-bg); }
+.badge { background: var(--surface-2); box-shadow: 0 4px 0 var(--edge); }
+.badge .medal { font-size: 2.4rem; }
+.big-badge .emo { width: 4.4rem; height: 4.4rem; }
+.more-tile .ico { font-size: 2.8rem; }
+.more-tile:active { transform: translateY(3px); }
+.welcome .stars { font-size: 3.2rem; gap: .8rem; }
+.empty .big { font-size: 4rem; }
+.tile > span:first-child { font-size: 2rem !important; }
 </style>
 
+<div class="scene" aria-hidden="true">
+  <div class="sun"></div>
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <div class="hill h3"></div><div class="hill h2"></div><div class="hill h1"></div>
+</div>
 <div class="app">
   <nav class="tabs" id="tabs" aria-label="Secciones"></nav>
   <main class="main" id="view" tabindex="-1">
@@ -391,5 +534,6 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 <div id="toasts" aria-live="polite"></div>
 <canvas id="confetti" aria-hidden="true"></canvas>
 
+<script src="emoji-map.js"></script>
 <script src="logic.js"></script>
 <script src="app.js"></script>

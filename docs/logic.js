@@ -423,6 +423,39 @@
     return 'Reto especial';
   }
 
+  // ---------- Aventura: niveles y camino de premios ----------
+  // El nivel depende de las estrellas ganadas en total (no del saldo): canjear o reiniciar no hace bajar de nivel.
+  const LEVELS = [
+    { min: 0, name: 'Pradera', to: 'a la Pradera', icon: '🌼' }, { min: 20, name: 'Bosque', to: 'al Bosque', icon: '🌲' }, { min: 50, name: 'Río', to: 'al Río', icon: '🌊' },
+    { min: 100, name: 'Montaña', to: 'a la Montaña', icon: '⛰️' }, { min: 175, name: 'Castillo', to: 'al Castillo', icon: '🏰' }, { min: 275, name: 'Volcán', to: 'al Volcán', icon: '🌋' },
+    { min: 400, name: 'Nubes', to: 'a las Nubes', icon: '☁️' }, { min: 600, name: 'Arcoíris', to: 'al Arcoíris', icon: '🌈' }, { min: 850, name: 'Estrellas', to: 'a las Estrellas', icon: '🌟' },
+    { min: 1200, name: 'Luna', to: 'a la Luna', icon: '🌙' }
+  ];
+  function earnedTotal(memberId, movements) {
+    let t = 0;
+    for (const m of movements) if (m.memberId === memberId && m.kind !== 'reset' && m.points > 0) t += m.points;
+    return t;
+  }
+  function levelFor(total) {
+    let i = 0;
+    while (i + 1 < LEVELS.length && total >= LEVELS[i + 1].min) i++;
+    const cur = LEVELS[i], nx = LEVELS[i + 1] || null;
+    return { n: i + 1, name: cur.name, to: cur.to, icon: cur.icon, min: cur.min, next: nx ? nx.min : null, nextName: nx ? nx.name : '',
+      progress: nx ? (total - cur.min) / (nx.min - cur.min) : 1 };
+  }
+  // Camino hacia los premios: hasta 4 paradas alrededor del saldo actual.
+  function trail(balance, rewards) {
+    const list = rewards.filter(r => r.active !== false && Number(r.cost) > 0).sort((a, b) => a.cost - b.cost);
+    if (!list.length) return { stops: [], max: 0, next: null, missing: 0, pos: 0 };
+    let i = list.findIndex(r => r.cost > balance);
+    if (i < 0) i = list.length;
+    const start = Math.max(0, Math.min(i - 1, list.length - 4));
+    const stops = list.slice(start, start + 4).map(r => ({ id: r.id, title: r.title, icon: r.icon, cost: Number(r.cost), reached: balance >= r.cost }));
+    const max = stops[stops.length - 1].cost;
+    const next = list[i] || null;
+    return { stops, max, next, missing: next ? next.cost - balance : 0, pos: Math.max(0, Math.min(1, balance / max)) };
+  }
+
   // ---------- Copia de seguridad ----------
   function makeBackup(data, now) {
     return {
@@ -463,7 +496,8 @@
     isValidPin, hashPin, createPinRecord, verifyPin, milestoneCrossed,
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
-    confirmChallenge, dismissChallenge, badgesFor, challengeTitle
+    confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
+    LEVELS, earnedTotal, levelFor, trail
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;
