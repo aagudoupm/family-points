@@ -279,12 +279,182 @@
     return { members, rules, rewards };
   }
 
+  // ---------- Retos ----------
+  // Tipos: 'count' (una regla N veces en la semana), 'streak' (una regla N días seguidos),
+  // 'clean' (ninguna vez una regla negativa en toda la semana), 'family' (entre todos N estrellas)
+  // y 'free' (objetivo libre que marca un adulto).
+  // Duración (period): 'weekly' (se repite cada semana), 'week' (solo la semana weekStart) u 'open' (sin fecha).
+  // Un reto conseguido nunca se premia solo: queda «listo para confirmar» hasta que un adulto lo acepta o lo descarta.
+  // Cada decisión se guarda como un logro (achievement): {challengeId, periodKey, memberId, status: 'confirmed'|'dismissed'}.
+  const CHALLENGE_TYPES = ['count', 'streak', 'clean', 'family', 'free'];
+  const CHALLENGE_ICONS = { count: '🔁', streak: '🔥', clean: '🧼', family: '👨‍👩‍👧', free: '✍️' };
+
+  // Periodo del reto: offset 0 = el actual, -1 = el anterior. null si no aplica.
+  function challengePeriod(ch, now, offset) {
+    offset = offset || 0;
+    if (ch.period === 'open') return offset === 0 ? { key: 'open', start: ch.createdAt || 0, end: Infinity, ended: false } : null;
+    const cur = weekStart(now);
+    let start;
+    if (ch.period === 'week') { start = ch.weekStart; if (start !== addWeeks(cur, offset)) return null; }
+    else start = addWeeks(cur, offset);
+    const end = addWeeks(start, 1);
+    if ((ch.createdAt || 0) >= end) return null; // el reto aún no existía
+    return { key: ymd(start), start, end, ended: now >= end };
+  }
+
+  // Miembros a los que se aplica: los elegidos o, si no hay, todos los niños (o todos si no hay niños).
+  function challengeMembers(ch, members) {
+    if (ch.memberIds && ch.memberIds.length) return members.filter(m => ch.memberIds.includes(m.id));
+    const kids = members.filter(m => m.role !== 'adult');
+    return kids.length ? kids : members;
+  }
+
+  // Progreso de un reto en un periodo. ids: miembros que cuentan (uno, o varios en 'family').
+  // Devuelve {value, target, done, failed}.
+  function challengeProgress(ch, ids, movements, period, now) {
+    const until = Math.min(period.end, now + 1);
+    const inP = m => ids.includes(m.memberId) && m.date >= period.start && m.date < until;
+    const target = Math.max(1, Number(ch.target) || 1);
+    if (ch.type === 'count') {
+      const n = movements.filter(m => inP(m) && m.kind === 'rule' && m.ruleId === ch.ruleId).length;
+      return { value: n, target, done: n >= target, failed: false };
+    }
+    if (ch.type === 'streak') {
+      const days = new Set(movements.filter(m => inP(m) && m.kind === 'rule' && m.ruleId === ch.ruleId).map(m => dayStart(m.date)));
+      let best = 0, run = 0;
+      for (let d = dayStart(period.start); d < until && d <= now; d = addDays(d, 1)) {
+        run = days.has(d) ? run + 1 : 0; best = Math.max(best, run);
+      }
+      return { value: Math.min(best, target), target, done: best >= target, failed: false };
+    }
+    if (ch.type === 'clean') {
+      const n = movements.filter(m => inP(m) && m.kind === 'rule' && m.ruleId === ch.ruleId).length;
+      const elapsed = Math.min(7, Math.max(0, Math.ceil((Math.min(period.end, now) - period.start) / DAY)));
+      return { value: n ? 0 : elapsed, target: 7, done: n === 0 && period.ended, failed: n > 0 };
+    }
+    if (ch.type === 'family') {
+      const total = movements.filter(m => inP(m) && (m.kind === 'rule' || m.kind === 'custom') && m.points > 0).reduce((a, m) => a + m.points, 0);
+      return { value: total, target, done: total >= target, failed: false };
+    }
+    return { value: 0, target: 1, done: false, failed: false }; // 'free': lo marca un adulto
+  }
+
+  function findAchievement(achievements, ch, periodKey, memberId) {
+    return achievements.find(a => a.challengeId === ch.id && a.periodKey === periodKey && (ch.type === 'family' || a.memberId === memberId));
+  }
+
+  // Estado de un reto para un miembro (o para la familia) en el periodo actual.
+  function challengeState(ch, members, movements, achievements, now) {
+    const period = challengePeriod(ch, now, 0);
+    if (!period) return null;
+    const who = challengeMembers(ch, members);
+    const status = (prog, rec) => rec ? rec.status : prog.done ? 'ready' : prog.failed ? 'failed' : 'active';
+    if (ch.type === 'family') {
+      const ids = who.map(m => m.id);
+      const prog = challengeProgress(ch, ids, movements, period, now);
+      return { period, family: true, rows: [{ memberIds: ids, prog, status: status(prog, findAchievement(achievements, ch, period.key)) }] };
+    }
+    return {
+      period, family: false,
+      rows: who.map(m => {
+        const prog = challengeProgress(ch, [m.id], movements, period, now);
+        return { memberIds: [m.id], prog, status: status(prog, findAchievement(achievements, ch, period.key, m.id)) };
+      })
+    };
+  }
+
+  // Retos conseguidos que esperan la confirmación de un adulto (semana actual y la anterior).
+  function pendingChallenges(challenges, members, movements, achievements, now) {
+    const out = [];
+    for (const ch of challenges) {
+      if (ch.pool || ch.active === false || ch.type === 'free') continue;
+      for (const offset of [0, -1]) {
+        const period = challengePeriod(ch, now, offset);
+        if (!period) continue;
+        const who = challengeMembers(ch, members);
+        if (ch.type === 'family') {
+          const ids = who.map(m => m.id);
+          if (!findAchievement(achievements, ch, period.key) && challengeProgress(ch, ids, movements, period, now).done) out.push({ ch, period, memberIds: ids, family: true });
+        } else {
+          for (const m of who) {
+            if (!findAchievement(achievements, ch, period.key, m.id) && challengeProgress(ch, [m.id], movements, period, now).done) out.push({ ch, period, memberIds: [m.id], family: false });
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  // Al confirmar: un logro (insignia) y, si hay estrellas, un movimiento de bonificación por cada miembro.
+  function confirmChallenge(ch, period, memberIds, now) {
+    const achievements = [], movements = [];
+    for (const id of memberIds) {
+      const a = { id: uid(), challengeId: ch.id, periodKey: period.key, memberId: id, status: 'confirmed', title: ch.title, icon: ch.icon || CHALLENGE_ICONS[ch.type], stars: Number(ch.stars) || 0, family: ch.type === 'family', date: now };
+      achievements.push(a);
+      if (a.stars > 0) movements.push({ id: uid(), memberId: id, ruleId: '', kind: 'challenge', achievementId: a.id, title: 'Reto: ' + ch.title, icon: '🏆', points: a.stars, date: now, note: '' });
+    }
+    return { achievements, movements };
+  }
+  function dismissChallenge(ch, period, memberIds, now) {
+    return memberIds.map(id => ({ id: uid(), challengeId: ch.id, periodKey: period.key, memberId: id, status: 'dismissed', title: ch.title, icon: ch.icon, stars: 0, family: ch.type === 'family', date: now }));
+  }
+
+  // Insignias por miembro: [{title, icon, count, last}] agrupadas por reto.
+  function badgesFor(memberId, achievements) {
+    const g = new Map();
+    for (const a of achievements) {
+      if (a.memberId !== memberId || a.status !== 'confirmed') continue;
+      const k = a.challengeId + '|' + a.title;
+      const b = g.get(k) || { key: k, title: a.title, icon: a.icon, count: 0, last: 0, family: a.family };
+      b.count++; b.last = Math.max(b.last, a.date);
+      g.set(k, b);
+    }
+    return [...g.values()].sort((x, y) => y.last - x.last);
+  }
+
+  // Título por defecto según el tipo
+  function challengeTitle(ch, rule) {
+    const r = rule ? rule.title : '';
+    if (ch.type === 'count') return r + ' ' + ch.target + (Number(ch.target) === 1 ? ' vez' : ' veces');
+    if (ch.type === 'streak') return r + ' ' + ch.target + ' días seguidos';
+    if (ch.type === 'clean') return 'Semana sin «' + r + '»';
+    if (ch.type === 'family') return 'Entre todos, ' + ch.target + ' estrellas';
+    return 'Reto especial';
+  }
+
+  // Ideas para la ruleta a partir de las reglas existentes
+  function defaultPool(rules, now) {
+    const pos = rules.filter(r => r.points > 0).slice(0, 4), neg = rules.filter(r => r.points < 0).slice(0, 2);
+    const mk = (o, rule) => Object.assign({ id: uid(), pool: true, active: true, period: 'week', memberIds: [], createdAt: now || Date.now(), ruleId: rule ? rule.id : '', reward: '' }, o, { title: challengeTitle(o, rule) });
+    const out = [];
+    pos.forEach(r => {
+      out.push(mk({ type: 'count', target: 4, stars: 4, icon: r.icon }, r));
+      out.push(mk({ type: 'streak', target: 3, stars: 5, icon: '🔥' }, r));
+    });
+    neg.forEach(r => out.push(mk({ type: 'clean', target: 7, stars: 6, icon: '🧼' }, r)));
+    out.push(mk({ type: 'family', target: 40, stars: 0, icon: '👨‍👩‍👧', reward: 'Noche de peli en familia' }));
+    return out;
+  }
+
+  // Ruleta: convierte ideas del bote en retos de esta semana. mode 'each' = uno por niño; 'all' = uno para todos.
+  function rouletteChallenges(pool, members, mode, now, rnd) {
+    rnd = rnd || Math.random;
+    const ideas = pool.filter(c => c.active !== false);
+    if (!ideas.length) return [];
+    const make = (tpl, memberIds) => Object.assign({}, tpl, { id: uid(), pool: false, active: true, period: 'week', weekStart: weekStart(now), memberIds, source: 'roulette', createdAt: now });
+    if (mode === 'all') return [make(ideas[Math.floor(rnd() * ideas.length)], [])];
+    const kids = members.filter(m => m.role !== 'adult');
+    const individual = ideas.filter(c => c.type !== 'family');
+    const list = individual.length ? individual : ideas;
+    return (kids.length ? kids : members).map(m => make(list[Math.floor(rnd() * list.length)], [m.id]));
+  }
+
   // ---------- Copia de seguridad ----------
   function makeBackup(data, now) {
     return {
       app: 'family-points', version: 1, exportedAt: now || Date.now(),
       members: data.members || [], rules: data.rules || [], rewards: data.rewards || [],
-      logs: data.logs || {}, settings: data.settings || {}
+      challenges: data.challenges || [], logs: data.logs || {}, settings: data.settings || {}
     };
   }
   // Valida y normaliza una copia. Lanza un Error con un mensaje para la familia si no es válida.
@@ -301,11 +471,13 @@
       const l = b.logs[k] || {};
       logs[k] = {
         movements: (Array.isArray(l.movements) ? l.movements : []).filter(m => m && m.memberId && typeof m.date === 'number'),
-        redemptions: (Array.isArray(l.redemptions) ? l.redemptions : []).filter(r => r && r.memberId && typeof r.date === 'number')
+        redemptions: (Array.isArray(l.redemptions) ? l.redemptions : []).filter(r => r && r.memberId && typeof r.date === 'number'),
+        achievements: (Array.isArray(l.achievements) ? l.achievements : []).filter(a => a && a.challengeId && typeof a.date === 'number')
       };
     }
     return {
       members: b.members.filter(okId), rules: b.rules.filter(okId), rewards: b.rewards.filter(okId),
+      challenges: (Array.isArray(b.challenges) ? b.challenges : []).filter(okId),
       logs, settings: (b.settings && typeof b.settings === 'object') ? b.settings : {}, exportedAt: b.exportedAt || 0
     };
   }
@@ -315,7 +487,9 @@
     balance, balances, weeklyRanking, canRedeem, makeRedemption, movementFromRule, customMovement,
     resetMovements, dueAutoReset, historyEntries, filterHistory, series, topBehaviors, toCSV,
     isValidPin, hashPin, createPinRecord, verifyPin, milestoneCrossed,
-    MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup
+    MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
+    CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
+    confirmChallenge, dismissChallenge, badgesFor, challengeTitle, defaultPool, rouletteChallenges
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

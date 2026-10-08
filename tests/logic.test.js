@@ -178,3 +178,140 @@ test('series diarias: últimos 30 días', () => {
   assert.equal(s.data.a[0], 5);  // 9 sept entra; 8 sept queda fuera
   assert.equal(s.data.a.reduce((x, y) => x + y, 0), 8);
 });
+
+// ---------- Retos ----------
+const kidA = { id: 'a', name: 'Ana', role: 'child', order: 0 };
+const kidL = { id: 'l', name: 'Leo', role: 'child', order: 1 };
+const dad = { id: 'p', name: 'Papá', role: 'adult', order: 2 };
+const fam = [kidA, kidL, dad];
+const rmv = (memberId, ruleId, points, date) => ({ id: FP.uid(), memberId, ruleId, points, date, kind: 'rule', title: ruleId });
+const MON = T(2026, 10, 5, 0); // lunes
+const ch = (o) => Object.assign({ id: 'c' + Math.random(), active: true, period: 'weekly', memberIds: [], createdAt: T(2026, 9, 1), stars: 5, title: 'Reto' }, o);
+
+test('reto de constancia: N veces una regla en la semana', () => {
+  const c = ch({ type: 'count', ruleId: 'cama', target: 3 });
+  const now = T(2026, 10, 8, 20);
+  const p = FP.challengePeriod(c, now, 0);
+  assert.equal(p.start, MON);
+  const movs = [rmv('a', 'cama', 1, T(2026, 10, 5, 8)), rmv('a', 'cama', 1, T(2026, 10, 6, 8)), rmv('a', 'otra', 1, T(2026, 10, 6, 9)), rmv('a', 'cama', 1, T(2026, 10, 4, 8))];
+  assert.deepEqual(FP.challengeProgress(c, ['a'], movs, p, now), { value: 2, target: 3, done: false, failed: false });
+  movs.push(rmv('a', 'cama', 1, T(2026, 10, 8, 8)));
+  assert.equal(FP.challengeProgress(c, ['a'], movs, p, now).done, true);
+  assert.equal(FP.challengeProgress(c, ['l'], movs, p, now).value, 0); // cada niño cuenta por separado
+});
+
+test('reto de racha: días seguidos', () => {
+  const c = ch({ type: 'streak', ruleId: 'dientes', target: 3 });
+  const now = T(2026, 10, 10, 20);
+  const p = FP.challengePeriod(c, now, 0);
+  const days = [5, 6, 8, 9];
+  const movs = days.map(d => rmv('a', 'dientes', 1, T(2026, 10, d, 21)));
+  let r = FP.challengeProgress(c, ['a'], movs, p, now);
+  assert.equal(r.value, 2); assert.equal(r.done, false); // 5-6 y 8-9: se cortó el 7
+  movs.push(rmv('a', 'dientes', 1, T(2026, 10, 10, 9)));
+  r = FP.challengeProgress(c, ['a'], movs, p, now);
+  assert.equal(r.done, true);
+});
+
+test('reto semana limpia: solo se consigue al acabar la semana y falla con una vez', () => {
+  const c = ch({ type: 'clean', ruleId: 'pelea', target: 7 });
+  const during = T(2026, 10, 8, 12);
+  const p = FP.challengePeriod(c, during, 0);
+  assert.equal(FP.challengeProgress(c, ['a'], [], p, during).done, false);
+  const after = T(2026, 10, 12, 12);
+  const prev = FP.challengePeriod(c, after, -1);
+  assert.equal(prev.key, '2026-10-05');
+  assert.equal(FP.challengeProgress(c, ['a'], [], prev, after).done, true);
+  const r = FP.challengeProgress(c, ['a'], [rmv('a', 'pelea', -2, T(2026, 10, 7))], prev, after);
+  assert.equal(r.done, false); assert.equal(r.failed, true);
+});
+
+test('reto en familia: suma de estrellas positivas de los participantes', () => {
+  const c = ch({ type: 'family', target: 10 });
+  const now = T(2026, 10, 8, 20);
+  const p = FP.challengePeriod(c, now, 0);
+  const movs = [rmv('a', 'x', 4, T(2026, 10, 6)), rmv('l', 'x', 5, T(2026, 10, 7)), rmv('l', 'y', -3, T(2026, 10, 7)),
+    { id: 'b', memberId: 'a', points: 9, date: T(2026, 10, 7), kind: 'challenge' }];
+  assert.equal(FP.challengeProgress(c, ['a', 'l'], movs, p, now).value, 9); // los bonus de retos no cuentan
+  movs.push({ id: 'c', memberId: 'a', points: 1, date: T(2026, 10, 8), kind: 'custom' });
+  assert.equal(FP.challengeProgress(c, ['a', 'l'], movs, p, now).done, true);
+});
+
+test('retos por niño: participantes por defecto (niños) o elegidos', () => {
+  assert.deepEqual(FP.challengeMembers(ch({}), fam).map(m => m.id), ['a', 'l']);
+  assert.deepEqual(FP.challengeMembers(ch({ memberIds: ['l'] }), fam).map(m => m.id), ['l']);
+  assert.deepEqual(FP.challengeMembers(ch({}), [dad]).map(m => m.id), ['p']);
+});
+
+test('pendientes de confirmar, confirmar y descartar', () => {
+  const c = ch({ id: 'cama3', type: 'count', ruleId: 'cama', target: 2, stars: 5 });
+  const now = T(2026, 10, 8, 20);
+  const movs = [rmv('a', 'cama', 1, T(2026, 10, 6)), rmv('a', 'cama', 1, T(2026, 10, 7))];
+  let pend = FP.pendingChallenges([c], fam, movs, [], now);
+  assert.equal(pend.length, 1); assert.deepEqual(pend[0].memberIds, ['a']);
+  const res = FP.confirmChallenge(c, pend[0].period, pend[0].memberIds, now);
+  assert.equal(res.achievements.length, 1); assert.equal(res.movements[0].points, 5); assert.equal(res.movements[0].kind, 'challenge');
+  assert.equal(FP.pendingChallenges([c], fam, movs, res.achievements, now).length, 0);
+  const st = FP.challengeState(c, fam, movs, res.achievements, now);
+  assert.equal(st.rows.find(r => r.memberIds[0] === 'a').status, 'confirmed');
+  assert.equal(st.rows.find(r => r.memberIds[0] === 'l').status, 'active');
+  const dis = FP.dismissChallenge(c, pend[0].period, ['a'], now);
+  assert.equal(FP.pendingChallenges([c], fam, movs, dis, now).length, 0);
+  // Sin estrellas no hay movimiento, pero sí insignia
+  assert.equal(FP.confirmChallenge({ ...c, stars: 0 }, pend[0].period, ['a'], now).movements.length, 0);
+});
+
+test('lo conseguido la semana pasada sigue pendiente; un reto creado después no cuenta hacia atrás', () => {
+  const movs = [rmv('a', 'cama', 1, T(2026, 10, 6)), rmv('a', 'cama', 1, T(2026, 10, 7))];
+  const nextWeek = T(2026, 10, 13, 10);
+  const c = ch({ type: 'count', ruleId: 'cama', target: 2 });
+  const pend = FP.pendingChallenges([c], fam, movs, [], nextWeek);
+  assert.equal(pend.length, 1); assert.equal(pend[0].period.key, '2026-10-05');
+  const late = ch({ type: 'count', ruleId: 'cama', target: 2, createdAt: T(2026, 10, 12, 9) });
+  assert.equal(FP.pendingChallenges([late], fam, movs, [], nextWeek).length, 0);
+  assert.equal(FP.pendingChallenges([{ ...c, active: false }], fam, movs, [], nextWeek).length, 0);
+  assert.equal(FP.pendingChallenges([{ ...c, pool: true }], fam, movs, [], nextWeek).length, 0);
+});
+
+test('reto de una sola semana y reto sin fecha', () => {
+  const once = ch({ type: 'count', ruleId: 'cama', target: 1, period: 'week', weekStart: MON });
+  assert.ok(FP.challengePeriod(once, T(2026, 10, 8), 0));
+  assert.equal(FP.challengePeriod(once, T(2026, 10, 14), 0), null);
+  assert.ok(FP.challengePeriod(once, T(2026, 10, 14), -1));
+  const open = ch({ type: 'free', period: 'open' });
+  assert.equal(FP.challengePeriod(open, T(2027, 1, 1), 0).key, 'open');
+  assert.equal(FP.pendingChallenges([open], fam, [], [], T(2027, 1, 1)).length, 0); // los libres los marca un adulto
+});
+
+test('insignias agrupadas por reto', () => {
+  const c = ch({ id: 'x', type: 'count', title: 'Cama', icon: '🛏️' });
+  const p1 = { key: 'w1' }, p2 = { key: 'w2' };
+  const a = FP.confirmChallenge(c, p1, ['a'], 1).achievements.concat(FP.confirmChallenge(c, p2, ['a'], 2).achievements, FP.dismissChallenge(c, p2, ['l'], 3));
+  const b = FP.badgesFor('a', a);
+  assert.equal(b.length, 1); assert.equal(b[0].count, 2); assert.equal(b[0].icon, '🛏️');
+  assert.equal(FP.badgesFor('l', a).length, 0);
+});
+
+test('ruleta: un reto por niño o uno para todos, desde el bote de ideas', () => {
+  const rules = [{ id: 'r1', title: 'Cama', icon: '🛏️', points: 1 }, { id: 'r2', title: 'Pelear', icon: '😠', points: -2 }];
+  const pool = FP.defaultPool(rules, 1);
+  assert.ok(pool.length >= 4);
+  assert.ok(pool.every(c => c.pool && c.title));
+  assert.ok(pool.some(c => c.type === 'clean' && c.ruleId === 'r2'));
+  const now = T(2026, 10, 6, 10);
+  const each = FP.rouletteChallenges(pool, fam, 'each', now, () => 0);
+  assert.equal(each.length, 2);
+  assert.ok(each.every(c => !c.pool && c.period === 'week' && c.weekStart === MON && c.memberIds.length === 1 && c.type !== 'family' && c.source === 'roulette'));
+  const all = FP.rouletteChallenges(pool, fam, 'all', now, () => 0.999);
+  assert.equal(all.length, 1); assert.deepEqual(all[0].memberIds, []);
+  assert.deepEqual(FP.rouletteChallenges([], fam, 'each', now), []);
+});
+
+test('copia de seguridad incluye retos y logros', () => {
+  const c = ch({ id: 'cc1', type: 'free' });
+  const ach = FP.confirmChallenge(c, { key: 'open' }, ['a'], 5).achievements;
+  const b = FP.makeBackup({ members: [kidA], rules: [], rewards: [], challenges: [c], logs: { '2026-10': { movements: [], redemptions: [], achievements: ach } } });
+  const r = FP.parseBackup(JSON.stringify(b));
+  assert.equal(r.challenges.length, 1);
+  assert.equal(r.logs['2026-10'].achievements.length, 1);
+});

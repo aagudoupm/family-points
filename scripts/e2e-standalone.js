@@ -47,10 +47,16 @@ server.listen(0, async () => {
   check(await page.evaluate(() => !!navigator.serviceWorker.controller), 'Service worker activo');
   await page.screenshot({ path: path.join(shots, '9-iphone.png') });
   let wide = [];
-  for (const tab of ['Panel', 'Historial', 'Premios', 'Gráficos', 'Ajustes']) {
+  for (const tab of ['Panel', 'Retos', 'Premios', 'Resumen', 'Más']) {
     await page.getByRole('button', { name: tab, exact: true }).click(); await page.waitForTimeout(250);
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push(tab);
   }
+  await page.getByRole('button', { name: 'Retos', exact: true }).click(); await page.waitForTimeout(250);
+  await page.getByRole('button', { name: 'Crear retos de ejemplo' }).click(); await page.waitForTimeout(600);
+  if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push('Retos con tarjetas');
+  await page.screenshot({ path: path.join(shots, '16-iphone-retos.png') });
+  await page.getByRole('button', { name: 'Más', exact: true }).click(); await page.waitForTimeout(250);
+  await page.screenshot({ path: path.join(shots, '17-iphone-mas.png') });
   check(!wide.length, 'Sin desbordamiento horizontal en iPhone' + (wide.length ? ': ' + wide.join(', ') : ''));
   await page.getByRole('button', { name: 'Panel', exact: true }).click();
   await ctx.setOffline(true);
@@ -58,8 +64,9 @@ server.listen(0, async () => {
   check(await page.locator('.mcard').count() === 3, 'Funciona sin conexión y conserva los datos');
   await ctx.setOffline(false);
   // Copia de seguridad: guardar, borrar todo y restaurar
-  await page.getByRole('button', { name: 'Ajustes' }).click();
+  await page.getByRole('button', { name: 'Abrir ajustes' }).click();
   await page.waitForTimeout(300);
+  check(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'Ajustes sin desbordamiento en iPhone');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Guardar copia/ }).click()]);
   const file = path.join(shots, 'copia.json'); await dl.saveAs(file);
   const backup = JSON.parse(fs.readFileSync(file, 'utf8'));

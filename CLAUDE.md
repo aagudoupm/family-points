@@ -47,6 +47,21 @@ PBKDF2-SHA256 con sal aleatoria, guardado en `config/settings`; nunca se guarda 
 Se pide para: entrar en Ajustes, editar o borrar movimientos del historial, canjear y, si se activa la opción, dar puntos.
 Tras introducirlo queda desbloqueado 3 minutos. Tras 5 fallos hay que esperar 30 s.
 
+### Retos (`challenges/{id}`)
+`{id, type: 'count'|'streak'|'clean'|'family'|'free', title, icon, ruleId, target, stars, memberIds[] (vacío = todos los niños),
+period: 'weekly'|'week'|'open', weekStart, reward, active, pool, source: 'roulette'?, order, createdAt}`.
+- `pool: true` = idea del bote de la ruleta (no es un reto activo). La ruleta copia ideas como retos `period: 'week'` (uno por niño o uno para todos).
+- El progreso se calcula siempre a partir de los movimientos (`FP.challengeProgress`); nunca se guarda.
+- Un reto conseguido queda **pendiente de confirmar** (`FP.pendingChallenges`, semana actual y anterior). Al confirmar (con PIN) se crean
+  logros en `log/{YYYY-MM}.achievements` (`status: 'confirmed'`) que son las insignias, y movimientos `kind: 'challenge'` con las estrellas extra.
+  «No contar» guarda un logro `status: 'dismissed'` para no volver a preguntar.
+- Los bonus de retos (`kind: 'challenge'`) y los reinicios no cuentan para los retos; sí para saldo, ranking y gráficos.
+- Ajustes: `settings.roulette = {enabled, mode: 'each'|'all'}` y `settings.rouletteWeek` (semana ya girada).
+
+### Navegación
+Barra inferior de 5: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Resumen (Historial | Gráficos) · Más.
+Ajustes: rueda del panel, mosaico en «Más» y, en la barra lateral del iPad, abajo del todo (`.tab.rail-only`). No añadir una 6.ª pestaña: usar «Más».
+
 ### Tres modos de datos (`S.mode`)
 - `cloud`: Artifact de claude.ai (`db` del visor).
 - `firebase`: versión independiente con `firebase-config.js` en la raíz (define `window.FP_FIREBASE`). Hay cuenta familiar

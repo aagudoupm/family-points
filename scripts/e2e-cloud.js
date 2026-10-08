@@ -92,7 +92,7 @@ server.listen(0, async () => {
   console.log('Sesión y separación de cuentas');
   await ipad.reload(); await ipad.waitForSelector('.mcard'); await wait(800);
   check(await bal(ipad, 'Lucía') === 2, 'Tras recargar sigue la sesión abierta y los datos');
-  await iphone.getByRole('button', { name: 'Ajustes' }).click();
+  await iphone.getByRole('button', { name: 'Abrir ajustes' }).click();
   await iphone.getByRole('button', { name: 'Cerrar sesión' }).click();
   await iphone.locator('.sheet').getByRole('button', { name: 'Cerrar sesión' }).click();
   await iphone.waitForSelector('#l-email');

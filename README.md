@@ -8,7 +8,10 @@ Estrellas por portarse bien y premios para canjearlas. Pensada para usarla en fa
   con un motivo libre, y deshacer al momento con el botón «Deshacer».
 - **Historial**: filtra por persona, tipo y fechas. Toca un movimiento para editarlo o borrarlo. Puedes exportarlo a CSV o PDF.
 - **Premios**: elige quién canjea y toca el premio. No deja canjear sin estrellas suficientes.
-- **Estadísticas**: puntos por semana o por mes de cada persona y lo que más se repite.
+- **Retos**: cinco tipos (constancia, racha, semana limpia, en familia y libre), para cada niño o para todos, con estrellas
+  extra configurables. Se comprueban solos y un adulto confirma antes de dar las estrellas. Al superarlos hay celebración e insignia.
+- **Ruleta de los lunes**: propone retos al azar cada semana desde un bote de ideas editable.
+- **Resumen**: historial y gráficos (días, semanas o meses) de cada persona y lo que más se repite.
 - **Ajustes**: miembros, reglas y premios (crear, editar, borrar y reordenar), plantillas, reinicio de puntos
   (manual, semanal o mensual), PIN parental, sonido y confeti.
 

@@ -51,35 +51,35 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(/Lucía/.test(rank), 'Lucía encabeza el ranking semanal');
 
   console.log('Fase 4 · Premios y canjes');
-  await page.getByRole('button', { name: 'Premios' }).click();
+  await page.getByRole('button', { name: 'Premios', exact: true }).click();
   await page.locator('.who .chip', { hasText: 'Lucía' }).click();
   await page.getByRole('button', { name: /^30 min de tablet/ }).click();
   await page.waitForTimeout(200);
   check(/faltan 9/i.test(await page.locator('.toast').innerText()), 'Sin saldo suficiente no deja canjear (faltan 9)');
   await page.evaluate(() => {}); // dar más puntos desde el panel
-  await page.getByRole('button', { name: 'Panel' }).click();
+  await page.getByRole('button', { name: 'Panel', exact: true }).click();
   await page.locator('.mcard', { hasText: 'Lucía' }).click();
   for (let i = 0; i < 6; i++) await page.getByRole('button', { name: /^Ayudar en casa/ }).click(); // +12
   await page.getByRole('button', { name: 'Cerrar' }).click();
   await settle();
   check(await balance('Lucía') === 13, 'Lucía tiene 13 estrellas');
-  await page.getByRole('button', { name: 'Premios' }).click();
+  await page.getByRole('button', { name: 'Premios', exact: true }).click();
   await page.getByRole('button', { name: /^30 min de tablet/ }).click();
   await page.screenshot({ path: path.join(shots, '3-canje.png') });
   await page.locator('.sheet').getByRole('button', { name: 'Canjear' }).click();
   await settle();
-  await page.getByRole('button', { name: 'Panel' }).click();
+  await page.getByRole('button', { name: 'Panel', exact: true }).click();
   await settle();
   check(await balance('Lucía') === 3, 'Canje descuenta 10 → 3 estrellas');
 
   console.log('Fase 5 · Ajustes, PIN y reinicio');
-  await page.getByRole('button', { name: 'Ajustes' }).click();
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
   await page.locator('.banner').getByRole('button', { name: 'Crear PIN' }).click();
   for (const d of '12341234') await page.getByRole('button', { name: 'Cifra ' + d, exact: true }).click();
   await settle();
   check(await page.evaluate(() => !!window.__FP_APP__.S.settings.pinHash && window.__FP_APP__.S.settings.pinHash !== '1234'), 'PIN guardado como hash');
   await page.getByRole('button', { name: 'Bloquear ahora' }).click();
-  await page.getByRole('button', { name: 'Ajustes' }).click();
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
   for (const d of '1111') await page.getByRole('button', { name: 'Cifra ' + d, exact: true }).click();
   await page.waitForTimeout(500);
   check(/incorrecto/.test(await page.locator('.pin-msg').innerText()), 'PIN incorrecto rechazado');
@@ -102,12 +102,13 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.getByRole('button', { name: /Reiniciar ahora/ }).click();
   await page.locator('.sheet').getByRole('button', { name: 'Reiniciar ahora' }).click();
   await settle();
-  await page.getByRole('button', { name: 'Panel' }).click();
+  await page.getByRole('button', { name: 'Panel', exact: true }).click();
   await settle();
   check(await balance('Lucía') === 0, 'Reinicio manual deja el saldo a 0');
 
   console.log('Fase 3 · Historial');
-  await page.getByRole('button', { name: 'Historial' }).click();
+  await page.getByRole('button', { name: 'Resumen', exact: true }).click();
+  await page.locator('.view-switch .seg button', { hasText: 'Historial' }).click();
   await settle();
   const rows = await page.locator('.list .row').count();
   check(rows === 11, 'Historial con 11 entradas (9 movimientos + 1 canje + 1 reinicio): ' + rows);
@@ -133,7 +134,8 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.screenshot({ path: path.join(shots, '5-historial.png') });
 
   console.log('Fase 6 · Estadísticas');
-  await page.getByRole('button', { name: 'Gráficos' }).click();
+  await page.getByRole('button', { name: 'Resumen', exact: true }).click();
+  await page.locator('.view-switch .seg button', { hasText: 'Gráficos' }).click();
   await settle();
   check(await page.locator('.chart-wrap polyline').count() === 3, 'Gráfico con una línea por miembro');
   check(await page.locator('.bar-row').count() > 0, 'Comportamientos más frecuentes');
@@ -146,6 +148,64 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(await page.locator('.tip').isVisible(), 'Tooltip al pasar el dedo por el gráfico');
   await page.screenshot({ path: path.join(shots, '6-estadisticas.png') });
 
+  console.log('Fase 9 · Retos, confirmación, insignias y ruleta');
+  const pinIfAsked = async () => { await page.waitForTimeout(300); if (await page.locator('.pin-pad').count()) { for (const d of '1234') await page.getByRole('button', { name: 'Cifra ' + d, exact: true }).click(); await page.waitForTimeout(400); } };
+  const sheet = () => page.locator('.sheet').last();
+  await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
+  await page.getByRole('button', { name: 'Crear retos de ejemplo' }).click(); await pinIfAsked(); await settle();
+  check(await page.locator('.chal').count() === 3, 'Retos de ejemplo: constancia, semana limpia y en familia');
+  await page.getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
+  const bal0 = await balance('Lucía');
+  await page.locator('.mcard', { hasText: 'Lucía' }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /^Hacer la cama/ }).click();
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  check(/1 reto conseguido esperando confirmación/.test(await page.locator('.banners').innerText()), 'Aviso en el panel: reto conseguido, falta confirmar');
+  check(await balance('Lucía') === bal0 + 4, 'Las estrellas extra no se dan sin confirmar');
+  await page.locator('.banners').getByRole('button', { name: 'Revisar' }).click();
+  await sheet().getByRole('button', { name: /Confirmar/ }).click(); await pinIfAsked(); await settle();
+  check(await sheet().locator('.celebrate').count() === 1 && /Lucía/.test(await sheet().innerText()), 'Celebración con insignia al confirmar');
+  await page.screenshot({ path: path.join(shots, '13-celebracion.png') });
+  await sheet().getByRole('button', { name: '¡Genial!' }).click();
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  check(await balance('Lucía') === bal0 + 4 + 5, 'Al confirmar se suman las 5 estrellas extra');
+  check(!(await page.locator('.banners').innerText()).includes('esperando'), 'El aviso desaparece tras confirmar');
+  await page.getByRole('button', { name: 'Premios', exact: true }).click();
+  await page.locator('.seg button', { hasText: 'Insignias' }).click(); await settle();
+  check(await page.locator('.badge').count() === 1 && /Hacer la cama/.test(await page.locator('.badge').innerText()), 'Insignia en la colección de Lucía');
+  // Reto libre para Mateo, marcado por un adulto
+  await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
+  await page.getByRole('button', { name: /Nuevo reto/ }).click(); await pinIfAsked();
+  await sheet().locator('.seg button', { hasText: 'Libre' }).click();
+  await page.fill('#c-title', 'Atarse los cordones');
+  await sheet().locator('.chip', { hasText: 'Mateo' }).click();
+  await sheet().getByRole('button', { name: 'Guardar' }).click(); await settle();
+  const free = page.locator('.chal', { hasText: 'Atarse los cordones' });
+  check(await free.count() === 1 && /Mateo/.test(await free.innerText()), 'Reto libre creado solo para Mateo');
+  await free.getByRole('button', { name: '¡Conseguido!' }).click();
+  await sheet().getByRole('button', { name: 'Confirmar' }).click(); await pinIfAsked(); await settle();
+  await sheet().getByRole('button', { name: '¡Genial!' }).click(); await settle();
+  check(await page.evaluate(() => window.__FP_APP__.achievements().filter(a => a.status === 'confirmed').length) === 2, 'Mateo recibe su insignia del reto libre');
+  check(/Superado/.test(await free.innerText()), 'El reto libre aparece como superado');
+  await page.screenshot({ path: path.join(shots, '14-retos.png'), fullPage: true });
+  // Ruleta del lunes
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
+  await page.locator('#s-roulette').click(); await settle();
+  check(await page.evaluate(() => [...window.__FP_APP__.S.challenges.values()].filter(c => c.pool).length) >= 4, 'Al activar la ruleta se rellena el bote de ideas');
+  await page.getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
+  check(/Gira la ruleta/.test(await page.locator('.banners').innerText()), 'Aviso semanal para girar la ruleta');
+  await page.locator('.banners').getByRole('button', { name: 'Girar la ruleta' }).click();
+  await sheet().getByRole('button', { name: /Girar la ruleta/ }).click();
+  await page.waitForTimeout(3200);
+  await page.screenshot({ path: path.join(shots, '15-ruleta.png') });
+  await sheet().getByRole('button', { name: /Aceptar retos/ }).click(); await settle();
+  const spun = await page.evaluate(() => [...window.__FP_APP__.S.challenges.values()].filter(c => c.source === 'roulette').map(c => c.memberIds.length));
+  check(spun.length === 2 && spun.every(n => n === 1), 'La ruleta da un reto distinto a cada niño');
+  check(await page.locator('h1', { hasText: 'Retos' }).count() === 1, 'Tras aceptar se muestran los retos');
+  await page.getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
+  check(!/Gira la ruleta/.test(await page.locator('.banners').innerText()), 'La ruleta no se vuelve a proponer esta semana');
+  await page.getByRole('button', { name: 'Más', exact: true }).click(); await settle();
+  check(await page.locator('.more-tile').count() >= 8, 'Pantalla «Más» con accesos');
+
   console.log('Persistencia');
   await page.reload();
   await settle();
@@ -154,7 +214,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   console.log('Vertical y modo oscuro');
   await page.setViewportSize({ width: 820, height: 1180 });
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.getByRole('button', { name: 'Panel' }).click();
+  await page.getByRole('button', { name: 'Panel', exact: true }).click();
   await settle();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   check(!overflow, 'Sin scroll horizontal en vertical');
