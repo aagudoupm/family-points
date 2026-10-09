@@ -2,6 +2,7 @@
 // de separadas, y descarta los textos que la IA haya escrito debajo. Quita el fondo blanco y guarda cada figura en art/<grupo>/<id>.webp.
 // Uso: node scripts/cut-row.js <imagen> <grupo> <id1,id2,...>
 //   p. ej. node scripts/cut-row.js europa1.jpg recuerdos ES,DE,GB,FR,IT
+// Si la IA escribió el nombre debajo de cada figura, usa FP_LABELS=1 para quitarlo (FP_GAP cambia el hueco mínimo entre filas).
 // Con varias filas (p. ej. 4 filas de 5), los ids van en orden de lectura y se reparten a partes iguales entre las filas.
 const { execFileSync } = require('child_process'), fs = require('fs'), path = require('path');
 const [src, group, ids] = process.argv.slice(2);
@@ -16,7 +17,7 @@ let bands = [], bs = -1, gap = 0, last = -1;
 for (let y = 0; y <= h; y++) {
   const on = y < h && rowHas(y);
   if (on) { if (bs < 0) bs = y; last = y; gap = 0; }
-  else if (bs >= 0 && ++gap > 10) { bands.push([bs, last]); bs = -1; }
+  else if (bs >= 0 && ++gap > (Number(process.env.FP_GAP) || 10)) { bands.push([bs, last]); bs = -1; }
 }
 if (bs >= 0) bands.push([bs, last]);
 const tallest = Math.max(...bands.map(([p, q]) => q - p));
@@ -41,7 +42,22 @@ bands.forEach(([y0, y1], bi) => {
     runs.splice(best, 2, [runs[best][0], runs[best + 1][1]]);
   }
   if (runs.length !== per) { console.error('Fila ' + (bi + 1) + ': se esperaban ' + per + ' figuras y hay ' + runs.length); process.exit(1); }
-  runs.forEach((r, k) => pieces.push({ a: r[0], b: r[1], y0, y1, prev: k ? runs[k - 1][1] : null, next: k < runs.length - 1 ? runs[k + 1][0] : null }));
+  runs.forEach((r, k) => {
+    // Dentro de cada figura: si abajo hay una franja baja separada por un hueco (el nombre escrito), se recorta
+    const has = y => { for (let x = r[0]; x <= r[1]; x++) if (ink(x, y)) return true; return false; };
+    let top = y0; while (top < y1 && !has(top)) top++;
+    let bot = y1; while (bot > top && !has(bot)) bot--;
+    // Con FP_LABELS=1, se quitan de abajo arriba los bloques bajos separados por al menos una fila vacía
+    // (nombres escritos debajo, de una o dos líneas: menos de 48 px o del 25 % de la altura)
+    const full = bot - top;
+    while (process.env.FP_LABELS) {
+      let y = bot; while (y > top && has(y)) y--;
+      let z = y; while (z > top && !has(z)) z--;
+      if (y <= top || bot - y > Math.max(48, full * 0.25) || z <= top) break;
+      bot = z;
+    }
+    pieces.push({ a: r[0], b: r[1], y0: top, y1: bot, prev: k ? runs[k - 1][1] : null, next: k < runs.length - 1 ? runs[k + 1][0] : null });
+  });
 });
 const out = path.join(__dirname, '..', 'art', group);
 fs.mkdirSync(out, { recursive: true });

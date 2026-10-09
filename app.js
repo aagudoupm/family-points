@@ -204,14 +204,16 @@
   // Utilidades DOM
   // =====================================================================
   const $ = sel => document.querySelector(sel);
-  // Iconos: primero los propios (icons.js, dibujados a mano); si no hay, el 3D de Fluent Emoji (MIT) en emoji/ y emoji-map.js;
-  // si tampoco, el emoji del sistema.
+  // Iconos: primero las ilustraciones del juego (art/iconos, por código del emoji); después los propios (icons.js);
+  // si no hay, el 3D de Fluent Emoji (MIT) en emoji/ y emoji-map.js; si tampoco, el emoji del sistema.
   const EMAP = window.FP_EMOJI_MAP || {}, OWN = window.FP_OWN_ICONS || {};
+  const ART_ICONS = (window.FP_ART || {}).iconos || {}, CHEST_ICON = ((window.FP_ART || {}).baul || {}).cerrado;
+  const cpOf = s => [...s].map(c => c.codePointAt(0).toString(16)).join('-');
   const EMO_RE = /^((?:\p{Extended_Pictographic}(?:\uFE0F|[\u{1F3FB}-\u{1F3FF}])?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*|[0-9#*]\uFE0F\u20E3))(?:\s+([\s\S]+))?$/u;
   const emoSrc = ch => {
     if (!ch) return null;
     const bare = String(ch).replace(/\uFE0F/g, ''), f = EMAP[ch] || EMAP[bare];
-    return OWN[bare] || (f ? 'emoji/' + f : null);
+    return ART_ICONS[cpOf(bare)] || (bare === '🧰' && CHEST_ICON) || OWN[bare] || (f ? 'emoji/' + f : null);
   };
   function emo(ch, cls) {
     const src = emoSrc(ch);
@@ -1044,7 +1046,7 @@
             h('button', { class: 'btn', type: 'button', onclick: () => openChest(cur) }, emo('🧰'), t('chest') + ' · ' + got));
           if (v.i !== lastCountry) {
             lastCountry = v.i;
-            fill(landmark, emo(c.icon));
+            fill(landmark, art('recuerdos', c.code) ? h('img', { src: art('recuerdos', c.code), alt: '' }) : emo(c.icon));
             const pos = v.ct.countries.findIndex(x => x.code === c.code);
             fill(tripBox,
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('👋'), t('helloTitle', c)),

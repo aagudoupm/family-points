@@ -81,7 +81,7 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 
 ### Ilustraciones (art/)
 Nombres de archivo: `art/personajes/<id>.webp` (ids en characters.js), `art/recuerdos/<código ISO>.webp`, `art/trofeos/<europa|america|africa|asia|oceania>.webp`,
-`art/baul/cerrado.webp` y `art/baul/abierto.webp`. Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
+`art/baul/cerrado.webp`, `art/baul/abierto.webp` y `art/iconos/<código>.webp` (95 iconos; las banderas siguen siendo de Fluent). Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
 Filas de figuras (recuerdos, trofeos, baúl): `node scripts/cut-row.js <imagen> <grupo> <ids>` detecta cada figura aunque no estén igual de separadas y descarta los textos de debajo. Cuadrículas (personajes): `node scripts/cut-art.js <imagen> <cols>x<filas> <grupo> <ids>` (quita el fondo blanco conectado con el borde; los huecos cerrados, como el de Nora entre el patinete y la pierna, se quitan a mano con otro `-draw "color x,y floodfill"`). Instrucciones de generación en `art/PROMPTS.md`.
 Después: `node scripts/build-art.js` (o cualquier build) y publicar también los archivos de `art/`.
 
@@ -90,7 +90,7 @@ Después: `node scripts/build-art.js` (o cualquier build) y publicar también lo
 - Superficies blancas con contorno grueso `--k` y sombra sólida; botones de gominola (`.btn` con `--b`) que se hunden; títulos con borde
   (`-webkit-text-stroke` + `paint-order`). Fuentes: Lilita One (títulos y números, un solo grosor: usa `font-weight: 400`) y Nunito.
 - El texto que va directamente sobre el fondo usa `--on-bg`; dentro de superficies, `--fg`.
-- **Iconos**: primero los propios (`icons.js`); si no hay, Fluent Emoji 3D (Microsoft, MIT) en `emoji/` con `emoji-map.js`. `h()` convierte en icono
+- **Iconos**: primero las ilustraciones del juego (`art/iconos/<código del emoji sin FE0F>.webp`, p. ej. `2b50` = ⭐; 🧰 usa `art/baul/cerrado`), después los propios (`icons.js`); si no hay, Fluent Emoji 3D (Microsoft, MIT) en `emoji/` con `emoji-map.js`. `h()` convierte en icono
   cualquier texto que sea un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Si añades emojis al código o países,
   regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>` (incluye las banderas de `countries.js`).
 - Panel: sonido y ajustes arriba a la derecha (`.top-actions`). Cada tarjeta: personaje con marco de rango, nombre, estrellas, país y nivel, rango y el vuelo hacia el siguiente país (`flightTrack`).

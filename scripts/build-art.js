@@ -1,11 +1,11 @@
 // Genera art.js con las ilustraciones que existen en art/ (personajes, recuerdos, trofeos y baúl).
 // Nombres: art/personajes/<id del personaje>.webp · art/recuerdos/<código del país>.webp · art/trofeos/<id del continente>.webp
-//          art/baul/cerrado.webp y art/baul/abierto.webp. Lo que falte se dibuja con el dibujo provisional.
+//          art/baul/cerrado.webp y art/baul/abierto.webp · art/iconos/<código del emoji sin FE0F>.webp (p. ej. 2b50 = ⭐). Lo que falte se dibuja con el dibujo provisional.
 // Uso: node scripts/build-art.js
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..'), dir = path.join(root, 'art');
 const out = {};
-for (const group of ['personajes', 'recuerdos', 'trofeos', 'baul']) {
+for (const group of ['personajes', 'recuerdos', 'trofeos', 'baul', 'iconos']) {
   out[group] = {};
   const d = path.join(dir, group);
   if (!fs.existsSync(d)) continue;
