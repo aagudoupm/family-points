@@ -721,6 +721,9 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 .map-land path { fill: #A8DB8A; stroke: #2F5E2B; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .map-land path.route { fill: #F6E2A6; }
 .map-land path.here { fill: #FFC21A; }
+.map-svg.illus .map-land path { fill: transparent; stroke: rgba(29, 18, 64, .28); }
+.map-svg.illus .map-land path.route { fill: transparent; }
+.map-svg.illus .map-land path.here { fill: rgba(255, 194, 26, .55); stroke: #1D1240; stroke-width: 1.5; }
 .map-route { fill: none; stroke: #1D1240; stroke-width: 2; stroke-dasharray: 6 5; vector-effect: non-scaling-stroke; opacity: .75; }
 .map-stop { fill: #fff; stroke: #1D1240; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .map-stop.done { fill: #FFC21A; }

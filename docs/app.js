@@ -1253,8 +1253,13 @@
           svg.append(sv('defs', null,
             sv('pattern', { id: 'map-waves', width: 24, height: 12, patternUnits: 'userSpaceOnUse' }, sv('path', { d: 'M0 8 Q6 4 12 8 T24 8', fill: 'none', stroke: 'rgba(255,255,255,.35)', 'stroke-width': 1.2 })),
             sv('radialGradient', { id: 'map-sea', cx: '50%', cy: '45%', r: '75%' }, sv('stop', { offset: '0', 'stop-color': '#7CC6FF' }), sv('stop', { offset: '1', 'stop-color': '#2E8BFF' }))));
-          svg.append(sv('rect', { x: -50, y: -50, width: MAP.w + 100, height: MAP.h + 100, fill: 'url(#map-sea)' }));
-          svg.append(sv('rect', { x: -50, y: -50, width: MAP.w + 100, height: MAP.h + 100, fill: 'url(#map-waves)' }));
+          // Fondo ilustrado (art/mapa/mundo.webp: calcado de world-map.js en formato 21:9, con mar a los lados); si no está, mar dibujado
+          const bg = art('mapa', 'mundo'), pad = (MAP.h * 21 / 9 - MAP.w) / 2;
+          if (bg) { svg.classList.add('illus'); svg.append(sv('image', { href: bg, x: -pad, y: 0, width: MAP.w + 2 * pad, height: MAP.h, preserveAspectRatio: 'none' })); }
+          else {
+            svg.append(sv('rect', { x: -50, y: -50, width: MAP.w + 100, height: MAP.h + 100, fill: 'url(#map-sea)' }));
+            svg.append(sv('rect', { x: -50, y: -50, width: MAP.w + 100, height: MAP.h + 100, fill: 'url(#map-waves)' }));
+          }
           const land = sv('g', { class: 'map-land' });
           for (const [id, d] of MAP.paths) land.append(sv('path', { d, class: hereIso.has(id) ? 'here' : routeIso.has(id) ? 'route' : null }));
           svg.append(land);

@@ -84,11 +84,12 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 - **Mapa del mundo** (`openWorldMap`, botón 🌍 del panel y «Más → Mapa del mundo»): dibuja `world-map.js`, la ruta de los 50 países (capitales: `lat`, `lon` e `iso` de la tabla `GEO` de countries.js),
   el país de cada miembro en amarillo y su personaje como chincheta (varios en el mismo país se colocan en fila). Zoom por continente (`mapBox`). Tocar un personaje abre su perfil.
   Las islas pequeñas (Samoa, Kiribati, Micronesia, Tonga) no tienen contorno a esta escala: solo se ve su parada.
+  Fondo ilustrado: `art/mapa/mundo.webp` (Gemini, calcado de una imagen base de world-map.js en 21:9 con mar a los lados; `pad = (h·21/9 − w)/2`). Encima van los contornos reales casi transparentes (`.map-svg.illus`). Si falta la imagen, se dibuja el mar y la tierra en SVG.
 - No hay monedas: las estrellas son para los premios reales y el viaje da recuerdos.
 
 ### Ilustraciones (art/)
 Nombres de archivo: `art/personajes/<id>.webp` (ids en characters.js), `art/recuerdos/<código ISO>.webp`, `art/trofeos/<europa|america|africa|asia|oceania>.webp`,
-`art/baul/cerrado.webp`, `art/baul/abierto.webp` y `art/iconos/<código>.webp` (95 iconos; las banderas siguen siendo de Fluent). Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
+`art/baul/cerrado.webp`, `art/baul/abierto.webp` y `art/iconos/<código>.webp` (95 iconos), `art/mapa/mundo.webp` (fondo del mapa; las banderas siguen siendo de Fluent). Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
 Filas de figuras (recuerdos, trofeos, baúl): `node scripts/cut-row.js <imagen> <grupo> <ids>` detecta cada figura aunque no estén igual de separadas y descarta los textos de debajo. Cuadrículas (personajes): `node scripts/cut-art.js <imagen> <cols>x<filas> <grupo> <ids>` (quita el fondo blanco conectado con el borde; los huecos cerrados, como el de Nora entre el patinete y la pierna, se quitan a mano con otro `-draw "color x,y floodfill"`). Instrucciones de generación en `art/PROMPTS.md`.
 Después: `node scripts/build-art.js` (o cualquier build) y publicar también los archivos de `art/`.
 
