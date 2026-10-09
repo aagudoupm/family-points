@@ -66,6 +66,17 @@
     fDemonym: 'Gentilicio', fMonument: 'Monumento',
     factTitle: '¿Sabías que…?',
     passportTitle: v => 'Pasaporte de ' + v.ct, passportCount: v => v.n + ' de 10 países',
+    quizTitle: v => 'Prueba de ' + v.name, quizStart: '¡Hacer la prueba!', quizMovTitle: v => 'Prueba de ' + v.name,
+    quizIntro: v => 'Tres preguntas sobre ' + v.name + '. Cada acierto da ' + v.n + ' estrellas.',
+    quizQ_capital: v => '¿Cuál es la capital de ' + v.name + '?', quizQ_flag: '¿De qué país es esta bandera?',
+    quizQ_monument: v => '¿En qué país está ' + v.monument + '?', quizQ_language: v => '¿Qué idioma se habla en ' + v.name + '?',
+    quizQ_demonym: v => '¿Cómo se llaman los habitantes de ' + v.name + '?',
+    quizStep: v => 'Pregunta ' + v.i + ' de ' + v.n, quizRight: '¡Correcto!', quizWrong: v => '¡Casi! Era: ' + v.answer,
+    quizNext: 'Siguiente', quizFinish: 'Ver resultado', quizResult: v => '¡Has acertado ' + v.n + ' de 3!', quizGain: v => '+' + v.n + ' estrellas',
+    quizZero: 'Esta vez no ha habido suerte. ¡Puedes volver a intentarlo!', quizAlready: 'Esta prueba ya estaba hecha.', quizRetry: 'Volver a intentarlo', quizClose: '¡Genial!',
+    quizDone: v => 'Prueba superada: ' + v.n + ' de 3 (+' + v.s + ' estrellas)', quizTicket: v => '¡Prueba de ' + v.name + '!',
+    ppTitle: 'Pasaporte', ppOf: v => 'Pasaporte de ' + v.name, ppCount: v => v.n + ' de ' + v.total + ' países visitados', ppOpen: 'Pasaporte',
+    ppStamp: v => 'Sello de ' + v.name + (v.date ? ', ' + v.date : ''), ppUnknown: 'país por descubrir', ppSealed: v => 'Sellado el ' + v.date, ppOpenAll: 'Abrir el pasaporte',
     stampLabel: v => v.name + ': ' + v.state, stampDone: 'visitado', stampHere: 'está aquí', stampLocked: 'por visitar',
     pickChar: 'Elige tu personaje', changeChar: 'Cambiar personaje', noChar: '¡Elige tu personaje!', character: 'Personaje',
     pickCharSub: 'Cada uno elige su personaje. Con el viaje irá subiendo de rango, de Novato a Gran viajero, y cada rango nuevo trae 10 estrellas de regalo.',
@@ -852,7 +863,7 @@
       const goal = goalText(lv);
       const c = chalCount(m.id);
       return h('button', {
-        class: 'mcard', type: 'button', style: { '--c': m.color },
+        class: 'mcard scene-' + lv.ct.id, type: 'button', style: Object.assign({ '--c': m.color }, sceneStyle(lv.ct.id)),
         'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }), level: t('levelChip', lv), goal }),
         onclick: () => openProfile(m)
       },
@@ -989,16 +1000,202 @@
           h('div', { class: 'tk-body' },
             h('div', { class: 'tk-legs', 'aria-hidden': 'true' },
               h('span', null, flagEmo(a.c), h('b', null, a.c.name)), h('span', { class: 'tk-plane' }, emo('✈️')), h('span', null, flagEmo(b.c), h('b', null, b.c.name))),
+            flightMap(a.c, b.c),
             portrait(m, b, 'tk-kid'),
             top ? h('div', { class: 'tk-rankup' }, h('p', { class: 'tk-rank' }, t('rankUp', { rank: rankName(top, ch) })),
               h('span', { class: 'pillc gift' }, emo('⭐'), t('rankGift', { n: FP.RANK_BONUS * ranks.length }))) : null,
             h('p', { class: 'tk-info' }, t('tripInfo', { n: b.n, capital: b.c.capital, hello: b.c.hello })),
             h('div', { class: 'chest-new' }, h('span', { class: 'chest-ico swap', 'aria-hidden': 'true' }, h('span', { class: 'c-closed' }, chestEl(false)), h('span', { class: 'c-open' }, chestEl(true))), h('strong', null, t('chestNew', { n: items.length }))),
             h('div', { class: 'chest-grid mini' }, items.map(s => souvenirEl(s, false))),
-            h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('tripGo'))))
+            h('div', { class: 'tk-btns' },
+              FP.quizResult(m.id, b.c.code, movements()) ? null : h('button', { class: 'btn good', type: 'button', onclick: () => { ctx.close(); setTimeout(() => openQuiz(S.members.get(m.id) || m, b.c), 300); } }, emo('🎯'), t('quizTicket', b.c)),
+              h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('tripGo')))))
       ]);
     }, 700);
   }
+
+  // ---------- Prueba del país ----------
+  // 3 preguntas tipo test (FP.quizFor). Cada acierto da FP.QUIZ_STAR estrellas: movimiento kind 'quiz', una sola vez por país.
+  // Si no acierta ninguna no se guarda nada y puede repetirla.
+  function quizStatus(m, c) {
+    const r = FP.quizResult(m.id, c.code, movements());
+    if (r) return h('p', { class: 'quiz-done' }, t('quizDone', { n: r.points / FP.QUIZ_STAR, s: r.points }));
+    return h('div', { class: 'quiz-cta' }, h('p', { class: 'sub' }, t('quizIntro', { name: c.name, n: FP.QUIZ_STAR })),
+      h('button', { class: 'btn good', type: 'button', onclick: () => openQuiz(m, c) }, emo('🎯'), t('quizStart')));
+  }
+  function openQuiz(m, c) {
+    let qs = FP.quizFor(c, W.COUNTRIES), k = 0, right = 0, picked = null, saved = null;
+    openSheet({
+      build: ctx => {
+        const box = h('div', { class: 'quiz' });
+        const finish = () => {
+          if (right > 0 && !FP.quizResult(m.id, c.code, movements())) {
+            const before = FP.earnedTotal(m.id, movements());
+            saved = FP.quizMovement(m, c, right, t('quizMovTitle', c), Date.now());
+            addMovement(saved);
+            Sound.play('challenge'); confetti(right * 40);
+            checkLevelUp(m.id, before);
+          }
+        };
+        const paint = () => {
+          if (k >= qs.length) {
+            fill(box,
+              h('div', { class: 'quiz-end' }, h('span', { class: 'quiz-big', 'aria-hidden': 'true' }, emo(right ? '🏆' : '🎯')),
+                h('h3', { class: 'quiz-q' }, t('quizResult', { n: right })),
+                saved ? h('span', { class: 'pillc gift' }, emo('⭐'), t('quizGain', { n: saved.points })) : h('p', { class: 'sub' }, t(right ? 'quizAlready' : 'quizZero'))),
+              right ? h('button', { class: 'btn primary', type: 'button', onclick: () => ctx.close() }, t('quizClose'))
+                : h('button', { class: 'btn primary', type: 'button', onclick: () => { qs = FP.quizFor(c, W.COUNTRIES); k = 0; right = 0; picked = null; paint(); } }, t('quizRetry')));
+            return;
+          }
+          const q = qs[k], ok = picked === q.answer, sou = art('recuerdos', c.code);
+          const pic = q.kind === 'flag' ? h('div', { class: 'quiz-pic flag', 'aria-hidden': 'true' }, flagEmo(c))
+            : q.kind === 'monument' ? h('div', { class: 'quiz-pic', 'aria-hidden': 'true' }, sou ? h('img', { src: sou, alt: '' }) : emo(c.icon)) : null;
+          fill(box,
+            h('p', { class: 'quiz-step' }, t('quizStep', { i: k + 1, n: qs.length })),
+            pic,
+            h('h3', { class: 'quiz-q' }, t('quizQ_' + q.kind, Object.assign({}, c, { monument: monumentName(c) }))),
+            h('div', { class: 'quiz-opts' }, q.options.map(o => h('button', {
+              class: 'quiz-opt' + (picked == null ? '' : o === q.answer ? ' right' : o === picked ? ' wrong' : ' dim'), type: 'button', disabled: picked != null,
+              onclick: () => { if (picked != null) return; picked = o; const good = o === q.answer; if (good) right++; Sound.play(good ? 'plus' : 'minus'); haptic(good ? 15 : 40); paint(); }
+            }, o))),
+            picked == null ? null : h('p', { class: 'quiz-fb ' + (ok ? 'ok' : 'ko') }, ok ? t('quizRight') : t('quizWrong', { answer: q.answer })),
+            picked == null ? null : h('button', { class: 'btn primary', type: 'button', autofocus: true,
+              onclick: () => { k++; picked = null; if (k >= qs.length) finish(); paint(); } }, k < qs.length - 1 ? t('quizNext') : t('quizFinish')));
+        };
+        paint();
+        return [sheetHead(ctx, t('quizTitle', c)), box];
+      }
+    });
+  }
+
+  // ---------- Vuelo en el mapa (billete de nuevo país) ----------
+  // Trozo del mapa con los dos países y el avión volando de una capital a otra por un arco.
+  function flightMap(from, to) {
+    const [x0, y0] = mapXY(from.lat, from.lon), [x1, y1] = mapXY(to.lat, to.lon);
+    const pad = (MAP.h * 21 / 9 - MAP.w) / 2, ratio = 2;
+    let w = Math.max(150, Math.abs(x1 - x0) * 1.5), hh = Math.max(75, Math.abs(y1 - y0) * 1.9);
+    if (w / hh < ratio) w = hh * ratio; else hh = w / ratio;
+    if (hh > MAP.h) { hh = MAP.h; w = hh * ratio; }
+    const left = Math.min(Math.max(-pad, (x0 + x1) / 2 - w / 2), MAP.w + pad - w), top = Math.min(Math.max(0, (y0 + y1) / 2 - hh / 2 - hh * .08), MAP.h - hh);
+    const dist = Math.hypot(x1 - x0, y1 - y0), cx = (x0 + x1) / 2, cy = Math.max(top + hh * .08, (y0 + y1) / 2 - dist * .35);
+    const d = 'M' + x0.toFixed(1) + ',' + y0.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + x1.toFixed(1) + ',' + y1.toFixed(1);
+    const u = w / 300, bg = art('mapa', 'mundo');
+    const svg = sv('svg', { class: 'map-svg fm-svg' + (bg ? ' illus' : ''), viewBox: [left, top, w, hh].map(n => n.toFixed(1)).join(' '), 'aria-hidden': 'true' });
+    if (bg) svg.append(sv('image', { href: bg, x: -pad, y: 0, width: MAP.w + 2 * pad, height: MAP.h, preserveAspectRatio: 'none' }));
+    else svg.append(sv('rect', { x: left, y: top, width: w, height: hh, fill: '#7CC6FF' }));
+    const land = sv('g', { class: 'map-land' });
+    for (const [id, pd] of MAP.paths) land.append(sv('path', { d: pd, class: id === to.iso ? 'here' : id === from.iso ? 'from' : null }));
+    svg.append(land);
+    svg.append(sv('path', { d, class: 'fm-route' }));
+    const trail = sv('path', { d, class: 'fm-trail' });
+    svg.append(trail);
+    svg.append(sv('circle', { cx: x0, cy: y0, r: 4 * u, class: 'map-stop done' }));
+    svg.append(sv('circle', { cx: x1, cy: y1, r: 9 * u, class: 'fm-ring' }));
+    svg.append(sv('circle', { cx: x1, cy: y1, r: 4 * u, class: 'map-stop here' }));
+    const s = 34 * u, flip = x1 < x0;
+    const plane = sv('g', { transform: 'translate(' + x0 + ' ' + y0 + ')' }, sv('image', { href: emoSrc('✈️') || '', x: -s / 2, y: -s * .72, width: s, height: s }));
+    svg.append(plane);
+    const t0 = performance.now() + 500, dur = 2600;
+    const move = now => {
+      const L = trail.getTotalLength ? trail.getTotalLength() : 0;
+      if (!svg.isConnected || !L) { if (now - t0 < 8000) requestAnimationFrame(move); return; }
+      const p = reduceMotion() ? 1 : Math.min(1, Math.max(0, (now - t0) / dur)), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      const at = e * L, pt = trail.getPointAtLength(at), a = trail.getPointAtLength(Math.max(0, at - 1)), b = trail.getPointAtLength(Math.min(L, at + 1));
+      const ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+      plane.setAttribute('transform', 'translate(' + pt.x + ' ' + pt.y + ') rotate(' + ang + ') scale(1 ' + (flip ? -1 : 1) + ')');
+      trail.style.strokeDasharray = L; trail.style.strokeDashoffset = L - at;
+      if (p < 1) requestAnimationFrame(move); else svg.classList.add('landed');
+    };
+    requestAnimationFrame(move);
+    return h('div', { class: 'fm-wrap' }, svg);
+  }
+
+  // ---------- Pasaporte con sellos ----------
+  // Cada país visitado tiene su sello (SVG: forma, tinta del continente, nombre, capital, fecha de llegada y la silueta del monumento).
+  const INK = { europa: '#2C4AA8', america: '#B8322B', africa: '#2E7A38', asia: '#7340A8', oceania: '#0E7683' };
+  function ensureStampDefs() {
+    if (document.getElementById('stamp-defs')) return;
+    const tint = Object.keys(INK).map(ct => sv('filter', { id: 'stamp-tint-' + ct }, sv('feFlood', { 'flood-color': INK[ct] }), sv('feComposite', { in2: 'SourceAlpha', operator: 'in' })));
+    document.body.append(sv('svg', { id: 'stamp-defs', width: 0, height: 0, 'aria-hidden': 'true', style: 'position:absolute' }, sv('defs', null,
+      sv('filter', { id: 'stamp-ink', x: '-5%', y: '-5%', width: '110%', height: '110%' },
+        sv('feTurbulence', { type: 'fractalNoise', baseFrequency: '.7', numOctaves: 2, seed: 4, result: 'n' }),
+        sv('feColorMatrix', { in: 'n', type: 'matrix', values: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.5 1.75', result: 'm' }),
+        sv('feComposite', { in: 'SourceGraphic', in2: 'm', operator: 'in' })),
+      ...tint,
+      sv('path', { id: 'stamp-arc-top', d: 'M21,60 A39,39 0 0 1 99,60' }),
+      sv('path', { id: 'stamp-arc-bot', d: 'M13,60 A47,47 0 0 0 107,60' }))));
+  }
+  const stampDate = ms => ms ? new Date(ms).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '').toUpperCase() : '';
+  function stampEl(c, date) {
+    ensureStampDefs();
+    const hs = [...c.code].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7), shape = hs % 3, rot = (hs % 23) - 11, ink = INK[c.continent] || '#333';
+    const txt = (str, x, y, size) => sv('text', { x, y, 'text-anchor': 'middle', 'font-size': size, fill: ink, stroke: 'none', class: 'st-t' }, document.createTextNode(str));
+    const fit = (str, room) => Math.min(12, room / Math.max(1, str.length) * 1.75).toFixed(1);
+    const name = c.name.toUpperCase(), cap = c.capital.toUpperCase(), src = art('recuerdos', c.code) || emoSrc(c.icon);
+    const g = sv('g', { fill: 'none', stroke: ink, filter: 'url(#stamp-ink)' });
+    const pic = (x, y, s) => src ? sv('image', { href: src, x, y, width: s, height: s, filter: 'url(#stamp-tint-' + c.continent + ')', preserveAspectRatio: 'xMidYMid meet' }) : null;
+    if (shape === 0) {
+      g.append(sv('circle', { cx: 60, cy: 60, r: 56, 'stroke-width': 3.5 }), sv('circle', { cx: 60, cy: 60, r: 50, 'stroke-width': 1.5 }),
+        sv('text', { 'font-size': fit(name, 110), fill: ink, stroke: 'none', class: 'st-t' }, sv('textPath', { href: '#stamp-arc-top', startOffset: '50%', 'text-anchor': 'middle' }, document.createTextNode(name))),
+        sv('text', { 'font-size': fit(cap, 110), fill: ink, stroke: 'none', class: 'st-t' }, sv('textPath', { href: '#stamp-arc-bot', startOffset: '50%', 'text-anchor': 'middle' }, document.createTextNode(cap))));
+      const p = pic(38, 26, 44); if (p) g.append(p);
+      g.append(txt(stampDate(date), 60, 80, 7.5));
+    } else {
+      if (shape === 1) g.append(sv('rect', { x: 5, y: 14, width: 110, height: 92, rx: 12, 'stroke-width': 3.5 }), sv('rect', { x: 11, y: 20, width: 98, height: 80, rx: 7, 'stroke-width': 1.5 }));
+      else {
+        const oct = r => Array.from({ length: 8 }, (_, i) => { const a = Math.PI / 8 + i * Math.PI / 4; return (60 + r * Math.cos(a)).toFixed(1) + ',' + (60 + r * Math.sin(a)).toFixed(1); }).join(' ');
+        g.append(sv('polygon', { points: oct(57), 'stroke-width': 3.5 }), sv('polygon', { points: oct(51), 'stroke-width': 1.5 }));
+      }
+      g.append(txt(name, 60, 38, fit(name, 90)));
+      const p = pic(42, 40, 36); if (p) g.append(p);
+      g.append(sv('line', { x1: 24, y1: 77, x2: 96, y2: 77, 'stroke-width': 1.2 }), txt(cap, 60, 87, Math.min(8, fit(cap, 80))), txt(stampDate(date), 60, 97, 6.5));
+    }
+    return sv('svg', { class: 'pp-stamp', viewBox: '0 0 120 120', style: 'transform: rotate(' + rot + 'deg)', 'aria-hidden': 'true' }, g);
+  }
+  function openPassport(m) {
+    openSheet({
+      wide: true,
+      build: ctx => {
+        const body = h('div', { class: 'pp' });
+        const paint = () => {
+          const cur = S.members.get(m.id) || m, v = travelOf(m.id), dates = FP.arrivalDates(m.id, movements(), stepOf(), W.COUNTRIES.length);
+          fill(body,
+            h('div', { class: 'pp-cover' }, avatar(cur, 'md'), h('div', { class: 'grow' }, h('b', null, t('ppOf', { name: cur.name })), h('span', { class: 'pf-sub' }, t('ppCount', { n: v.n, total: W.COUNTRIES.length }))), emo('🛂')),
+            W.CONTINENTS.map(ct => {
+              const list = W.COUNTRIES.filter(c => c.continent === ct.id), idx = c => W.COUNTRIES.indexOf(c);
+              const got = list.filter(c => idx(c) <= v.i).length;
+              return h('section', { class: 'pp-page' }, h('h3', { class: 'pp-h' }, emo(ct.icon), h('span', { class: 'grow' }, ct.name), h('span', { class: 'pill neu' }, got + '/' + list.length)),
+                h('div', { class: 'pp-grid' }, list.map(c => {
+                  const i = idx(c);
+                  if (i <= v.i) return h('button', { class: 'pp-slot', type: 'button', 'aria-label': t('ppStamp', { name: c.name, date: stampDate(dates[i]) }), onclick: () => openStamp(cur, c, dates[i]) },
+                    stampEl(c, dates[i]), FP.quizResult(m.id, c.code, movements()) ? null : h('span', { class: 'pp-quiz', 'aria-hidden': 'true' }, emo('🎯')));
+                  return h('div', { class: 'pp-slot empty' + (i === v.i + 1 ? ' next' : ''), role: 'img', 'aria-label': t('stampLabel', { name: i === v.i + 1 ? c.name : t('ppUnknown'), state: t('stampLocked') }) },
+                    i === v.i + 1 ? flagEmo(c) : h('span', { class: 'pp-q', 'aria-hidden': 'true' }, '?'));
+                })));
+            }));
+        };
+        ctx.update = paint;
+        paint();
+        return [sheetHead(ctx, t('ppTitle')), body];
+      }
+    });
+  }
+  function openStamp(m, c, date) {
+    openSheet({
+      build: ctx => {
+        const st = h('div');
+        ctx.update = () => fill(st, quizStatus(m, c));
+        ctx.update();
+        return [sheetHead(ctx, c.name),
+          h('div', { class: 'stamp-detail' }, h('div', { class: 'sd-stamp' }, stampEl(c, date)),
+            h('p', { class: 'pf-sub' }, date ? t('ppSealed', { date: stampDate(date) }) : ''),
+            h('div', { class: 'ficha' }, frow(flagEmo(c), t('fFlag'), t('fFlagOf', c)), frow(emo('🏙️'), t('fCapital'), c.capital), frow(emo('🏛️'), t('fMonument'), c.monument)),
+            h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('🎯'), t('quizTitle', c)), st))];
+      }
+    });
+  }
+  // Ambiente del continente (perfil y tarjetas del panel): ilustración art/fondos/<continente>.webp o, si no está, un paisaje con degradados
+  const sceneStyle = ctId => { const src = art('fondos', ctId); return src ? { '--scene': 'url("' + src + '") center 65% / cover no-repeat' } : null; };
 
   // ---------- Perfil del miembro ----------
   // Ambientado en el país donde está: colores de la bandera, saludo, ficha del país, dato curioso y pasaporte del continente.
@@ -1012,9 +1209,11 @@
         const levelBox = h('div', { class: 'pf-level' });
         const actions = h('div', { class: 'pf-actions' });
         const landmark = h('span', { class: 'pf-landmark', 'aria-hidden': 'true' });
-        const hero = h('div', { class: 'pf-hero' }, h('span', { class: 'pf-stripes', 'aria-hidden': 'true' }), landmark,
+        const scene = h('span', { class: 'pf-scene', 'aria-hidden': 'true' });
+        const hero = h('div', { class: 'pf-hero' }, scene, h('span', { class: 'pf-stripes', 'aria-hidden': 'true' }), landmark,
           h('div', { class: 'pf-id' }, kidBox, balBox), levelBox, actions);
         const tripBox = h('div', { class: 'pf-trip' });
+        const quizBox = h('div');
         const streakBox = h('div', { class: 'pf-streak card' });
         const badgesBox = h('div');
         const chalBox = h('div');
@@ -1040,7 +1239,11 @@
             h('button', { class: 'btn primary', type: 'button', onclick: () => giveSec.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }) }, '⭐ ' + t('jumpGive') + ' ↓'),
             h('button', { class: 'btn' + (charOf(cur) ? '' : ' good'), type: 'button', onclick: () => openCharacterPicker(cur, id => saveItem('members', Object.assign({}, S.members.get(m.id), { character: id }))) },
               charOf(cur) ? t('changeChar') : t('noChar')),
-            h('button', { class: 'btn', type: 'button', onclick: () => openChest(cur) }, emo('🧰'), t('chest') + ' · ' + got));
+            h('button', { class: 'btn', type: 'button', onclick: () => openChest(cur) }, emo('🧰'), t('chest') + ' · ' + got),
+            h('button', { class: 'btn', type: 'button', onclick: () => openPassport(cur) }, emo('🛂'), t('ppOpen')));
+          fill(quizBox, quizStatus(cur, c));
+          scene.className = 'pf-scene scene-' + v.ct.id; scene.removeAttribute('style');
+          const sst = sceneStyle(v.ct.id); if (sst) scene.style.setProperty('--scene', sst['--scene']);
           if (v.i !== lastCountry) {
             lastCountry = v.i;
             fill(landmark, art('recuerdos', c.code) ? h('img', { src: art('recuerdos', c.code), alt: '' }) : emo(c.icon));
@@ -1052,6 +1255,7 @@
                 h('div', { class: 'ficha' },
                   frow(flagEmo(c), t('fFlag'), t('fFlagOf', c)), frow(emo('🏙️'), t('fCapital'), c.capital), frow(emo('🗣️'), t('fLang'), c.language),
                   frow(emo('🙋'), t('fDemonym'), c.demonym), frow(emo('🏛️'), t('fMonument'), c.monument))),
+              h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('🎯'), t('quizTitle', c)), quizBox),
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('💡'), t('factTitle')), h('p', { class: 'fact' }, c.fact)),
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('🛂'), t('passportTitle', { ct: v.ct.name })),
                 h('span', { class: 'bar' }, h('i', { style: { width: ((pos + 1) * 10) + '%' } })), h('p', { class: 'pf-sub' }, t('passportCount', { n: pos + 1 })),
@@ -1059,7 +1263,8 @@
                   const st = k < pos ? 'done' : k === pos ? 'here' : 'lock';
                   return h('li', { class: 'stamp ' + st, 'aria-label': t('stampLabel', { name: x.name, state: t(st === 'done' ? 'stampDone' : st === 'here' ? 'stampHere' : 'stampLocked') }) },
                     flagEmo(x), h('small', { 'aria-hidden': 'true' }, x.name));
-                }))));
+                })),
+                h('button', { class: 'btn small', type: 'button', onclick: () => openPassport(S.members.get(m.id) || m) }, emo('🛂'), t('ppOpenAll'))));
           }
           // Racha
           const sk = FP.streakDays(m.id, movs, Date.now());

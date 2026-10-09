@@ -257,6 +257,24 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(/Alemania/.test(await sheet().innerText()), 'Mapa del mundo: tocar a un miembro abre su perfil');
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  // Pasaporte con sellos y prueba del país
+  await lucia.click(); await settle();
+  await sheet().getByRole('button', { name: 'Pasaporte', exact: true }).click(); await settle();
+  check(await sheet().locator('.pp-slot .pp-stamp').count() === 2 && await sheet().locator('.pp-slot.empty').count() === 48, 'Pasaporte: 2 sellos (España y Alemania) y 48 por descubrir');
+  await page.screenshot({ path: path.join(shots, '28-pasaporte.png') });
+  await sheet().locator('.pp-slot').first().click(); await settle();
+  await sheet().getByRole('button', { name: /Hacer la prueba/ }).click(); await settle();
+  check(/capital de España/.test(await sheet().locator('.quiz-q').innerText()) && await sheet().locator('.quiz-opt').count() === 4, 'Prueba del país: pregunta con 4 opciones');
+  const e0 = await page.evaluate(() => window.__FP_APP__.earned('Lucía'));
+  for (const ans of ['Madrid', 'España']) { await sheet().locator('.quiz-opt', { hasText: new RegExp('^' + ans + '$') }).click(); await sheet().getByRole('button', { name: 'Siguiente' }).click(); }
+  await sheet().locator('.quiz-opt').first().click();
+  await page.screenshot({ path: path.join(shots, '29-prueba.png') });
+  await sheet().getByRole('button', { name: 'Ver resultado' }).click(); await settle();
+  const e2 = await page.evaluate(() => window.__FP_APP__.earned('Lucía'));
+  check(/Has acertado [23] de 3/.test(await sheet().innerText()) && e2 - e0 >= 4, 'Prueba del país: estrellas por cada acierto');
+  await sheet().getByRole('button', { name: '¡Genial!' }).click(); await settle();
+  check(/Prueba superada/.test(await sheet().innerText()), 'La prueba queda hecha y no se repite');
+  for (let i = 0; i < 3; i++) { await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle(); }
   // Nuevo rango (nivel 3 = Turista): 10 estrellas de regalo, una sola vez
   const e1 = await page.evaluate(() => window.__FP_APP__.earned('Lucía'));
   await lucia.click(); await settle();
@@ -265,6 +283,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   for (let i = 0; i < Math.ceil((300 - e1) / 50); i++) { await sheet().getByRole('button', { name: 'Dar puntos' }).click(); await pinIfAsked(); await page.waitForTimeout(200); }
   await page.waitForTimeout(1200);
   const tk2 = sheet().locator('.ticket');
+  check(await tk2.locator('.fm-svg').count() === 1, 'Billete: el avión vuela en el mapa');
   check(await tk2.count() === 1 && /Nuevo rango: Turista/.test(await tk2.innerText()) && /\+10 estrellas de regalo/.test(await tk2.innerText()), 'Nuevo rango: aviso en el billete y 10 estrellas de regalo');
   await page.screenshot({ path: path.join(shots, '27-rango.png') });
   await sheet().getByRole('button', { name: '¡A volar!' }).click(); await settle();

@@ -465,9 +465,48 @@
   function rankBonus(member, rank, title, now) {
     return { id: uid(), memberId: member.id, ruleId: '', kind: 'rank', rankId: rank.id, title, icon: '🏅', points: RANK_BONUS, date: now, note: '' };
   }
-  // Racha: días seguidos ganando alguna estrella (los regalos de rango no cuentan). Si hoy aún no ha ganado, la racha sigue viva desde ayer.
+  // ---------- Prueba del país: 3 preguntas tipo test con 4 opciones ----------
+  // Siempre la capital y la bandera, y una más al azar (monumento, idioma o habitantes). Las opciones falsas salen
+  // primero de su mismo continente. Cada acierto da QUIZ_STAR estrellas; se guarda como movimiento kind 'quiz' con countryCode
+  // (una sola vez por país: si no acierta ninguna, no se guarda nada y puede repetirla).
+  const QUIZ_STAR = 2;
+  function shuffled(arr, rand) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function quizFor(country, countries, rand) {
+    rand = rand || Math.random;
+    const QUIZ_KINDS = { capital: 'capital', flag: 'name', monument: 'name', language: 'language', demonym: 'demonym' };
+    const extra = ['monument', 'language', 'demonym'][Math.floor(rand() * 3)];
+    return ['capital', 'flag', extra].map(kind => {
+      const field = QUIZ_KINDS[kind], answer = country[field];
+      const near = shuffled(countries.filter(c => c.continent === country.continent), rand), far = shuffled(countries.filter(c => c.continent !== country.continent), rand);
+      const wrong = [];
+      for (const c of near.concat(far)) {
+        const v = c[field];
+        if (v && v !== answer && !wrong.includes(v)) wrong.push(v);
+        if (wrong.length === 3) break;
+      }
+      return { kind, code: country.code, answer, options: shuffled([answer].concat(wrong), rand) };
+    });
+  }
+  function quizMovement(member, country, correct, title, now) {
+    return { id: uid(), memberId: member.id, ruleId: '', kind: 'quiz', countryCode: country.code, title, icon: '🎯', points: correct * QUIZ_STAR, date: now, note: '' };
+  }
+  function quizResult(memberId, code, movements) { return movements.find(m => m.memberId === memberId && m.kind === 'quiz' && m.countryCode === code) || null; }
+  // Pasaporte: fecha de llegada a cada país (cuando las estrellas ganadas alcanzaron i·step). El primero, la del primer movimiento.
+  function arrivalDates(memberId, movements, step, count) {
+    step = levelStep(step);
+    const out = new Array(count).fill(null);
+    let t = 0;
+    const mine = movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.points > 0).sort((a, b) => a.date - b.date);
+    if (mine.length) out[0] = mine[0].date;
+    for (const m of mine) {
+      const before = Math.floor(t / step); t += m.points;
+      for (let i = before + 1; i <= Math.min(count - 1, Math.floor(t / step)); i++) out[i] = m.date;
+    }
+    return out;
+  }
+  // Racha: días seguidos ganando alguna estrella (los regalos de rango y las pruebas no cuentan). Si hoy aún no ha ganado, la racha sigue viva desde ayer.
   function streakDays(memberId, movements, now) {
-    const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.kind !== 'rank' && m.points > 0).map(m => dayStart(m.date)));
+    const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.kind !== 'rank' && m.kind !== 'quiz' && m.points > 0).map(m => dayStart(m.date)));
     const today = dayStart(now);
     let d = days.has(today) ? today : addDays(today, -1), current = 0;
     while (days.has(d)) { current++; d = addDays(d, -1); }
@@ -517,7 +556,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVEL_STEP, RANK_BONUS, ranksCrossed, rankBonus, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
+    LEVEL_STEP, RANK_BONUS, QUIZ_STAR, quizFor, quizMovement, quizResult, arrivalDates, ranksCrossed, rankBonus, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

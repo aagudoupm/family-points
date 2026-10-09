@@ -84,11 +84,23 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
   el país de cada miembro en amarillo y su personaje como chincheta (varios en el mismo país se colocan en fila). Zoom por continente (`mapBox`). Tocar un personaje abre su perfil.
   Las islas pequeñas (Samoa, Kiribati, Micronesia, Tonga) no tienen contorno a esta escala: solo se ve su parada.
   Fondo ilustrado: `art/mapa/mundo.webp` (Gemini, calcado de una imagen base de world-map.js en 21:9 con mar a los lados; `pad = (h·21/9 − w)/2`). Encima van los contornos reales casi transparentes (`.map-svg.illus`). Si falta la imagen, se dibuja el mar y la tierra en SVG.
+- **Prueba del país** (`openQuiz`, `quizStatus`; lógica `FP.quizFor`, `FP.quizMovement`, `FP.quizResult`): 3 preguntas tipo test (capital, bandera y una al azar
+  entre monumento, idioma y habitantes; opciones falsas del mismo continente primero). Cada acierto da `FP.QUIZ_STAR` (2) estrellas: movimiento `kind: 'quiz'`
+  con `countryCode`, una vez por país (si no acierta ninguna no se guarda y puede repetir). Cuenta para saldo y viaje (tras guardarla se llama a `checkLevelUp`);
+  no para retos ni racha. Se ofrece en el perfil (país actual), en el billete de nuevo país y en cada sello del pasaporte.
+- **Vuelo en el billete** (`flightMap`): trozo del mapa con los dos países y el avión (✈️ de art/iconos, mira a la derecha; si vuela hacia el oeste se voltea)
+  recorriendo un arco con `requestAnimationFrame` y `getPointAtLength`. Respeta «reducir movimiento».
+- **Pasaporte** (`openPassport`, `openStamp`, `stampEl`): un sello SVG por país visitado (forma según el código, tinta del continente `INK`, nombre, capital,
+  fecha de llegada `FP.arrivalDates` y la silueta del monumento teñida con el filtro `stamp-tint-<continente>`; textura `stamp-ink`; defs compartidas en `#stamp-defs`).
+  El siguiente país muestra su bandera apagada; el resto, «?». Una 🎯 en el sello indica que falta su prueba.
+  Ojo: `ct.countries` (en `W.CONTINENTS`) son objetos distintos de `W.COUNTRIES` y no tienen `continent`: usa `W.COUNTRIES` filtrando por `continent`.
+- **Ambiente del continente** (`sceneStyle`, clases `scene-<continente>`): fondo del perfil (`.pf-scene`, la bandera queda como franja arriba) y de la cabecera
+  de las tarjetas del panel (`.mcard::before`, con un velo del color del miembro). Usa `art/fondos/<continente>.webp` si existe; si no, un paisaje con degradados.
 - No hay monedas: las estrellas son para los premios reales y el viaje da recuerdos.
 
 ### Ilustraciones (art/)
 Nombres de archivo: `art/personajes/<id>.webp` (ids en characters.js), `art/recuerdos/<código ISO>.webp`, `art/trofeos/<europa|america|africa|asia|oceania>.webp`,
-`art/baul/cerrado.webp`, `art/baul/abierto.webp` y `art/iconos/<código>.webp` (95 iconos), `art/mapa/mundo.webp` (fondo del mapa; las banderas siguen siendo de Fluent). Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
+`art/baul/cerrado.webp`, `art/baul/abierto.webp` y `art/iconos/<código>.webp` (95 iconos), `art/mapa/mundo.webp` (fondo del mapa), `art/fondos/<continente>.webp` (ambiente, 16:9, sin recortar; las banderas siguen siendo de Fluent). Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
 Filas de figuras (recuerdos, trofeos, baúl): `node scripts/cut-row.js <imagen> <grupo> <ids>` detecta cada figura aunque no estén igual de separadas y descarta los textos de debajo. Cuadrículas (personajes): `node scripts/cut-art.js <imagen> <cols>x<filas> <grupo> <ids>` (quita el fondo blanco conectado con el borde; los huecos cerrados, como el de Nora entre el patinete y la pierna, se quitan a mano con otro `-draw "color x,y floodfill"`). Instrucciones de generación en `art/PROMPTS.md`.
 Después: `node scripts/build-art.js` (o cualquier build) y publicar también los archivos de `art/`.
 

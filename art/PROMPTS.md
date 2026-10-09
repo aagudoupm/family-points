@@ -50,3 +50,14 @@ en orden de lectura: A = 18-21, B = 22-25, C = 26-29, D = 30-33, E = 34-36. Se r
 - 35: 🎲 🏞️ 🧒 🎮 🍫
 - 36: 🏊 🚲 🎟️ 💶 🎉
 Las banderas siguen siendo las de Fluent. El icono típico de cada país se sustituye por su recuerdo (art/recuerdos).
+
+## 37-41 · Fondos de continente (uno por imagen) → art/fondos/<europa|america|africa|asia|oceania>.webp
+Plantilla: Crea una ilustración panorámica horizontal (16:9) con el mismo estilo del juego: un paisaje típico de <continente> visto de lejos,
+sin personajes, sin animales en primer plano, sin edificios ni monumentos famosos, sin texto. Colores suaves y luminosos (tipo pastel) para que el texto
+encima se lea bien. La mitad izquierda más despejada (cielo y suelo lisos); los detalles, hacia la derecha y abajo. Sin marco y sin bordes.
+- Europa: colinas verdes, prados con flores, un bosque al fondo y montañas suaves.
+- América: selva tropical frondosa con un río y montañas altas al fondo.
+- África: sabana dorada con acacias y un gran sol al atardecer.
+- Asia: montañas con nieve, arrozales en terrazas y cerezos en flor.
+- Oceanía: playa de arena con palmeras, mar turquesa y un arrecife.
+Guardar: `convert in.png -resize 1600x900 -quality 82 art/fondos/<id>.webp`.

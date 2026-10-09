@@ -558,7 +558,7 @@ h1 { color: #fff; -webkit-text-stroke: 7px var(--k); paint-order: stroke fill; t
 .pf-stripes { position: absolute; inset: 0; background: var(--stripes); opacity: .25; }
 .pf-landmark { position: absolute; right: -.4rem; bottom: -.8rem; opacity: .95; }
 .pf-landmark .emo, .pf-landmark img { width: 8.5rem; height: 8.5rem; object-fit: contain; filter: drop-shadow(0 5px 0 rgba(29, 18, 64, .25)); }
-.pf-hero > :not(.pf-stripes):not(.pf-landmark) { position: relative; }
+.pf-hero > :not(.pf-stripes):not(.pf-landmark):not(.pf-scene) { position: relative; }
 .pf-id { display: grid; justify-items: center; gap: .3rem; }
 .pf-bal .balance { font-size: 2.2rem; }
 .pf-level { display: grid; gap: .4rem; min-width: 0; justify-items: start; padding-right: 5rem; }
@@ -752,6 +752,70 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
   .reward .progress { grid-area: prog; width: 100%; margin: .15rem 0 0; }
   .reward .need { grid-area: need; justify-self: end; white-space: nowrap; }
 }
+/* Ambiente del continente: ilustración (art/fondos) o paisaje con degradados */
+.scene-europa { --scene: radial-gradient(70% 55% at 18% 100%, #86C95B 0 98%, transparent 100%), radial-gradient(80% 60% at 82% 100%, #6CB84C 0 98%, transparent 100%), linear-gradient(#A9DCFF, #E8F6FF); }
+.scene-america { --scene: radial-gradient(60% 50% at 15% 100%, #2F9E5B 0 98%, transparent 100%), radial-gradient(70% 75% at 75% 100%, #8E9AA8 0 30%, transparent 31%), radial-gradient(90% 45% at 60% 100%, #48B26B 0 98%, transparent 100%), linear-gradient(#9FE6D4, #E9FFF7); }
+.scene-africa { --scene: radial-gradient(14% 22% at 78% 38%, #FFF2B8 0 60%, transparent 62%), radial-gradient(110% 40% at 50% 100%, #E1A24A 0 98%, transparent 100%), linear-gradient(#FFC37A, #FFEBC4); }
+.scene-asia { --scene: radial-gradient(35% 70% at 70% 100%, #9C8FB8 0 98%, transparent 100%), radial-gradient(70% 45% at 20% 100%, #86C48A 0 98%, transparent 100%), linear-gradient(#FFD0E1, #FFF2F7); }
+.scene-oceania { --scene: linear-gradient(transparent 0 72%, #F3DB98 72%), radial-gradient(120% 30% at 50% 72%, #2EC4D6 0 98%, transparent 100%), linear-gradient(#8FE4FF, #E5FAFF); }
+.pf-scene { position: absolute; inset: 0; background: var(--scene); }
+.pf-scene::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 255, 255, .55) 0 40%, rgba(255, 255, 255, .1) 80%); }
+.pf-hero .pf-stripes { inset: 0 0 auto 0; height: .7rem; opacity: 1; border-bottom: 3px solid var(--k); }
+.mcard::before { background: linear-gradient(color-mix(in srgb, var(--c) 30%, transparent), color-mix(in srgb, var(--c) 30%, transparent)), var(--scene, color-mix(in srgb, var(--c) 30%, var(--surface))); }
+/* Prueba del país */
+.quiz { display: grid; gap: .8rem; justify-items: center; text-align: center; }
+.quiz-step { margin: 0; color: var(--muted); }
+.quiz-q { font-size: 1.5rem; margin: 0; }
+.quiz-pic .emo, .quiz-pic img { width: 7rem; height: 7rem; object-fit: contain; }
+.quiz-pic.flag .emo { width: 8rem; height: 8rem; }
+.quiz-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; width: 100%; }
+.quiz-opt { min-height: 3.6rem; padding: .5rem .8rem; border-radius: 18px; border: 3px solid var(--k); background: var(--surface); color: var(--fg); box-shadow: 0 4px 0 var(--k); font-size: 1.1rem; line-height: 1.15; }
+.quiz-opt:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--k); }
+.quiz-opt.right { background: #7BD88F; color: #0E3B18; animation: pop .4s; }
+.quiz-opt.wrong { background: #FF8A8A; color: #4A0C0C; animation: shake .4s; }
+.quiz-opt.dim { opacity: .45; }
+.quiz-opt:disabled { cursor: default; }
+.quiz-fb { margin: 0; font-family: var(--font-display); font-size: 1.3rem; }
+.quiz-fb.ok { color: var(--good); } .quiz-fb.ko { color: var(--bad); }
+.quiz-end { display: grid; justify-items: center; gap: .6rem; }
+.quiz-big .emo { width: 6rem; height: 6rem; }
+.quiz-cta { display: grid; gap: .5rem; justify-items: start; }
+.quiz-cta .sub { margin: 0; }
+.quiz-done { margin: 0; font-weight: 600; color: var(--good); }
+.tk-btns { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+/* Vuelo en el billete */
+.fm-wrap { width: 100%; border: 3px solid var(--k); border-radius: 16px; overflow: hidden; background: #2E8BFF; }
+.fm-svg { aspect-ratio: 2 / 1; }
+.map-land path.from { fill: rgba(255, 255, 255, .45); stroke: #1D1240; stroke-width: 1.2; }
+.fm-route { fill: none; stroke: #1D1240; stroke-width: 2; stroke-dasharray: 5 5; vector-effect: non-scaling-stroke; opacity: .35; }
+.fm-trail { fill: none; stroke: #FF4FA3; stroke-width: 3.5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.fm-ring { fill: none; stroke: #FFC21A; stroke-width: 3; vector-effect: non-scaling-stroke; opacity: 0; }
+.fm-svg.landed .fm-ring { animation: ring 1.2s ease-out infinite; }
+.map-stop.here { fill: #FFC21A; }
+@keyframes ring { from { opacity: 1; transform: scale(.4); } to { opacity: 0; transform: scale(1.6); } }
+.fm-ring { transform-box: fill-box; transform-origin: center; }
+/* Pasaporte */
+.pp { display: grid; gap: 1rem; }
+.pp-cover { display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: 18px; border: 3px solid var(--k); background: #1F3B73; color: #fff; box-shadow: 0 4px 0 var(--k); }
+.pp-cover b { font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; display: block; }
+.pp-cover .pf-sub { color: #D7E3FF; }
+.pp-cover > .emo { width: 2.6rem; height: 2.6rem; }
+.pp-page { padding: .8rem 1rem 1rem; border-radius: 16px; border: 3px solid var(--k); box-shadow: 0 4px 0 var(--k);
+  background: repeating-linear-gradient(0deg, transparent 0 22px, rgba(120, 90, 40, .07) 22px 23px), #FFF8E6; color: #2A2140; }
+.pp-h { display: flex; align-items: center; gap: .5rem; margin: 0 0 .6rem; font-size: 1.25rem; }
+.pp-h .emo { width: 1.8rem; height: 1.8rem; }
+.pp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.2rem, 1fr)); gap: .6rem; }
+.pp-slot { position: relative; aspect-ratio: 1; display: grid; place-items: center; border-radius: 14px; padding: .2rem; background: transparent; border: 0; }
+.pp-stamp { width: 100%; height: 100%; mix-blend-mode: multiply; opacity: .92; }
+.st-t { font-family: var(--font-display); letter-spacing: .02em; }
+.pp-slot.empty { border: 2px dashed rgba(42, 33, 64, .25); }
+.pp-q { font-family: var(--font-display); font-size: 2rem; color: rgba(42, 33, 64, .25); }
+.pp-slot.next .emo { width: 2.6rem; height: 2.6rem; opacity: .45; filter: grayscale(.4); }
+.pp-quiz { position: absolute; right: .1rem; top: .1rem; }
+.pp-quiz .emo { width: 1.5rem; height: 1.5rem; }
+.stamp-detail { display: grid; gap: .8rem; justify-items: center; }
+.sd-stamp { width: 12rem; height: 12rem; padding: .6rem; border-radius: 20px; background: #FFF8E6; border: 3px solid var(--k); }
+.stamp-detail .ficha, .stamp-detail .pf-box { width: 100%; }
 </style>
 
 <div class="scene" aria-hidden="true"></div>

@@ -393,3 +393,31 @@ test('rangos: 10 estrellas de regalo por cada rango nuevo, sin contar para la ra
   assert.equal(FP.earnedTotal('a', [b]), 10); // cuenta para el viaje
   assert.equal(FP.streakDays('a', [b], 5).current, 0); // pero no para la racha
 });
+
+test('prueba del país: capital, bandera y una más, 4 opciones distintas con la buena', () => {
+  const W = require('../countries.js');
+  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (const c of W.COUNTRIES) {
+    const q = FP.quizFor(c, W.COUNTRIES, rand);
+    assert.equal(q.length, 3);
+    assert.deepEqual(q.slice(0, 2).map(x => x.kind), ['capital', 'flag']);
+    for (const x of q) {
+      assert.equal(x.options.length, 4, c.code + ' ' + x.kind);
+      assert.equal(new Set(x.options).size, 4, c.code + ' ' + x.kind);
+      assert.ok(x.options.includes(x.answer));
+    }
+    assert.equal(q[0].answer, c.capital); assert.equal(q[1].answer, c.name);
+  }
+  const mvq = FP.quizMovement({ id: 'a' }, { code: 'ES' }, 3, 'Prueba de España', 5);
+  assert.equal(mvq.points, 3 * FP.QUIZ_STAR); assert.equal(mvq.kind, 'quiz');
+  assert.equal(FP.quizResult('a', 'ES', [mvq]), mvq); assert.equal(FP.quizResult('a', 'FR', [mvq]), null);
+  assert.equal(FP.earnedTotal('a', [mvq]), 6); // cuenta para el viaje
+  assert.equal(FP.streakDays('a', [mvq], 5).current, 0); // no para la racha
+});
+
+test('pasaporte: fecha de llegada a cada país', () => {
+  const ms = [mv('a', 100, 10), mv('a', 100, 20), mv('a', -50, 25), mv('a', 400, 30), mv('l', 900, 5)];
+  const d = FP.arrivalDates('a', ms, 150, 50);
+  assert.equal(d[0], 10); assert.equal(d[1], 20); assert.equal(d[2], 30); assert.equal(d[3], 30); assert.equal(d[4], 30); assert.equal(d[5], null);
+  assert.deepEqual(FP.arrivalDates('x', ms, 150, 3), [null, null, null]);
+});

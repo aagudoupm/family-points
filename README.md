@@ -16,6 +16,9 @@ Las ilustraciones de personajes, recuerdos y trofeos van en `art/` (mientras no 
   (bandera, capital, idioma, gentilicio y monumento), un dato curioso y el pasaporte del continente.
 - Al llegar a un país nuevo sale un **billete de avión** y entra un **recuerdo en el baúl**: la maqueta del monumento del país.
   Al terminar un continente, un **trofeo legendario**. Las estrellas siguen siendo para los premios reales.
+- **Prueba de cada país**: tres preguntas (capital, bandera y otra) con 2 estrellas por acierto, una vez por país.
+- **Pasaporte**: un sello por país visitado, con la fecha de llegada y la silueta de su monumento.
+- Al llegar a un país nuevo, el billete muestra **el avión volando en el mapa**. El perfil y las tarjetas cambian de **ambiente según el continente**.
 - **Mapa del mundo** (botón 🌍 del panel o «Más → Mapa del mundo»): la ruta de los 50 países y el personaje de cada uno en el país donde está.
   Se puede acercar a cada continente y, al tocar a un viajero, se abre su perfil. Mapa: Natural Earth (dominio público) vía world-atlas (ISC).
 
