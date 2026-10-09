@@ -823,6 +823,10 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 .sd-stamp { width: 12rem; height: 12rem; padding: .6rem; border-radius: 20px; background: #FFF8E6; border: 3px solid var(--k); }
 .stamp-detail .ficha, .stamp-detail .pf-box { width: 100%; }
 a.btn { text-decoration: none; }
+/* iPhone: la barra de abajo en su propia capa para que no se mueva al desplazar, y los campos a 16 px como mínimo
+   (con menos, Safari amplía la página al escribir y la barra parece subir con el contenido) */
+.tabs { transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+input, textarea, select { font-size: max(16px, 1em); }
 </style>
 
 <div class="scene" aria-hidden="true"></div>
