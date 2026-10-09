@@ -3,7 +3,7 @@
 <meta name="apple-mobile-web-app-title" content="Family Points">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: barra lateral de pestañas en horizontal, barra inferior en vertical/estrecho. */
 /* Tema «La vuelta al mundo», estilo de videojuego: fondo de rayos azul, superficies blancas con contorno grueso
@@ -17,7 +17,7 @@
   --shadow: 0 6px 0 var(--k);
   --tab-on: #FFD43B; --tab-on-fg: #1D1240;
   --font-display: "Lilita One", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
-  --font-body: "Nunito", ui-rounded, system-ui, -apple-system, sans-serif;
+  --font-body: "Fredoka", ui-rounded, system-ui, -apple-system, sans-serif;
   --radius: 24px;
   --tap: 3.5rem;
   color-scheme: light;
@@ -43,7 +43,7 @@
 html { font: -apple-system-body; font-family: var(--font-body); }
 @supports not (font: -apple-system-body) { html { font-size: 17px; } }
 html, body { height: 100%; }
-body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 1rem; line-height: 1.4;
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-weight: 500; font-size: 1rem; line-height: 1.4;
   -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
 input, textarea, select { -webkit-user-select: text; user-select: text; font: inherit; color: inherit; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; touch-action: manipulation; }
@@ -738,6 +738,9 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 .route-flags li b { font-family: var(--font-display); font-weight: 400; color: var(--ink); }
 .route-flags li .avatar { width: 1.8rem; height: 1.8rem; border-width: 2px; }
 @keyframes pop { from { transform: scale(.4) rotate(-6deg); opacity: 0; } }
+/* Etiquetas cortas con la letra de los títulos (Lilita One, un solo grosor); las frases van en Fredoka */
+.where, .rank, .pf-rank, .tk-rank, .tk-rankup, .pf-sub, .week, .rank-name, .chip, .seg button, .tab, .btn, .pill, .map-who b, .chal-meta {
+  font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; }
 </style>
 
 <div class="scene" aria-hidden="true"></div>

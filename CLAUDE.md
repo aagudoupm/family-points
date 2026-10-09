@@ -95,7 +95,7 @@ Después: `node scripts/build-art.js` (o cualquier build) y publicar también lo
 ### Aspecto (estilo videojuego)
 - Fondo `.scene` de rayos (`repeating-conic-gradient`) en azul; de noche, azul oscuro. Tokens en `:root` para claro y oscuro.
 - Superficies blancas con contorno grueso `--k` y sombra sólida; botones de gominola (`.btn` con `--b`) que se hunden; títulos con borde
-  (`-webkit-text-stroke` + `paint-order`). Fuentes: Lilita One (títulos y números, un solo grosor: usa `font-weight: 400`) y Nunito.
+  (`-webkit-text-stroke` + `paint-order`). Fuentes: Lilita One (títulos, números y etiquetas cortas: nivel y país, rango, botones, pestañas, chips; un solo grosor: usa `font-weight: 400`) y Fredoka (frases y explicaciones, grosores 400-700). La lista de etiquetas está al final del CSS.
 - El texto que va directamente sobre el fondo usa `--on-bg`; dentro de superficies, `--fg`.
 - **Iconos**: primero las ilustraciones del juego (`art/iconos/<código del emoji sin FE0F>.webp`, p. ej. `2b50` = ⭐; 🧰 usa `art/baul/cerrado`), después los propios (`icons.js`); si no hay, Fluent Emoji 3D (Microsoft, MIT) en `emoji/` con `emoji-map.js`. `h()` convierte en icono
   cualquier texto que sea un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Si añades emojis al código o países,
