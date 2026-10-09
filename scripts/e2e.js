@@ -180,6 +180,25 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.getByRole('button', { name: 'Premios', exact: true }).click();
   await page.locator('.seg button', { hasText: 'Insignias' }).click(); await settle();
   check(await page.locator('.badge').count() === 1 && /Hacer la cama/.test(await page.locator('.badge').innerText()), 'Insignia en la colección de Lucía');
+  // Perfil del miembro
+  await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
+  const gear = await page.getByRole('button', { name: 'Abrir ajustes' }).boundingBox();
+  const h1box = await page.locator('h1').first().boundingBox();
+  check(gear && h1box && gear.x < 400 && gear.y < h1box.y, 'Sonido y ajustes en la esquina superior izquierda');
+  await page.locator('.mcard', { hasText: 'Lucía' }).click(); await settle();
+  const pf = sheet();
+  check(/Nivel 2 · Bosque/.test(await pf.locator('.pf-level').innerText()) && /para llegar al Río/.test(await pf.locator('.pf-next').innerText()), 'Perfil: nivel y estrellas que faltan para el siguiente');
+  check(await pf.locator('.pf-node').count() === 10 && /Bosque/.test(await pf.locator('.pf-node.here').innerText()) && await pf.locator('.pf-node.locked').count() === 8, 'Perfil: mapa con 10 lugares, el actual y los bloqueados');
+  check(/día/.test(await pf.locator('.pf-streak').innerText()), 'Perfil: racha de días');
+  check(await pf.locator('.badge').count() === 1, 'Perfil: insignias del miembro');
+  check(/Hacer la cama/.test(await pf.locator('.chal-grid').innerText()), 'Perfil: sus retos');
+  await page.screenshot({ path: path.join(shots, '19-perfil.png') });
+  await pf.getByRole('button', { name: /Dar estrellas ↓/ }).click(); await page.waitForTimeout(700);
+  const b1 = await balance('Lucía').catch(() => null);
+  await pf.getByRole('button', { name: /^Comer bien/ }).click(); await settle();
+  check(/\+1/.test(await page.locator('.toast').innerText()), 'Perfil: dar estrellas desde la ficha');
+  await page.screenshot({ path: path.join(shots, '20-perfil-dar.png') });
+  await pf.getByRole('button', { name: 'Cerrar' }).click(); await settle();
   // Reto libre para Mateo, marcado por un adulto
   await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
   await page.getByRole('button', { name: /Nuevo reto/ }).click(); await pinIfAsked();

@@ -440,9 +440,20 @@
     let i = 0;
     while (i + 1 < LEVELS.length && total >= LEVELS[i + 1].min) i++;
     const cur = LEVELS[i], nx = LEVELS[i + 1] || null;
-    return { n: i + 1, name: cur.name, to: cur.to, icon: cur.icon, min: cur.min, next: nx ? nx.min : null, nextName: nx ? nx.name : '',
+    return { n: i + 1, name: cur.name, to: cur.to, icon: cur.icon, min: cur.min, next: nx ? nx.min : null, nextName: nx ? nx.name : '', nextTo: nx ? nx.to : '',
       progress: nx ? (total - cur.min) / (nx.min - cur.min) : 1 };
   }
+  // Racha: días seguidos ganando alguna estrella. Si hoy aún no ha ganado, la racha sigue viva desde ayer.
+  function streakDays(memberId, movements, now) {
+    const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.points > 0).map(m => dayStart(m.date)));
+    const today = dayStart(now);
+    let d = days.has(today) ? today : addDays(today, -1), current = 0;
+    while (days.has(d)) { current++; d = addDays(d, -1); }
+    let best = 0, run = 0, prev = null;
+    for (const x of [...days].sort((a, b) => a - b)) { run = prev != null && addDays(prev, 1) === x ? run + 1 : 1; best = Math.max(best, run); prev = x; }
+    return { current, best, today: days.has(today) };
+  }
+
   // Camino hacia los premios: hasta 4 paradas alrededor del saldo actual.
   function trail(balance, rewards) {
     const list = rewards.filter(r => r.active !== false && Number(r.cost) > 0).sort((a, b) => a.cost - b.cost);
@@ -497,7 +508,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVELS, earnedTotal, levelFor, trail
+    LEVELS, earnedTotal, levelFor, trail, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

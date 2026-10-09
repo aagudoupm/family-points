@@ -49,10 +49,20 @@
     tapToGive: 'Toca a alguien para darle estrellas',
     levelChip: v => 'Nivel ' + v.n + ' · ' + v.name,
     trailMissing: v => 'Faltan ' + v.n + ' para ' + v.title, trailAll: '¡Puede canjear cualquier premio!', trailNone: 'Añade premios para ver el camino',
+    profileHint: 'Toca a alguien para ver su perfil y darle estrellas',
+    profileLevelNext: v => 'Faltan ' + v.n + ' ⭐ para llegar ' + v.to, profileLevelMax: '¡Ha llegado a lo más alto de la aventura!',
+    jumpGive: 'Dar estrellas', mapTitle: 'Mapa de la aventura',
+    mapNode: v => v.name + ', nivel ' + v.n + ', ' + v.state, mapDone: 'conseguido', mapHere: 'está aquí', mapLocked: v => 'bloqueado, se abre con ' + v.min + ' estrellas',
+    streakTitle: 'Racha', streakText: v => v.n === 1 ? '1 día ganando estrellas' : v.n + ' días seguidos ganando estrellas',
+    streakToday: '¡Hoy ya ha ganado estrellas!', streakKeep: 'Gana una estrella hoy para no perder la racha',
+    streakZero: '¡Gana una estrella hoy para empezar una racha!', streakBest: v => 'Mejor racha: ' + v.n + (v.n === 1 ? ' día' : ' días'),
+    badgesSection: 'Sus insignias', noBadgesMember: 'Aún no tiene insignias. ¡Supera un reto para conseguir la primera!',
+    challengesSection: 'Sus retos', noChallengesMember: 'No tiene retos esta semana',
+    giveSection: 'Dar estrellas', earnedTotalL: v => v.n + ' estrellas ganadas en total',
     levelUpTitle: '¡Nuevo nivel!', levelUpText: v => v.name + ' llega ' + v.place, levelUpSub: v => 'Nivel ' + v.n + (v.next ? ' · siguiente parada: ' + v.next : ''),
     stars: v => v.n === 1 || v.n === -1 ? v.n + ' estrella' : v.n + ' estrellas',
     thisWeek: v => (v.n > 0 ? '+' : '') + v.n + ' esta semana',
-    cardLabel: v => v.name + ', ' + v.stars + ', ' + v.level + (v.goal ? ', ' + v.goal : '') + '. Toca para dar estrellas',
+    cardLabel: v => v.name + ', ' + v.stars + ', ' + v.level + (v.goal ? ', ' + v.goal : '') + '. Toca para ver su perfil',
     weekRanking: 'Ranking de la semana',
     sinceMonday: 'Desde el lunes',
     rankItem: v => 'Puesto ' + v.pos + ': ' + v.name + ', ' + v.pts + ' puntos esta semana',
@@ -788,12 +798,12 @@
     const bal = FP.balances(ms, movs, reds);
     const rank = FP.weeklyRanking(ms, movs, Date.now());
     const week = {}; rank.forEach(r => { week[r.member.id] = r.points; });
-    const head = h('div', { class: 'page-head' },
-      h('div', null, h('h1', null, t('hello')), h('p', { class: 'sub' }, ms.length ? t('tapToGive') : t('addFirstMember'))),
-      h('div', { class: 'chips' },
+    const head = h('div', { class: 'panel-head' },
+      h('div', { class: 'top-actions' },
         h('button', { class: 'icon-btn', type: 'button', 'aria-pressed': S.settings.sound ? 'true' : 'false', 'aria-label': S.settings.sound ? t('soundOn') : t('soundOff'),
           onclick: () => saveSettings({ sound: !S.settings.sound }) }, emo(S.settings.sound ? '🔊' : '🔇')),
-        h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('openSettings'), onclick: () => goTab('settings') }, emo('⚙️'))));
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('openSettings'), onclick: () => goTab('settings') }, emo('⚙️'))),
+      h('div', null, h('h1', null, t('hello')), h('p', { class: 'sub' }, ms.length ? t('profileHint') : t('addFirstMember'))));
     if (!ms.length) {
       return h('div', null, head, h('div', { class: 'empty card' }, h('div', { class: 'big', 'aria-hidden': 'true' }, '👨‍👩‍👧'), h('p', null, t('noMembers')),
         h('button', { class: 'btn primary', type: 'button', onclick: () => goTab('settings') }, t('goSettings'))));
@@ -813,7 +823,7 @@
       return h('button', {
         class: 'mcard', type: 'button', style: { '--c': m.color },
         'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }), level: t('levelChip', lv), goal: tr.stops.length ? goal : '' }),
-        onclick: () => openAssign(m)
+        onclick: () => openProfile(m)
       },
       h('span', { class: 'mc-top', 'aria-hidden': 'true' }, avatar(m, 'lg'),
         h('span', { class: 'mc-id' }, h('span', { class: 'name' }, m.name), h('span', { class: 'lvl' }, lv.icon + ' ' + t('levelChip', lv))),
@@ -888,24 +898,72 @@
   }
 
   // ---------- Asignar puntos ----------
-  async function openAssign(m) {
-    if (S.settings.pinForPoints && !(await requirePin())) return;
+  // ---------- Perfil del miembro ----------
+  // Cabecera con nivel y lo que falta, mapa de la aventura, racha, insignias, sus retos y, al final, dar estrellas.
+  function openProfile(m) {
     openSheet({
       wide: true,
       build: ctx => {
-        const balBox = h('span', null);
-        const headAvatar = avatar(m, 'md');
-        const paintBal = () => {
+        const headAvatar = avatar(m, 'lg');
+        const balBox = h('span', { class: 'pf-bal' });
+        const levelBox = h('div', { class: 'pf-level' });
+        const mapBox = h('ol', { class: 'pf-map', 'aria-label': t('mapTitle') });
+        const streakBox = h('div', { class: 'pf-streak card' });
+        const badgesBox = h('div');
+        const chalBox = h('div');
+        let lastLevel = 0;
+        const paint = () => {
           const cur = S.members.get(m.id); if (!cur) { ctx.close(); return; }
-          balBox.replaceChildren(balanceEl(cur, balanceOf(m.id))); animateBalances(balBox);
+          const movs = movements(), total = FP.earnedTotal(m.id, movs), lv = FP.levelFor(total);
+          fill(balBox, balanceEl(cur, balanceOf(m.id))); animateBalances(balBox);
+          fill(levelBox,
+            h('div', { class: 'pf-lvl-row' }, h('span', { class: 'pf-lvl-ico', 'aria-hidden': 'true' }, lv.icon),
+              h('span', null, h('strong', null, t('levelChip', lv)), h('span', { class: 'pf-sub' }, t('earnedTotalL', { n: total })))),
+            h('span', { class: 'bar pf-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(lv.progress * 100)), 'aria-label': t('levelChip', lv) },
+              h('i', { style: { width: Math.round(lv.progress * 100) + '%', background: 'var(--star)' } })),
+            h('p', { class: 'pf-next' }, lv.next != null ? t('profileLevelNext', { n: lv.next - total, to: lv.nextTo }) : t('profileLevelMax')));
+          // Mapa: lugares conseguidos, el actual (con su avatar) y los bloqueados
+          fill(mapBox, FP.LEVELS.map((L, i) => {
+            const n = i + 1, state = n < lv.n ? 'done' : n === lv.n ? 'here' : 'locked';
+            return h('li', { class: 'pf-node ' + state, 'aria-label': t('mapNode', { name: L.name, n, state: state === 'done' ? t('mapDone') : state === 'here' ? t('mapHere') : t('mapLocked', { min: L.min }) }) },
+              h('span', { class: 'pf-dot', 'aria-hidden': 'true' }, L.icon, state === 'locked' ? h('span', { class: 'pf-lock' }, '🔒') : null),
+              state === 'here' ? h('span', { class: 'pf-me', 'aria-hidden': 'true' }, cur.photo ? h('img', { src: cur.photo, alt: '' }) : (cur.emoji || '🙂')) : null,
+              h('span', { class: 'pf-name', 'aria-hidden': 'true' }, L.name),
+              h('span', { class: 'pf-min', 'aria-hidden': 'true' }, '⭐ ' + L.min));
+          }));
+          if (lv.n !== lastLevel) {
+            lastLevel = lv.n;
+            requestAnimationFrame(() => { const here = mapBox.querySelector('.here'); if (here) mapBox.scrollLeft = here.offsetLeft - mapBox.clientWidth / 2 + here.clientWidth / 2; });
+          }
+          // Racha
+          const sk = FP.streakDays(m.id, movs, Date.now());
+          fill(streakBox,
+            h('span', { class: 'pf-fire' + (sk.current ? '' : ' off'), 'aria-hidden': 'true' }, '🔥'),
+            h('span', { class: 'grow' },
+              h('strong', null, sk.current ? t('streakText', { n: sk.current }) : t('streakZero')),
+              h('span', { class: 'pf-sub' }, sk.current ? (sk.today ? t('streakToday') : t('streakKeep')) : '', sk.best > 1 ? (sk.current ? ' · ' : '') + t('streakBest', { n: sk.best }) : '')),
+            sk.current ? h('span', { class: 'pf-streak-n', 'aria-hidden': 'true' }, sk.current) : null);
+          // Insignias
+          const badges = FP.badgesFor(m.id, achievements());
+          fill(badgesBox, badges.length ? h('div', { class: 'badges' }, badges.map(b => h('button', {
+            class: 'badge', type: 'button', 'aria-label': t('badgeLabel', { title: b.title, n: b.count }), onclick: () => removeBadge(cur, b)
+          }, h('span', { class: 'medal', 'aria-hidden': 'true' }, b.icon), h('span', { class: 'bt', 'aria-hidden': 'true' }, b.title),
+          b.count > 1 ? h('span', { class: 'pill neu', 'aria-hidden': 'true' }, '×' + b.count) : null))) : h('p', { class: 'sub' }, t('noBadgesMember')));
+          // Sus retos de esta semana
+          const board = currentBoard().filter(b => b.st.rows.some(r => r.memberIds.includes(m.id)));
+          fill(chalBox, board.length ? h('div', { class: 'chal-grid' }, board.map(b => challengeCard(b.ch, b.st, m.id))) : h('p', { class: 'sub' }, t('noChallengesMember')));
         };
-        ctx.update = paintBal;
-        paintBal();
-        const give = (mv, btn) => {
+        ctx.update = paint;
+        paint();
+
+        // Dar estrellas
+        let pinOk = !S.settings.pinForPoints;
+        const give = async (mv, btn) => {
+          if (!pinOk) { if (!(await requirePin())) return; pinOk = true; }
           const before = balanceOf(m.id);
           const earnedBefore = FP.earnedTotal(m.id, movements());
           addMovement(mv);
-          if (mv.points > 0) flyStar(btn, balBox); 
+          if (mv.points > 0) flyStar(btn, balBox);
           wiggle(headAvatar, mv.points >= 0);
           if (mv.points > 0) checkLevelUp(m.id, earnedBefore);
           const after = before + mv.points;
@@ -922,10 +980,8 @@
         }, h('span', { class: 'ico', 'aria-hidden': 'true' }, r.icon || '⭐'), h('span', { 'aria-hidden': 'true' }, r.title), h('span', { class: 'pts', 'aria-hidden': 'true' }, signed(r.points)));
         const pos = rules().filter(r => r.points >= 0), neg = rules().filter(r => r.points < 0);
         const col = (title, list, color) => h('section', null,
-          h('h3', { class: 'col-title' }, h('span', { class: 'dot', style: { background: color }, 'aria-hidden': 'true' }), title),
+          h('h4', { class: 'col-title' }, h('span', { class: 'dot', style: { background: color }, 'aria-hidden': 'true' }), title),
           list.length ? h('div', { class: 'rule-grid' }, list.map(ruleBtn)) : h('p', { class: 'sub' }, t('noRules')));
-
-        // Puntos personalizados
         let n = 1;
         const val = h('span', { class: 'val', 'aria-live': 'polite' }, '+1');
         const reason = h('input', { class: 'input', id: 'custom-reason', type: 'text', maxlength: '60', placeholder: t('customReasonPh') });
@@ -933,8 +989,7 @@
         const paintN = () => { val.textContent = signed(n); go.className = 'btn ' + (n > 0 ? 'good' : 'bad'); go.textContent = n > 0 ? t('givePoints') : t('removePoints'); };
         const stepN = d => { n += d; if (n === 0) n += d; n = Math.max(-50, Math.min(50, n)); paintN(); };
         go.addEventListener('click', e => {
-          const r = reason.value.trim() || (n > 0 ? t('customPoints') : t('customPoints'));
-          give(FP.customMovement(m, n, r, Date.now()), e.currentTarget);
+          give(FP.customMovement(m, n, reason.value.trim() || t('customPoints'), Date.now()), e.currentTarget);
           reason.value = '';
         });
         const custom = h('details', { class: 'custom-box' },
@@ -944,11 +999,22 @@
             h('button', { type: 'button', class: 'btn', 'aria-label': t('morePts'), onclick: () => stepN(1) }, '+')),
           h('label', { class: 'field', for: 'custom-reason' }, h('span', null, t('customReason')), reason),
           h('div', null, go));
-        return [
-          sheetHead(ctx, m.name, headAvatar),
-          h('div', { style: { margin: '-0.5rem 0 1rem' } }, balBox),
+        const giveSec = h('section', { class: 'pf-sec pf-give', 'aria-labelledby': ctx.titleId + '-give' },
+          h('h3', { class: 'pf-h', id: ctx.titleId + '-give' }, '⭐ ' + t('giveSection')),
           h('div', { class: 'assign-cols' }, col(t('good'), pos, 'var(--good)'), col(t('bad'), neg, 'var(--bad)')),
-          custom
+          custom);
+        const sec = (icon, title, body, cls) => h('section', { class: 'pf-sec' + (cls ? ' ' + cls : '') }, h('h3', { class: 'pf-h' }, icon + ' ' + title), body);
+        return [
+          sheetHead(ctx, m.name, null),
+          h('div', { class: 'pf-hero', style: { '--c': m.color } },
+            h('div', { class: 'pf-id' }, headAvatar, balBox),
+            levelBox,
+            h('button', { class: 'btn primary pf-jump', type: 'button', onclick: () => giveSec.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }) }, '⭐ ' + t('jumpGive') + ' ↓')),
+          sec('🗺️', t('mapTitle'), mapBox, 'pf-map-sec'),
+          sec('🔥', t('streakTitle'), streakBox),
+          sec('🏅', t('badgesSection'), badgesBox),
+          sec('🏆', t('challengesSection'), chalBox),
+          giveSec
         ];
       }
     });

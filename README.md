@@ -9,7 +9,9 @@ Iconos: [Fluent Emoji 3D](https://github.com/microsoft/fluentui-emoji) de Micros
 
 ## Qué hace
 - **Panel**: una tarjeta grande por persona con su saldo de estrellas, y el ranking de la semana (de lunes a domingo).
-- **Dar puntos**: toca a alguien y elige una regla. Las verdes suman y las rojas restan. Puedes dar puntos personalizados
+- **Perfil**: al tocar a alguien se abre su ficha: nivel y estrellas que le faltan para el siguiente, mapa de la aventura,
+  racha de días, sus insignias y sus retos. Al final, el apartado para darle estrellas.
+- **Dar puntos**: en el perfil, elige una regla. Las verdes suman y las rojas restan. Puedes dar puntos personalizados
   con un motivo libre, y deshacer al momento con el botón «Deshacer».
 - **Historial**: filtra por persona, tipo y fechas. Toca un movimiento para editarlo o borrarlo. Puedes exportarlo a CSV o PDF.
 - **Premios**: elige quién canjea y toca el premio. No deja canjear sin estrellas suficientes.

@@ -325,3 +325,23 @@ test('camino de premios: paradas alrededor del saldo y lo que falta', () => {
   assert.equal(tr.next, null); assert.equal(tr.pos, 1); assert.deepEqual(tr.stops.map(s => s.cost), [20, 40, 60, 80]);
   assert.equal(FP.trail(5, [{ ...rw[0], active: false }]).stops.length, 0);
 });
+
+test('racha de días ganando estrellas', () => {
+  const now = T(2026, 10, 9, 18);
+  const movs = [mv('a', 1, T(2026, 10, 6)), mv('a', 2, T(2026, 10, 7)), mv('a', -3, T(2026, 10, 7)), mv('a', 1, T(2026, 10, 8)), mv('a', 1, T(2026, 10, 9, 8)),
+    mv('a', 1, T(2026, 10, 1)), mv('a', 1, T(2026, 10, 2)), mv('a', 5, T(2026, 10, 4), 'reset')];
+  assert.deepEqual(FP.streakDays('a', movs, now), { current: 4, best: 4, today: true });
+  // Si hoy aún no ha ganado, la racha de ayer sigue viva
+  assert.equal(FP.streakDays('a', movs.slice(0, 4), now).current, 3);
+  assert.equal(FP.streakDays('a', movs.slice(0, 4), now).today, false);
+  // Un día sin estrellas la corta
+  assert.equal(FP.streakDays('a', movs, T(2026, 10, 11, 9)).current, 0);
+  assert.equal(FP.streakDays('a', [], now).best, 0);
+  // Los puntos negativos no cuentan como día ganado
+  assert.equal(FP.streakDays('a', [mv('a', -1, T(2026, 10, 9))], now).current, 0);
+});
+
+test('nivel: siguiente lugar con artículo', () => {
+  assert.equal(FP.levelFor(30).nextTo, 'al Río');
+  assert.equal(FP.levelFor(5000).nextTo, '');
+});

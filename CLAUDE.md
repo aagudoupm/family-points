@@ -69,6 +69,10 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
   Si añades emojis nuevos al código, regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>`.
 - **Niveles** (`FP.levelFor`, `FP.earnedTotal`): por estrellas ganadas en total; lugares del mapa (Pradera, Bosque, Río…).
   Subir de nivel lanza una celebración. Las celebraciones van en fila (`showCelebration`).
+- **Perfil del miembro** (`openProfile`): al tocar una tarjeta del panel. Cabecera con nivel y lo que falta, mapa de la aventura
+  (10 lugares: conseguidos, actual y bloqueados), racha (`FP.streakDays`), insignias, sus retos y, al final, dar estrellas
+  (botón «Dar estrellas ↓» en la cabecera). Se repinta con `ctx.update` en cada cambio.
+- Panel: botones de sonido y ajustes en la esquina superior izquierda (`.top-actions`).
 - **Camino de premios** (`FP.trail`) en cada tarjeta del panel: hasta 4 paradas y el avatar avanzando.
 
 ### Navegación

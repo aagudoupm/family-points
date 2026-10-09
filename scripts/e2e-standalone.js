@@ -51,6 +51,11 @@ server.listen(0, async () => {
     await page.getByRole('button', { name: tab, exact: true }).click(); await page.waitForTimeout(250);
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push(tab);
   }
+  await page.getByRole('button', { name: 'Panel', exact: true }).click(); await page.waitForTimeout(250);
+  await page.locator('.mcard', { hasText: 'Mateo' }).click(); await page.waitForTimeout(500);
+  if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push('Perfil');
+  await page.screenshot({ path: path.join(shots, '21-iphone-perfil.png') });
+  await page.locator('.sheet').getByRole('button', { name: 'Cerrar' }).click(); await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'Retos', exact: true }).click(); await page.waitForTimeout(250);
   await page.getByRole('button', { name: 'Crear retos de ejemplo' }).click(); await page.waitForTimeout(600);
   if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) wide.push('Retos con tarjetas');
