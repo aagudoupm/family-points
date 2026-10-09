@@ -100,6 +100,7 @@ Después: `node scripts/build-art.js` (o cualquier build) y publicar también lo
 - **Iconos**: primero las ilustraciones del juego (`art/iconos/<código del emoji sin FE0F>.webp`, p. ej. `2b50` = ⭐; 🧰 usa `art/baul/cerrado`), después los propios (`icons.js`); si no hay, Fluent Emoji 3D (Microsoft, MIT) en `emoji/` con `emoji-map.js`. `h()` convierte en icono
   cualquier texto que sea un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Si añades emojis al código o países,
   regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>` (incluye las banderas de `countries.js`).
+- Premios: en pantallas estrechas (≤ 640 px, iPhone) el catálogo es una lista compacta (icono, nombre, precio y botón a la derecha) para ver al menos 4; en el iPad, tarjetas.
 - Panel: sonido y ajustes arriba a la derecha (`.top-actions`). Cada tarjeta: personaje con marco de rango, nombre, estrellas, país y nivel, rango y el vuelo hacia el siguiente país (`flightTrack`).
 
 ### Navegación

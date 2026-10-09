@@ -741,6 +741,17 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 /* Etiquetas cortas con la letra de los títulos (Lilita One, un solo grosor); las frases van en Fredoka */
 .where, .rank, .pf-rank, .tk-rank, .tk-rankup, .pf-sub, .week, .rank-name, .chip, .seg button, .tab, .btn, .pill, .map-who b, .chal-meta {
   font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; }
+/* Premios en el iPhone: lista compacta (icono, nombre y precio, botón a la derecha) para ver al menos 4 sin deslizar mucho */
+@media (max-width: 640px) {
+  .rewards { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+  .reward { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; grid-template-areas: "ico t need" "ico cost need" "ico prog prog";
+    align-items: center; justify-items: start; column-gap: .75rem; row-gap: .2rem; padding: .55rem .8rem .65rem; text-align: left; }
+  .reward .ico { grid-area: ico; font-size: 2.6rem; justify-self: center; }
+  .reward .t { grid-area: t; font-size: 1rem; }
+  .reward .cost { grid-area: cost; font-size: 1.1rem; }
+  .reward .progress { grid-area: prog; width: 100%; margin: .15rem 0 0; }
+  .reward .need { grid-area: need; justify-self: end; white-space: nowrap; }
+}
 </style>
 
 <div class="scene" aria-hidden="true"></div>
