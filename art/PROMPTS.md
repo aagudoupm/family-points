@@ -27,7 +27,7 @@ Grupos en el orden de countries.js: Europa 1-5 y 6-10, América 1-5 y 6-10, Áfr
 ## 15 · Trofeos (5 en fila)
 ## 16 · Baúl (cerrado y abierto)
 
-## 17-35 · Iconos (5 por imagen, en fila) → art/iconos/<código del emoji>.webp
+## 17-36 · Iconos (5 por imagen, en fila) → art/iconos/<código del emoji>.webp
 Mensaje 17 fija el estilo de los iconos; del 18 al 36 se piden 5 por imagen en este orden (se recortan con cut-row.js):
 - 18: ⭐ 🏠 🏆 🎁 🧭
 - 19: ⚙️ 🔊 🔇 🔒 ✈️
