@@ -77,9 +77,8 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 - **Baúl de recuerdos** (`openChest`, `openSouvenir`): cada país visitado da la maqueta de su monumento (`art/recuerdos/<código>.webp`; si no, el icono del país)
   y cada continente terminado un trofeo legendario (`art/trofeos/<continente>.webp`). `FP.allSouvenirs`, `FP.souvenirsFor`, `FP.newSouvenirsAt`: 55 en total, derivados del nivel; nunca se guardan.
 - **Nuevo país** (`checkLevelUp`): billete de avión, nuevo rango con su regalo si toca y el baúl con lo que entra. Las celebraciones van en fila (`showCelebration`).
-- **Perfil** (`openProfile`): ambientado en el país actual (colores de la bandera en `--stripes`, icono típico), retrato con rango, saludo con «Escuchar»
-  (`speechSynthesis` en la voz del país; si el dispositivo no la tiene, lee el campo `es` con voz española), ficha del país (bandera, capital,
-  idioma, gentilicio y monumento) con «Escuchar la ficha», dato curioso, pasaporte del continente, racha, insignias, retos y dar estrellas.
+- **Perfil** (`openProfile`): ambientado en el país actual (colores de la bandera en `--stripes`, icono típico), retrato con rango, cómo se saluda (texto; los botones de voz se quitaron a petición del usuario;
+  los campos `say`, `voice` y `es` de countries.js ya no se usan), ficha del país (bandera, capital, idioma, gentilicio y monumento), dato curioso, pasaporte del continente, racha, insignias, retos y dar estrellas.
   En «Más» y en Ajustes, «La vuelta al mundo» (`openRoute`).
 - **Mapa del mundo** (`openWorldMap`, botón 🌍 del panel y «Más → Mapa del mundo»): dibuja `world-map.js`, la ruta de los 50 países (capitales: `lat`, `lon` e `iso` de la tabla `GEO` de countries.js),
   el país de cada miembro en amarillo y su personaje como chincheta (varios en el mismo país se colocan en fila). Zoom por continente (`mapBox`). Tocar un personaje abre su perfil.

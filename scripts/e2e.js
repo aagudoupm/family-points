@@ -187,7 +187,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(/Está en España/.test(await pf.locator('.pf-level').innerText()) && /Nivel 1 · Europa/.test(await pf.locator('.pf-level').innerText()) && /para viajar a Alemania/.test(await pf.locator('.pf-next').innerText()), 'Perfil: país, nivel y estrellas que faltan para el siguiente');
   const ficha = await pf.locator('.ficha').innerText();
   check(/Madrid/.test(ficha) && /español · española/.test(ficha) && /Sagrada Familia/.test(ficha) && /Bandera de España/.test(ficha), 'Perfil: ficha del país (bandera, capital, idioma, gentilicio y monumento)');
-  check(/¡Hola!/.test(await pf.locator('.hello-word').innerText()) && await pf.getByRole('button', { name: 'Escuchar', exact: true }).count() === 1, 'Perfil: saludo con botón para escucharlo');
+  check(/¡Hola!/.test(await pf.locator('.hello-word').innerText()) && await pf.getByRole('button', { name: /Escuchar/ }).count() === 0, 'Perfil: saludo, sin botones de escuchar');
   check(await pf.locator('.stamp').count() === 10 && await pf.locator('.stamp.here').count() === 1 && await pf.locator('.stamp.lock').count() === 9, 'Perfil: pasaporte con los 10 países del continente');
   check(/día/.test(await pf.locator('.pf-streak').innerText()), 'Perfil: racha de días');
   check(await pf.locator('.badge').count() === 1, 'Perfil: insignias del miembro');

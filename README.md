@@ -12,7 +12,7 @@ Las ilustraciones de personajes, recuerdos y trofeos van en `art/` (mientras no 
   y después América, África, Asia y Oceanía, de los países con más habitantes a los que menos. No se incluyen países en guerra.
 - **Personajes**: cada niño elige uno de los 16 personajes (8 chicos y 8 chicas). Con el viaje sube de **rango** (10, de Novato a Gran viajero;
   los primeros llegan pronto y luego se espacian). El marco del retrato sube de material, de madera a diamante, y **cada rango nuevo regala 10 estrellas**.
-- El **perfil** se viste del país donde está: colores de su bandera, cómo se saluda (con botón para escucharlo), la ficha del país
+- El **perfil** se viste del país donde está: colores de su bandera, cómo se saluda, la ficha del país
   (bandera, capital, idioma, gentilicio y monumento), un dato curioso y el pasaporte del continente.
 - Al llegar a un país nuevo sale un **billete de avión** y entra un **recuerdo en el baúl**: la maqueta del monumento del país.
   Al terminar un continente, un **trofeo legendario**. Las estrellas siguen siendo para los premios reales.

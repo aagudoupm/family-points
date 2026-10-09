@@ -61,10 +61,9 @@
     giveSection: 'Dar estrellas', earnedTotalL: v => v.n + ' estrellas ganadas en total',
     // La vuelta al mundo
     hereIn: v => 'Está en ' + v.name, levelCont: v => 'Nivel ' + v.n + ' · ' + v.ct,
-    helloTitle: v => 'Así se saluda en ' + v.name, saidIn: v => 'Se dice en ' + v.lang + '.', listen: 'Escuchar', listenSheet: 'Escuchar la ficha',
+    helloTitle: v => 'Así se saluda en ' + v.name, saidIn: v => 'Se dice en ' + v.lang + '.',
     sheetTitle: v => 'Ficha de ' + v.name, fFlag: 'Bandera', fFlagOf: v => 'Bandera de ' + v.name, fCapital: 'Capital', fLang: 'Idioma oficial',
     fDemonym: 'Gentilicio', fMonument: 'Monumento',
-    sayFicha: v => v.name + '. Su capital es ' + v.capital + '. Su idioma oficial: ' + v.language + '. Sus habitantes se llaman ' + v.demonym + '. Su monumento más famoso: ' + v.monument + '.',
     factTitle: '¿Sabías que…?',
     passportTitle: v => 'Pasaporte de ' + v.ct, passportCount: v => v.n + ' de 10 países',
     stampLabel: v => v.name + ': ' + v.state, stampDone: 'visitado', stampHere: 'está aquí', stampLocked: 'por visitar',
@@ -916,22 +915,6 @@
         h('span', { class: 'fl-plane', style: { left: pct + '%' } }, emo('✈️'))),
       h('span', { class: 'fl-flag next' }, v.nx ? flagEmo(v.nx) : emo('🏆')));
   }
-  // Voz: el saludo en el idioma del país (o con voz española si el dispositivo no tiene esa voz) y la ficha en español
-  function hasVoice(lang) {
-    if (!lang || !window.speechSynthesis) return false;
-    const vs = speechSynthesis.getVoices();
-    return !vs.length || vs.some(x => x.lang.replace('_', '-').toLowerCase().slice(0, 2) === lang.slice(0, 2).toLowerCase());
-  }
-  function speak(text, lang) {
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang || 'es-ES'; u.rate = 0.9;
-      speechSynthesis.cancel(); speechSynthesis.speak(u);
-    } catch (e) { /* sin voz */ }
-  }
-  const sayHello = c => hasVoice(c.voice) ? speak(c.say, c.voice) : speak(c.es, 'es-ES');
-  const sayFicha = c => speak(t('sayFicha', Object.assign({}, c, { demonym: c.demonym.replace(' · ', ' o ') })), 'es-ES');
-
   // Baúl de recuerdos: la maqueta del monumento de cada país y un trofeo por continente
   const monumentName = c => c.monument.replace(/\s*\(.*\)\s*$/, '');
   function souvenirInfo(s) {
@@ -1064,13 +1047,11 @@
             const pos = v.ct.countries.findIndex(x => x.code === c.code);
             fill(tripBox,
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('👋'), t('helloTitle', c)),
-                h('div', { class: 'hello-word' }, c.hello), h('p', { class: 'sub' }, t('saidIn', { lang: c.helloLang })),
-                h('button', { class: 'btn small listen', type: 'button', onclick: () => sayHello(c) }, emo('🔊'), t('listen'))),
+                h('div', { class: 'hello-word' }, c.hello), h('p', { class: 'sub' }, t('saidIn', { lang: c.helloLang }))),
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('📍'), t('sheetTitle', c)),
                 h('div', { class: 'ficha' },
                   frow(flagEmo(c), t('fFlag'), t('fFlagOf', c)), frow(emo('🏙️'), t('fCapital'), c.capital), frow(emo('🗣️'), t('fLang'), c.language),
-                  frow(emo('🙋'), t('fDemonym'), c.demonym), frow(emo('🏛️'), t('fMonument'), c.monument)),
-                h('button', { class: 'btn small listen', type: 'button', onclick: () => sayFicha(c) }, emo('🔊'), t('listenSheet'))),
+                  frow(emo('🙋'), t('fDemonym'), c.demonym), frow(emo('🏛️'), t('fMonument'), c.monument))),
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('💡'), t('factTitle')), h('p', { class: 'fact' }, c.fact)),
               h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('🛂'), t('passportTitle', { ct: v.ct.name })),
                 h('span', { class: 'bar' }, h('i', { style: { width: ((pos + 1) * 10) + '%' } })), h('p', { class: 'pf-sub' }, t('passportCount', { n: pos + 1 })),
@@ -1209,8 +1190,7 @@
         h('div', { class: 'souv-detail' },
           h('div', { class: 'sd-pic' + (s.kind === 'trophy' ? ' trophy' : ''), 'aria-hidden': 'true' }, inf.src ? h('img', { src: inf.src, alt: '' }) : emo(inf.icon)),
           c ? h('div', { class: 'ficha' }, frow(flagEmo(c), t('souvFrom'), c.name), frow(emo('🏙️'), t('fCapital'), c.capital), frow(emo('🏛️'), t('fMonument'), c.monument)) : null,
-          h('p', { class: 'fact' }, c ? c.fact : t('trophyText', { ct: inf.ct.name })),
-          c ? h('button', { class: 'btn small listen', type: 'button', onclick: () => sayFicha(c) }, emo('🔊'), t('listenSheet')) : null)]
+          h('p', { class: 'fact' }, c ? c.fact : t('trophyText', { ct: inf.ct.name })))]
     });
   }
 
