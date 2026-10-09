@@ -634,7 +634,9 @@ h1 { color: #fff; -webkit-text-stroke: 7px var(--k); paint-order: stroke fill; t
 .rank, .pf-rank { display: inline-block; font-size: .75rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #fff;
   background: var(--rank, #CD7F32); border: 2px solid var(--k); border-radius: 999px; padding: .05rem .55rem; text-shadow: 0 1px 0 var(--k); }
 .pf-rank { text-transform: none; letter-spacing: 0; font-size: .85rem; }
-.pf-kid .portrait { width: 7rem; }
+.pf-kid .portrait { width: 9.5rem; }
+.pf-kid .char-art img { object-fit: contain; object-position: center bottom; }
+@media (max-width: 600px) { .pf-kid .portrait { width: 7.5rem; } }
 .tk-kid { width: 5.5rem; }
 .tk-rank { margin: 0; font-family: var(--font-display); font-size: 1.4rem; color: #fff; -webkit-text-stroke: 5px var(--k); paint-order: stroke fill; }
 .avatar .av-svg, .avatar .av-svg svg { display: block; width: 100%; height: 100%; }
@@ -660,13 +662,25 @@ h1 { color: #fff; -webkit-text-stroke: 7px var(--k); paint-order: stroke fill; t
 .chest-count { margin: 0; font-family: var(--font-display); font-size: 1.5rem; }
 .chest-new { display: flex; align-items: center; gap: .6rem; }
 .chest-new strong { font-family: var(--font-display); font-weight: 400; font-size: 1.3rem; }
-.chest-grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(7.4rem, 1fr)); }
-.chest-grid.mini { width: 100%; grid-template-columns: repeat(auto-fit, minmax(7rem, 9rem)); justify-content: center; }
-.souv { position: relative; display: grid; grid-template-rows: 1fr auto; justify-items: center; align-items: center; gap: .2rem; aspect-ratio: 4 / 5; padding: .5rem .35rem .45rem;
+.chest-grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(8.4rem, 1fr)); }
+.chest-grid.mini { width: 100%; grid-template-columns: repeat(auto-fit, minmax(8rem, 10.5rem)); justify-content: center; }
+/* Billete: el baúl se sacude, se abre y el recuerdo sale volando hasta su sitio */
+.chest-ico.swap { display: inline-grid; }
+.chest-ico.swap > span { grid-area: 1 / 1; display: grid; }
+.chest-ico .c-closed { animation: chestshake .6s ease-in-out both, hideit 0s .6s forwards; }
+.chest-ico .c-open { opacity: 0; animation: showit .5s .6s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+@keyframes chestshake { 20% { transform: rotate(-9deg); } 40% { transform: rotate(9deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(4deg); } }
+@keyframes hideit { to { opacity: 0; } }
+@keyframes showit { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
+.chest-grid.mini .souv { animation: flyout .9s 1s cubic-bezier(.2, 1.3, .4, 1) both; }
+.chest-grid.mini .souv:nth-child(2) { animation-delay: 1.5s; }
+@keyframes flyout { from { transform: translate(-7rem, -6rem) scale(.15) rotate(-25deg); opacity: 0; } 50% { opacity: 1; } to { transform: none; opacity: 1; } }
+.souv { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; gap: .15rem; aspect-ratio: 4 / 5; padding: .3rem .25rem .4rem;
   border-radius: 18px; border: 4px solid var(--k); color: #3A2410; box-shadow: 0 5px 0 var(--k); overflow: hidden; text-align: center;
   background: radial-gradient(circle at 50% 38%, #FFFDF4 0%, #F8EBC8 55%, #E9CF92 100%); }
-.souv .sv-pic { display: grid; place-items: center; width: 100%; height: 100%; }
+.souv .sv-pic { display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; }
 .souv .sv-pic .emo, .souv .sv-pic img { width: 72%; height: auto; max-height: 100%; object-fit: contain; filter: drop-shadow(0 4px 0 rgba(58, 36, 16, .25)); }
+.souv .sv-pic img { width: 100%; height: 100%; }
 .souv .sv-t { font-weight: 900; font-size: .8rem; line-height: 1.1; }
 .souv .sv-flag { position: absolute; top: .3rem; left: .3rem; }
 .souv .sv-flag .emo { width: 1.4rem; height: 1.4rem; }

@@ -994,7 +994,7 @@
             portrait(m, b, 'tk-kid'),
             rankUp ? h('p', { class: 'tk-rank' }, t('rankUp', { rank: rankName(rankOf(b), ch) })) : null,
             h('p', { class: 'tk-info' }, t('tripInfo', { n: b.n, capital: b.c.capital, hello: b.c.hello })),
-            h('div', { class: 'chest-new' }, h('span', { class: 'chest-ico open', 'aria-hidden': 'true' }, chestEl(true)), h('strong', null, t('chestNew', { n: items.length }))),
+            h('div', { class: 'chest-new' }, h('span', { class: 'chest-ico swap', 'aria-hidden': 'true' }, h('span', { class: 'c-closed' }, chestEl(false)), h('span', { class: 'c-open' }, chestEl(true))), h('strong', null, t('chestNew', { n: items.length }))),
             h('div', { class: 'chest-grid mini' }, items.map(s => souvenirEl(s, false))),
             h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('tripGo'))))
       ]);
