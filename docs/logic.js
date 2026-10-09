@@ -436,11 +436,27 @@
     for (const m of movements) if (m.memberId === memberId && m.kind !== 'reset' && m.points > 0) t += m.points;
     return t;
   }
-  function levelFor(total) {
+  // Niveles configurables: se ordenan por estrellas, el primero siempre empieza en 0 y no se repiten umbrales.
+  // Devuelve null si la lista no sirve (vacía o sin nombres), para usar los niveles por defecto.
+  function normalizeLevels(list) {
+    if (!Array.isArray(list)) return null;
+    const seen = new Set();
+    const out = list
+      .filter(l => l && String(l.name || '').trim() && Number.isFinite(Number(l.min)))
+      .map(l => ({ id: l.id || uid(), name: String(l.name).trim(), icon: l.icon || '⭐', min: Math.max(0, Math.round(Number(l.min))),
+        to: String(l.to || '').trim() || ('a ' + String(l.name).trim()) }))
+      .sort((a, b) => a.min - b.min)
+      .filter(l => !seen.has(l.min) && seen.add(l.min));
+    if (!out.length) return null;
+    out[0].min = 0;
+    return out;
+  }
+  function levelFor(total, levels) {
+    const L = (levels && levels.length) ? levels : LEVELS;
     let i = 0;
-    while (i + 1 < LEVELS.length && total >= LEVELS[i + 1].min) i++;
-    const cur = LEVELS[i], nx = LEVELS[i + 1] || null;
-    return { n: i + 1, name: cur.name, to: cur.to, icon: cur.icon, min: cur.min, next: nx ? nx.min : null, nextName: nx ? nx.name : '', nextTo: nx ? nx.to : '',
+    while (i + 1 < L.length && total >= L[i + 1].min) i++;
+    const cur = L[i], nx = L[i + 1] || null;
+    return { n: i + 1, name: cur.name, to: cur.to, icon: cur.icon, min: cur.min, next: nx ? nx.min : null, nextName: nx ? nx.name : '', nextTo: nx ? nx.to : '', nextIcon: nx ? nx.icon : '',
       progress: nx ? (total - cur.min) / (nx.min - cur.min) : 1 };
   }
   // Racha: días seguidos ganando alguna estrella. Si hoy aún no ha ganado, la racha sigue viva desde ayer.
@@ -508,7 +524,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVELS, earnedTotal, levelFor, trail, streakDays
+    LEVELS, normalizeLevels, earnedTotal, levelFor, trail, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

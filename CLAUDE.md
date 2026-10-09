@@ -67,12 +67,13 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 - **Iconos 3D**: Fluent Emoji 3D (Microsoft, MIT) en `emoji/`, mapa en `emoji-map.js`. `h()` convierte en icono cualquier texto que sea
   un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Emojis sin icono se ven como texto.
   Si añades emojis nuevos al código, regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>`.
-- **Niveles** (`FP.levelFor`, `FP.earnedTotal`): por estrellas ganadas en total; lugares del mapa (Pradera, Bosque, Río…).
+- **Niveles configurables** en Ajustes: `settings.levels` (`{id,name,icon,min,to}`), validados con `FP.normalizeLevels`; si no hay, `DEFAULT_LEVELS`. Usa siempre `levelsList()`/`levelOf()` en la app.
+- **Niveles** (`FP.levelFor(total, levels)`, `FP.earnedTotal`): por estrellas ganadas en total; lugares del mapa (Pradera, Bosque, Río…).
   Subir de nivel lanza una celebración. Las celebraciones van en fila (`showCelebration`).
 - **Perfil del miembro** (`openProfile`): al tocar una tarjeta del panel. Cabecera con nivel y lo que falta, mapa de la aventura
   (10 lugares: conseguidos, actual y bloqueados), racha (`FP.streakDays`), insignias, sus retos y, al final, dar estrellas
   (botón «Dar estrellas ↓» en la cabecera). Se repinta con `ctx.update` en cada cambio.
-- Panel: botones de sonido y ajustes en la esquina superior izquierda (`.top-actions`).
+- Panel: botones de sonido y ajustes en la esquina superior derecha (`.top-actions`). Cada tarjeta muestra el progreso hacia el siguiente nivel (`levelTrack`).
 - **Camino de premios** (`FP.trail`) en cada tarjeta del panel: hasta 4 paradas y el avatar avanzando.
 
 ### Navegación

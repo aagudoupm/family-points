@@ -173,7 +173,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   if (await lvl.count()) await sheet().getByRole('button', { name: '¡Genial!' }).click();
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   check(/Nivel 2 · Bosque/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el nuevo nivel');
-  check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.trail .stop').count() > 0, 'Camino de premios en la tarjeta');
+  check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.lvtrack').count() === 1 && /para llegar al Río/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra lo que falta para el siguiente nivel');
   check(await page.locator('img.emo').count() > 10, 'Iconos 3D en el panel');
   check(await balance('Lucía') === bal0 + 4 + 5, 'Al confirmar se suman las 5 estrellas extra');
   check(!(await page.locator('.banners').innerText()).includes('esperando'), 'El aviso desaparece tras confirmar');
@@ -184,7 +184,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
   const gear = await page.getByRole('button', { name: 'Abrir ajustes' }).boundingBox();
   const h1box = await page.locator('h1').first().boundingBox();
-  check(gear && h1box && gear.x < 400 && gear.y < h1box.y, 'Sonido y ajustes en la esquina superior izquierda');
+  check(gear && h1box && gear.x > 800 && gear.y < h1box.y, 'Sonido y ajustes en la esquina superior derecha');
   await page.locator('.mcard', { hasText: 'Lucía' }).click(); await settle();
   const pf = sheet();
   check(/Nivel 2 · Bosque/.test(await pf.locator('.pf-level').innerText()) && /para llegar al Río/.test(await pf.locator('.pf-next').innerText()), 'Perfil: nivel y estrellas que faltan para el siguiente');
@@ -199,6 +199,24 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(/\+1/.test(await page.locator('.toast').innerText()), 'Perfil: dar estrellas desde la ficha');
   await page.screenshot({ path: path.join(shots, '20-perfil-dar.png') });
   await pf.getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  // Niveles configurables en Ajustes
+  await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
+  await page.getByRole('button', { name: 'Editar Bosque' }).click();
+  await page.fill('#lv-min', '30');
+  await sheet().getByRole('button', { name: 'Guardar' }).click(); await settle();
+  await page.getByRole('button', { name: 'Añadir', exact: true }).last().click();
+  await page.fill('#lv-name', 'Isla'); await page.fill('#lv-min', '10'); await page.fill('#lv-to', 'a la Isla');
+  await sheet().getByRole('button', { name: 'Guardar' }).click(); await settle();
+  await page.screenshot({ path: path.join(shots, '22-ajustes-niveles.png'), fullPage: true });
+  await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
+  const lucia = page.locator('.mcard', { hasText: 'Lucía' });
+  check(/Nivel 2 · Isla/.test(await lucia.innerText()) && /para llegar al Bosque/.test(await lucia.innerText()), 'Niveles configurables: nuevo nivel y estrellas cambiadas');
+  await page.screenshot({ path: path.join(shots, '23-panel-niveles.png') });
+  await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
+  await page.getByRole('button', { name: /Restaurar niveles/ }).click();
+  await sheet().getByRole('button', { name: 'Restaurar niveles' }).click(); await settle();
+  await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
+  check(/Nivel 2 · Bosque/.test(await lucia.innerText()), 'Restaurar los niveles de la aventura');
   // Reto libre para Mateo, marcado por un adulto
   await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
   await page.getByRole('button', { name: /Nuevo reto/ }).click(); await pinIfAsked();

@@ -345,3 +345,17 @@ test('nivel: siguiente lugar con artículo', () => {
   assert.equal(FP.levelFor(30).nextTo, 'al Río');
   assert.equal(FP.levelFor(5000).nextTo, '');
 });
+
+test('niveles configurables: ordenados, el primero en 0 y sin umbrales repetidos', () => {
+  const lv = FP.normalizeLevels([
+    { name: 'Cueva', icon: '🦇', min: 30 }, { name: 'Casa', icon: '🏠', min: 5 }, { name: ' ', min: 10 },
+    { name: 'Torre', icon: '🗼', min: 30 }, { name: 'Isla', icon: '🏝️', min: 80, to: 'a la Isla' }]);
+  assert.deepEqual(lv.map(l => [l.name, l.min]), [['Casa', 0], ['Cueva', 30], ['Isla', 80]]);
+  assert.equal(lv[1].to, 'a Cueva');
+  assert.equal(lv[2].to, 'a la Isla');
+  assert.equal(FP.normalizeLevels([]), null);
+  assert.equal(FP.normalizeLevels('x'), null);
+  const r = FP.levelFor(40, lv);
+  assert.equal(r.n, 2); assert.equal(r.name, 'Cueva'); assert.equal(r.next, 80); assert.equal(r.nextTo, 'a la Isla');
+  assert.equal(FP.levelFor(40).name, 'Bosque'); // sin lista, los de por defecto
+});

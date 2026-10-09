@@ -4,7 +4,7 @@ Estrellas por portarse bien y premios para canjearlas. Pensada para usarla en fa
 
 ## Aspecto
 Estilo «Aventura»: cielo con sol, nubes y colinas (y de noche, luna y estrellas), iconos 3D, botones de juego,
-un camino hacia el siguiente premio en cada tarjeta y niveles que se van desbloqueando (Pradera, Bosque, Río…).
+el progreso hacia el siguiente nivel en cada tarjeta y niveles configurables (Pradera, Bosque, Río…).
 Iconos: [Fluent Emoji 3D](https://github.com/microsoft/fluentui-emoji) de Microsoft (licencia MIT).
 
 ## Qué hace
@@ -18,7 +18,7 @@ Iconos: [Fluent Emoji 3D](https://github.com/microsoft/fluentui-emoji) de Micros
 - **Retos**: cinco tipos (constancia, racha, semana limpia, en familia y libre), para cada niño o para todos, con estrellas
   extra configurables. Se comprueban solos y un adulto confirma antes de dar las estrellas. Al superarlos hay celebración e insignia.
 - **Más**: historial y gráficos (días, semanas o meses), insignias, exportar, copia de seguridad y ajustes.
-- **Ajustes**: miembros, reglas y premios (crear, editar, borrar y reordenar), plantillas, reinicio de puntos
+- **Ajustes**: miembros, reglas, premios, retos y niveles (crear, editar, borrar y reordenar), plantillas, reinicio de puntos
   (manual, semanal o mensual), PIN parental, sonido y confeti.
 
 ## Cómo instalarla en el iPad

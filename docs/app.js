@@ -59,6 +59,11 @@
     badgesSection: 'Sus insignias', noBadgesMember: 'Aún no tiene insignias. ¡Supera un reto para conseguir la primera!',
     challengesSection: 'Sus retos', noChallengesMember: 'No tiene retos esta semana',
     giveSection: 'Dar estrellas', earnedTotalL: v => v.n + ' estrellas ganadas en total',
+    levelsS: 'Niveles', levelsNote: 'Los niveles se ganan con las estrellas conseguidas en total (canjear o restar no hace bajar). El primero siempre empieza en 0.',
+    newLevel: 'Nuevo nivel', editLevel: 'Editar nivel', levelName: 'Nombre del lugar', levelMin: 'Estrellas ganadas para llegar',
+    levelTo: 'Frase al llegar (opcional)', levelToPh: 'Por ejemplo: «al Bosque», «a la Montaña»', levelFrom: v => 'Desde ' + v.n + ' ⭐',
+    levelsReset: 'Restaurar niveles', levelsResetQ: '¿Volver a los niveles de la aventura?', levelsResetBody: 'Se recuperan los 10 lugares originales (Pradera, Bosque, Río…).',
+    levelsRestored: 'Niveles restaurados', lastLevel: 'Tiene que haber al menos un nivel', levelFirstNote: 'Es el primer nivel: empieza siempre en 0 estrellas.',
     levelUpTitle: '¡Nuevo nivel!', levelUpText: v => v.name + ' llega ' + v.place, levelUpSub: v => 'Nivel ' + v.n + (v.next ? ' · siguiente parada: ' + v.next : ''),
     stars: v => v.n === 1 || v.n === -1 ? v.n + ' estrella' : v.n + ' estrellas',
     thisWeek: v => (v.n > 0 ? '+' : '') + v.n + ' esta semana',
@@ -814,22 +819,20 @@
       for (const b of board) for (const r of b.st.rows) if (!b.st.family && r.memberIds[0] === id) { total++; if (r.status === 'confirmed' || r.status === 'ready') done++; }
       return { total, done };
     };
-    const rws = rewards();
     const cards = h('div', { class: 'members' }, ms.map(m => {
-      const lv = FP.levelFor(FP.earnedTotal(m.id, movs));
-      const tr = FP.trail(Math.max(0, bal[m.id]), rws);
-      const goal = !tr.stops.length ? t('trailNone') : tr.next ? t('trailMissing', { n: tr.missing, title: tr.next.title }) : t('trailAll');
+      const total = FP.earnedTotal(m.id, movs), lv = FP.levelFor(total, levelsList());
+      const goal = lv.next != null ? t('profileLevelNext', { n: lv.next - total, to: lv.nextTo }) : t('profileLevelMax');
       const c = chalCount(m.id);
       return h('button', {
         class: 'mcard', type: 'button', style: { '--c': m.color },
-        'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }), level: t('levelChip', lv), goal: tr.stops.length ? goal : '' }),
+        'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }), level: t('levelChip', lv), goal }),
         onclick: () => openProfile(m)
       },
       h('span', { class: 'mc-top', 'aria-hidden': 'true' }, avatar(m, 'lg'),
         h('span', { class: 'mc-id' }, h('span', { class: 'name' }, m.name), h('span', { class: 'lvl' }, lv.icon + ' ' + t('levelChip', lv))),
         balanceEl(m, bal[m.id])),
-      tr.stops.length ? trailEl(m, tr) : null,
-      h('span', { class: 'goal', 'aria-hidden': 'true' }, tr.next ? tr.next.icon + ' ' + goal : goal),
+      levelTrack(m, lv),
+      h('span', { class: 'goal', 'aria-hidden': 'true' }, goal),
       h('span', { class: 'mc-foot', 'aria-hidden': 'true' },
         h('span', { class: 'week' }, t('thisWeek', { n: week[m.id] || 0 })),
         c.total ? h('span', { class: 'week' }, t('cardChallenges', c)) : null));
@@ -842,6 +845,21 @@
         h('span', { class: 'rank-name', 'aria-hidden': 'true' }, r.member.name),
         h('span', { class: 'rank-pts', 'aria-hidden': 'true' }, signed(r.points))))));
     return h('div', null, head, challengeBanners(), h('div', { class: 'dash' }, cards, ranking));
+  }
+
+  // Niveles en uso (configurables en Ajustes)
+  const DEFAULT_LEVELS = FP.LEVELS.map((L, i) => Object.assign({ id: 'lv' + i }, L));
+  const levelsList = () => FP.normalizeLevels(S.settings.levels) || DEFAULT_LEVELS;
+  const levelOf = memberId => FP.levelFor(FP.earnedTotal(memberId, movements()), levelsList());
+
+  // Progreso hacia el siguiente nivel en la tarjeta: lugar actual → avatar avanzando → siguiente lugar
+  function levelTrack(m, lv) {
+    const pct = Math.round(lv.progress * 100);
+    return h('span', { class: 'lvtrack', 'aria-hidden': 'true' },
+      h('span', { class: 'lv-end here' }, lv.icon),
+      h('span', { class: 'lv-road' }, h('span', { class: 'lv-fill', style: { width: pct + '%' } }),
+        h('span', { class: 'walker', style: { left: pct + '%' } }, m.photo ? h('img', { src: m.photo, alt: '' }) : (m.emoji || '🙂'))),
+      h('span', { class: 'lv-end' + (lv.next == null ? ' here' : '') }, lv.next == null ? '🏆' : lv.nextIcon));
   }
 
   // Camino de premios: paradas con el icono de cada premio y el avatar avanzando
@@ -882,7 +900,7 @@
   // Subida de nivel: celebración con el nuevo lugar del mapa
   function checkLevelUp(memberId, before) {
     const m = S.members.get(memberId); if (!m) return;
-    const a = FP.levelFor(before), b = FP.levelFor(FP.earnedTotal(memberId, movements()));
+    const a = FP.levelFor(before, levelsList()), b = levelOf(memberId);
     if (b.n <= a.n) return;
     setTimeout(() => {
       showCelebration(() => { Sound.play('challenge'); confetti(150); }, ctx => [
@@ -914,7 +932,7 @@
         let lastLevel = 0;
         const paint = () => {
           const cur = S.members.get(m.id); if (!cur) { ctx.close(); return; }
-          const movs = movements(), total = FP.earnedTotal(m.id, movs), lv = FP.levelFor(total);
+          const movs = movements(), total = FP.earnedTotal(m.id, movs), lv = FP.levelFor(total, levelsList());
           fill(balBox, balanceEl(cur, balanceOf(m.id))); animateBalances(balBox);
           fill(levelBox,
             h('div', { class: 'pf-lvl-row' }, h('span', { class: 'pf-lvl-ico', 'aria-hidden': 'true' }, lv.icon),
@@ -923,7 +941,7 @@
               h('i', { style: { width: Math.round(lv.progress * 100) + '%', background: 'var(--star)' } })),
             h('p', { class: 'pf-next' }, lv.next != null ? t('profileLevelNext', { n: lv.next - total, to: lv.nextTo }) : t('profileLevelMax')));
           // Mapa: lugares conseguidos, el actual (con su avatar) y los bloqueados
-          fill(mapBox, FP.LEVELS.map((L, i) => {
+          fill(mapBox, levelsList().map((L, i) => {
             const n = i + 1, state = n < lv.n ? 'done' : n === lv.n ? 'here' : 'locked';
             return h('li', { class: 'pf-node ' + state, 'aria-label': t('mapNode', { name: L.name, n, state: state === 'done' ? t('mapDone') : state === 'here' ? t('mapHere') : t('mapLocked', { min: L.min }) }) },
               h('span', { class: 'pf-dot', 'aria-hidden': 'true' }, L.icon, state === 'locked' ? h('span', { class: 'pf-lock' }, '🔒') : null),
@@ -1867,6 +1885,19 @@
       h('h2', null, t('challengesS'), addBtn(t('add'), () => editChallenge())),
       h('p', { class: 'note' }, t('challengesNote')),
       chalList.length ? orderedList('challenges', chalList, chalRow, c => editChallenge(c)) : h('p', { class: 'note' }, t('challengesNone')));
+    const lvList = levelsList();
+    const levelsCard = h('section', { class: 'card set-card' },
+      h('h2', null, t('levelsS'), addBtn(t('add'), () => editLevel())),
+      h('p', { class: 'note' }, t('levelsNote')),
+      h('ul', { class: 'list' }, lvList.map((L, i) => h('li', { class: 'row' },
+        h('button', { class: 'grow', type: 'button', 'aria-label': t('editItem', { name: L.name }), onclick: () => editLevel(L) },
+          h('span', { class: 'ico', 'aria-hidden': 'true' }, L.icon),
+          h('span', { class: 'grow' }, h('div', { class: 'title' }, t('levelChip', { n: i + 1, name: L.name })), h('div', { class: 'meta' }, L.to))),
+        h('span', { class: 'pill neu' }, t('levelFrom', { n: L.min }))))),
+      st.levels ? h('div', { style: { padding: '.6rem 0' } }, h('button', { class: 'btn small ghost', type: 'button', onclick: async () => {
+        if (!(await confirmSheet({ title: t('levelsResetQ'), body: t('levelsResetBody'), ok: t('levelsReset') }))) return;
+        saveSettings({ levels: null }); toast(t('levelsRestored'));
+      } }, '↺ ' + t('levelsReset'))) : null);
     const resetCard = h('section', { class: 'card set-card' },
       h('h2', null, t('resetTitleS')),
       seg([['manual', t('resetManual')], ['weekly', t('resetWeekly')], ['monthly', t('resetMonthly')]], st.resetMode, v => saveSettings({ resetMode: v, lastResetKey: FP.periodKey(v, Date.now()) })),
@@ -1914,7 +1945,7 @@
       !st.pinHash ? h('div', { class: 'banner' }, h('span', { style: { 'font-size': '1.8rem' }, 'aria-hidden': 'true' }, '🔒'), h('p', null, t('pinBanner')),
         h('button', { class: 'btn small primary', type: 'button', onclick: setNewPin }, t('createPin'))) : null,
       h('div', { class: 'settings' },
-        h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, membersCard, rulesCard, rewardsCard, challengesCard),
+        h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, membersCard, rulesCard, rewardsCard, challengesCard, levelsCard),
         h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, secCard, resetCard, fxCard, dataCard)));
   }
   function saveBackup() {
@@ -1938,6 +1969,47 @@
     for (const k in b.logs) { S.logs.set(k, b.logs[k]); persistLog(k); }
     saveSettings(Object.assign({}, b.settings, { onboarded: true }));
     toast(t('restored'));
+  }
+  const EMOJIS_PLACE = ['🌼', '🌲', '🌳', '🌊', '⛰️', '🗻', '🏔️', '🏰', '🌋', '☁️', '🌈', '🌟', '🌙', '🪐', '🚀', '🏝️', '🏜️', '🏕️', '🌵', '🐉', '🦄', '💎', '👑', '🏆', '🗺️', '🧭', '🏠', '⭐'];
+  function editLevel(existing) {
+    const list = levelsList().map(L => Object.assign({}, L));
+    const isFirst = existing && list[0] && list[0].id === existing.id && list[0].min === 0;
+    const L = existing ? Object.assign({}, existing) : { id: FP.uid(), name: '', icon: '🌟', min: (list[list.length - 1] || { min: 0 }).min + 50, to: '' };
+    const autoTo = existing && existing.to === 'a ' + existing.name;
+    openSheet({
+      build: ctx => {
+        const name = h('input', { class: 'input', id: 'lv-name', type: 'text', maxlength: '24', value: L.name, autofocus: !existing });
+        const min = h('input', { class: 'input', id: 'lv-min', type: 'number', inputmode: 'numeric', min: '0', step: '1', value: String(L.min), disabled: isFirst });
+        const to = h('input', { class: 'input', id: 'lv-to', type: 'text', maxlength: '40', value: autoTo ? '' : (L.to || ''), placeholder: t('levelToPh') });
+        const err = h('p', { class: 'pin-msg', role: 'alert' });
+        const save = list2 => { saveSettings({ levels: list2.map(x => ({ id: x.id, name: x.name, icon: x.icon, min: x.min, to: x.to })) }); ctx.close(); toast(t('saved')); };
+        return [
+          sheetHead(ctx, existing ? t('editLevel') : t('newLevel')),
+          h('div', { class: 'form' },
+            h('label', { class: 'field', for: 'lv-name' }, h('span', null, t('levelName')), name),
+            h('label', { class: 'field', for: 'lv-min' }, h('span', null, t('levelMin')), min, isFirst ? h('span', { class: 'note' }, t('levelFirstNote')) : null),
+            h('div', { class: 'field' }, h('span', null, t('icon')), emojiPicker(EMOJIS_PLACE, L.icon, e => { L.icon = e; }, 'lv-emoji')),
+            h('label', { class: 'field', for: 'lv-to' }, h('span', null, t('levelTo')), to),
+            err,
+            h('div', { class: 'form-actions' },
+              existing ? h('button', { class: 'btn bad', type: 'button', onclick: async () => {
+                if (list.length <= 1) { err.textContent = t('lastLevel'); return; }
+                if (!(await confirmSheet({ title: t('deleteQ', { name: L.name }), body: t('deleteBody'), ok: t('delete'), danger: true }))) return;
+                save(list.filter(x => x.id !== L.id));
+              } }, t('delete')) : null,
+              h('span', { class: 'spacer' }),
+              h('button', { class: 'btn ghost', type: 'button', onclick: () => ctx.close() }, t('cancel')),
+              h('button', { class: 'btn primary', type: 'button', onclick: () => {
+                L.name = name.value.trim(); if (!L.name) { err.textContent = t('required'); name.focus(); return; }
+                L.min = isFirst ? 0 : Math.max(0, Math.round(Number(min.value) || 0));
+                L.to = to.value.trim() || ('a ' + L.name);
+                const i = list.findIndex(x => x.id === L.id);
+                if (i >= 0) list[i] = L; else list.push(L);
+                save(list);
+              } }, t('save'))))
+        ];
+      }
+    });
   }
   async function setNewPin() {
     const pin = await pinSheet('create');
