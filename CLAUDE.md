@@ -82,6 +82,7 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 ### Ilustraciones (art/)
 Nombres de archivo: `art/personajes/<id>.webp` (ids en characters.js), `art/recuerdos/<código ISO>.webp`, `art/trofeos/<europa|america|africa|asia|oceania>.webp`,
 `art/baul/cerrado.webp` y `art/baul/abierto.webp`. Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
+Las imágenes con varias figuras se recortan con `node scripts/cut-art.js <imagen> <cols>x<filas> <grupo> <ids>` (quita el fondo blanco). Instrucciones de generación en `art/PROMPTS.md`.
 Después: `node scripts/build-art.js` (o cualquier build) y publicar también los archivos de `art/`.
 
 ### Aspecto (estilo videojuego)
