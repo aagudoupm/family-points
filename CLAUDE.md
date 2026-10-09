@@ -14,7 +14,7 @@ HTML + JS sin dependencias, con persistencia en la base de datos del Artifact (`
 | `logic.js` | **Lógica pura** (`window.FP` / `module.exports`): saldo, ranking, canjes, reinicios, filtros, estadísticas, CSV, PIN, plantillas. Sin DOM. |
 | `app.js` | Interfaz: estado `S`, persistencia, vistas (panel, historial, premios, estadísticas, ajustes), hojas, PIN, sonido y confeti. |
 | `countries.js` | La vuelta al mundo (`window.FP_WORLD`): 5 continentes × 10 países con capital, monumento, idioma, gentilicio, saludo (y voz), algo típico, dato curioso y colores de la bandera. |
-| `characters.js` | Los 16 personajes fijos (8 chicos y 8 chicas, `window.FP_CHARACTERS`) y los 5 rangos del viaje (uno por continente, con el color del marco). |
+| `characters.js` | Los 16 personajes fijos (8 chicos y 8 chicas, `window.FP_CHARACTERS`) y los 10 rangos del viaje (nivel en que se consiguen y material del marco). |
 | `avatar.js` | Dibujo provisional de un personaje en SVG (`window.FP_AVATAR.svg(look, color)`), mientras no haya ilustración. |
 | `art/` + `art.js` | Ilustraciones (personajes, recuerdos, trofeos y baúl). `node scripts/build-art.js` genera `art.js` con las que existen; lo hacen también los builds. |
 | `icons.js` | Iconos propios dibujados a mano (`window.FP_OWN_ICONS`): estrella, moneda, avión, corona, candado, baúl (🧰) y cromos. Tienen prioridad sobre los de Fluent. |
@@ -69,10 +69,13 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
   **No se incluyen países en guerra** (se salta al siguiente por población). En la app usa `travelAt(total)`/`travelOf(id)`, que añaden país (`c`), siguiente (`nx`) y continente (`ct`).
 - **Personajes fijos** (`characters.js`): cada niño elige uno (`openCharacterPicker`, desde el perfil o al editar el miembro). No hay ropa ni personalización.
   Se pinta con `charArt(ch)` (ilustración de `art/personajes/<id>.webp` o, si no existe, el dibujo provisional de `avatar.js`), `portrait(m, v)` (con el marco del rango) y `avatar(m)` (la cara).
-- **Rangos**: uno por continente (`CH.rankFor(i)`): Turista, Explorador/a, Aventurero/a, Trotamundos y Gran viajero/a. Cambian el color del marco.
+- **Rangos**: 10, independientes del continente (`CH.rankFor(i)`, campo `lv`): Novato/a (1), Turista (3), Mochilero/a (6), Explorador/a (10), Aventurero/a (15),
+  Navegante (21), Trotamundos (28), Piloto (35), Embajador/a (42) y Gran viajero/a (50). El marco sube de material (madera → diamante, con brillo).
+  **Al subir de rango se regalan 10 estrellas** (`FP.ranksCrossed`, `FP.rankBonus`): movimiento `kind: 'rank'` con `rankId`, una sola vez por rango
+  (`checkLevelUp` comprueba que no exista ya). Cuenta para saldo y viaje; no para retos ni racha.
 - **Baúl de recuerdos** (`openChest`, `openSouvenir`): cada país visitado da la maqueta de su monumento (`art/recuerdos/<código>.webp`; si no, el icono del país)
   y cada continente terminado un trofeo legendario (`art/trofeos/<continente>.webp`). `FP.allSouvenirs`, `FP.souvenirsFor`, `FP.newSouvenirsAt`: 55 en total, derivados del nivel; nunca se guardan.
-- **Nuevo país** (`checkLevelUp`): billete de avión, nuevo rango si cambia de continente y el baúl con lo que entra. Las celebraciones van en fila (`showCelebration`).
+- **Nuevo país** (`checkLevelUp`): billete de avión, nuevo rango con su regalo si toca y el baúl con lo que entra. Las celebraciones van en fila (`showCelebration`).
 - **Perfil** (`openProfile`): ambientado en el país actual (colores de la bandera en `--stripes`, icono típico), retrato con rango, saludo con «Escuchar»
   (`speechSynthesis` en la voz del país; si el dispositivo no la tiene, lee el campo `es` con voz española), ficha del país (bandera, capital,
   idioma, gentilicio y monumento) con «Escuchar la ficha», dato curioso, pasaporte del continente, racha, insignias, retos y dar estrellas.

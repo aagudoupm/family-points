@@ -372,10 +372,24 @@ test('personajes: 8 chicos y 8 chicas, y un rango por continente', () => {
     assert.ok(c.name && c.role && c.desc, c.id);
     assert.ok(!/undefined|NaN/.test(A.svg(c.look, c.color)), c.id); // dibujo provisional
   }
-  assert.equal(C.RANKS.length, 5);
-  assert.equal(C.rankFor(0).id, 'turista');
-  assert.equal(C.rankFor(9).id, 'turista');
-  assert.equal(C.rankFor(10).id, 'explorador');
+  assert.equal(C.RANKS.length, 10);
+  assert.deepEqual(C.RANKS.map(r => r.lv), [1, 3, 6, 10, 15, 21, 28, 35, 42, 50]);
+  assert.equal(C.rankFor(0).id, 'novato');   // nivel 1
+  assert.equal(C.rankFor(1).id, 'novato');   // nivel 2
+  assert.equal(C.rankFor(2).id, 'turista');  // nivel 3
+  assert.equal(C.rankFor(9).id, 'explorador');
+  assert.equal(C.rankFor(48).id, 'embajador');
   assert.equal(C.rankFor(49).id, 'granviajero');
-  assert.equal(C.rankFor(10).girl, 'Exploradora');
+  assert.equal(C.rankFor(9).girl, 'Exploradora');
+});
+
+test('rangos: 10 estrellas de regalo por cada rango nuevo, sin contar para la racha', () => {
+  const C = require('../characters.js');
+  assert.deepEqual(FP.ranksCrossed(1, 2, C.RANKS).map(r => r.id), []);
+  assert.deepEqual(FP.ranksCrossed(2, 3, C.RANKS).map(r => r.id), ['turista']);
+  assert.deepEqual(FP.ranksCrossed(2, 10, C.RANKS).map(r => r.id), ['turista', 'mochilero', 'explorador']);
+  const b = FP.rankBonus({ id: 'a' }, C.RANKS[1], 'Nuevo rango: Turista', 5);
+  assert.equal(b.points, 10); assert.equal(b.kind, 'rank'); assert.equal(b.rankId, 'turista');
+  assert.equal(FP.earnedTotal('a', [b]), 10); // cuenta para el viaje
+  assert.equal(FP.streakDays('a', [b], 5).current, 0); // pero no para la racha
 });

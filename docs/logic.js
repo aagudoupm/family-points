@@ -459,9 +459,15 @@
   function souvenirsFor(levelN, continents) { return allSouvenirs(continents).filter(s => s.i < levelN); }
   // Lo que entra en el baúl al llegar al nivel levelN
   function newSouvenirsAt(levelN, continents) { return allSouvenirs(continents).filter(s => s.i === levelN - 1); }
-  // Racha: días seguidos ganando alguna estrella. Si hoy aún no ha ganado, la racha sigue viva desde ayer.
+  // Rangos: al subir de rango se regalan 10 estrellas (una sola vez por rango; la app comprueba que no se hayan dado ya)
+  const RANK_BONUS = 10;
+  function ranksCrossed(levelBefore, levelAfter, ranks) { return ranks.filter(r => r.lv > levelBefore && r.lv <= levelAfter); }
+  function rankBonus(member, rank, title, now) {
+    return { id: uid(), memberId: member.id, ruleId: '', kind: 'rank', rankId: rank.id, title, icon: '🏅', points: RANK_BONUS, date: now, note: '' };
+  }
+  // Racha: días seguidos ganando alguna estrella (los regalos de rango no cuentan). Si hoy aún no ha ganado, la racha sigue viva desde ayer.
   function streakDays(memberId, movements, now) {
-    const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.points > 0).map(m => dayStart(m.date)));
+    const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.kind !== 'rank' && m.points > 0).map(m => dayStart(m.date)));
     const today = dayStart(now);
     let d = days.has(today) ? today : addDays(today, -1), current = 0;
     while (days.has(d)) { current++; d = addDays(d, -1); }
@@ -511,7 +517,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVEL_STEP, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
+    LEVEL_STEP, RANK_BONUS, ranksCrossed, rankBonus, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

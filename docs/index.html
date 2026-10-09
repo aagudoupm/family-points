@@ -649,6 +649,12 @@ h1 { color: #fff; -webkit-text-stroke: 7px var(--k); paint-order: stroke fill; t
 .pf-kid .char-art img { object-fit: contain; object-position: center bottom; }
 @media (max-width: 600px) { .pf-kid .portrait { width: 7.5rem; } }
 .tk-kid { width: 5.5rem; }
+.tk-rankup { display: grid; justify-items: center; gap: .4rem; animation: pop .6s .3s cubic-bezier(.2, 1.6, .4, 1) both; }
+.pillc.gift { background: var(--yellow); color: #1D1240; }
+/* Gran viajero: marco de diamante con brillo */
+.portrait.diamond { border-color: #BDEBFF; box-shadow: 0 0 0 3px var(--k), inset 0 0 0 2px #fff, 0 0 14px 3px rgba(127, 211, 255, .8), 0 5px 0 3px var(--k); }
+.portrait.diamond::after { background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .8) 45%, transparent 60%); background-size: 250% 100%; animation: diamond 2.6s ease-in-out infinite; }
+@keyframes diamond { from { background-position: 120% 0; } to { background-position: -120% 0; } }
 .tk-rank { margin: 0; font-family: var(--font-display); font-size: 1.4rem; color: #fff; -webkit-text-stroke: 5px var(--k); paint-order: stroke fill; }
 .avatar .av-svg, .avatar .av-svg svg { display: block; width: 100%; height: 100%; }
 .avatar img { object-fit: cover; object-position: center top; }

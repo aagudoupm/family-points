@@ -170,7 +170,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   check(/Nivel 1 · España/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el país y el nivel');
   check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.flight').count() === 1 && /para viajar a Alemania/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el vuelo y lo que falta para el siguiente país');
-  check(await page.locator('.mcard .portrait').count() === 3 && /turista/i.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'Cada tarjeta muestra su personaje con el marco de su rango (Turista)');
+  check(await page.locator('.mcard .portrait').count() === 3 && /novata/i.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'Cada tarjeta muestra su personaje con el marco de su rango (Novata)');
   check(await page.locator('img.emo').count() > 10, 'Iconos 3D en el panel');
   check(await balance('Lucía') === bal0 + 4 + 5, 'Al confirmar se suman las 5 estrellas extra');
   check(!(await page.locator('.banners').innerText()).includes('esperando'), 'El aviso desaparece tras confirmar');
@@ -229,7 +229,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.screenshot({ path: path.join(shots, '25-personajes.png') });
   await sheet().getByRole('button', { name: 'Listo' }).click(); await settle();
   const lk = await page.evaluate(() => [...window.__FP_APP__.S.members.values()].find(m => m.name === 'Lucía'));
-  check(lk.character === 'aitana' && /Turista · Aitana/.test(await sheet().locator('.pf-rank').innerText()), 'El personaje se guarda y el perfil muestra rango y personaje');
+  check(lk.character === 'aitana' && /Novata · Aitana/.test(await sheet().locator('.pf-rank').innerText()), 'El personaje se guarda y el perfil muestra rango y personaje');
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   // Estrellas por país en Ajustes
   await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
@@ -246,6 +246,20 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
   check(/Nivel 2 · Alemania/.test(await lucia.innerText()), 'Con 150 estrellas por país, Lucía vuelve a estar en Alemania');
+  // Nuevo rango (nivel 3 = Turista): 10 estrellas de regalo, una sola vez
+  const e1 = await page.evaluate(() => window.__FP_APP__.earned('Lucía'));
+  await lucia.click(); await settle();
+  await sheet().locator('summary', { hasText: 'Otros puntos' }).click();
+  for (let i = 0; i < 49; i++) await sheet().getByRole('button', { name: 'Más puntos' }).click();
+  for (let i = 0; i < Math.ceil((300 - e1) / 50); i++) { await sheet().getByRole('button', { name: 'Dar puntos' }).click(); await pinIfAsked(); await page.waitForTimeout(200); }
+  await page.waitForTimeout(1200);
+  const tk2 = sheet().locator('.ticket');
+  check(await tk2.count() === 1 && /Nuevo rango: Turista/.test(await tk2.innerText()) && /\+10 estrellas de regalo/.test(await tk2.innerText()), 'Nuevo rango: aviso en el billete y 10 estrellas de regalo');
+  await page.screenshot({ path: path.join(shots, '27-rango.png') });
+  await sheet().getByRole('button', { name: '¡A volar!' }).click(); await settle();
+  const bonus = await page.evaluate(() => window.__FP_APP__.S && [...window.__FP_APP__.S.logs.values()].flatMap(l => l.movements || []).filter(m => m.kind === 'rank').map(m => m.rankId));
+  check(bonus.length === 1 && bonus[0] === 'turista', 'El regalo del rango se da una sola vez');
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   // Reto libre para Mateo, marcado por un adulto
   await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
   await page.getByRole('button', { name: /Nuevo reto/ }).click(); await pinIfAsked();

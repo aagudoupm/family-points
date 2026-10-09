@@ -69,9 +69,9 @@
     passportTitle: v => 'Pasaporte de ' + v.ct, passportCount: v => v.n + ' de 10 países',
     stampLabel: v => v.name + ': ' + v.state, stampDone: 'visitado', stampHere: 'está aquí', stampLocked: 'por visitar',
     pickChar: 'Elige tu personaje', changeChar: 'Cambiar personaje', noChar: '¡Elige tu personaje!', character: 'Personaje',
-    pickCharSub: 'Cada uno elige su personaje. Con el viaje irá subiendo de rango: un marco nuevo en cada continente.',
+    pickCharSub: 'Cada uno elige su personaje. Con el viaje irá subiendo de rango, de Novato a Gran viajero, y cada rango nuevo trae 10 estrellas de regalo.',
     girls: 'Chicas', boys: 'Chicos', takenBy: v => 'Lo tiene ' + v.name, done: 'Listo',
-    rankLine: v => v.rank + ' · ' + v.name + ', ' + v.role, rankUp: v => '¡Nuevo rango: ' + v.rank + '!',
+    rankLine: v => v.rank + ' · ' + v.name + ', ' + v.role, rankUp: v => '¡Nuevo rango: ' + v.rank + '!', rankBonusTitle: v => 'Nuevo rango: ' + v.rank, rankGift: v => '+' + v.n + ' estrellas de regalo',
     chest: 'Baúl', chestCount: v => v.n + ' de ' + v.total + ' recuerdos',
     chestNote: 'Cada país nuevo trae un recuerdo: la maqueta de su monumento. Al terminar un continente, un trofeo legendario.',
     chestNew: v => v.n === 1 ? '¡Un recuerdo nuevo para el baúl!' : '¡' + v.n + ' recuerdos nuevos para el baúl!',
@@ -901,7 +901,7 @@
   // Personaje dentro del marco de su rango (el marco cambia de color en cada continente)
   function portrait(m, v, cls) {
     const r = rankOf(v || travelOf(m.id));
-    return h('span', { class: 'portrait' + (cls ? ' ' + cls : ''), style: { '--rank': r.color, '--rank-l': r.light, '--c': m.color }, 'aria-hidden': 'true' }, charArt(charOf(m)));
+    return h('span', { class: 'portrait' + (r.id === 'granviajero' ? ' diamond' : '') + (cls ? ' ' + cls : ''), style: { '--rank': r.color, '--rank-l': r.light, '--c': m.color }, 'aria-hidden': 'true' }, charArt(charOf(m)));
   }
   const frow = (ico, label, value) => h('div', { class: 'frow' }, h('span', { class: 'f-ico', 'aria-hidden': 'true' }, ico), h('div', null, h('small', null, label), h('b', null, value)));
   // Vuelo hacia el siguiente país: bandera actual → avión → bandera siguiente
@@ -980,11 +980,21 @@
   // Nuevo país: billete de avión y el recuerdo nuevo entra en el baúl (y el trofeo si se completa un continente)
   function checkLevelUp(memberId, before) {
     const m = S.members.get(memberId); if (!m) return;
-    const a = travelAt(before), b = travelOf(memberId);
+    const a = travelAt(before);
+    let b = travelOf(memberId);
     if (b.n <= a.n) return;
+    // Rangos nuevos: 10 estrellas de regalo por cada uno, una sola vez por rango. El regalo puede llevar a otro país, así que se repite.
+    const ch = charOf(m), ranks = [];
+    for (let guard = 0; guard < 3; guard++) {
+      const fresh = FP.ranksCrossed(a.n, b.n, CH.RANKS).filter(r => !ranks.includes(r) &&
+        !movements().some(mv => mv.memberId === memberId && mv.kind === 'rank' && mv.rankId === r.id));
+      if (!fresh.length) break;
+      fresh.forEach(r => { ranks.push(r); addMovement(FP.rankBonus(m, r, t('rankBonusTitle', { rank: rankName(r, ch) }), Date.now())); });
+      b = travelOf(memberId);
+    }
     const items = [];
     for (let n = a.n + 1; n <= b.n; n++) items.push(...FP.newSouvenirsAt(n, W.CONTINENTS));
-    const ch = charOf(m), rankUp = rankOf(a).id !== rankOf(b).id;
+    const top = ranks[ranks.length - 1];
     setTimeout(() => {
       showCelebration(() => { Sound.play('challenge'); confetti(150); }, ctx => [
         sheetHead(ctx, t('levelUpTitle')),
@@ -994,7 +1004,8 @@
             h('div', { class: 'tk-legs', 'aria-hidden': 'true' },
               h('span', null, flagEmo(a.c), h('b', null, a.c.name)), h('span', { class: 'tk-plane' }, emo('✈️')), h('span', null, flagEmo(b.c), h('b', null, b.c.name))),
             portrait(m, b, 'tk-kid'),
-            rankUp ? h('p', { class: 'tk-rank' }, t('rankUp', { rank: rankName(rankOf(b), ch) })) : null,
+            top ? h('div', { class: 'tk-rankup' }, h('p', { class: 'tk-rank' }, t('rankUp', { rank: rankName(top, ch) })),
+              h('span', { class: 'pillc gift' }, emo('⭐'), t('rankGift', { n: FP.RANK_BONUS * ranks.length }))) : null,
             h('p', { class: 'tk-info' }, t('tripInfo', { n: b.n, capital: b.c.capital, hello: b.c.hello })),
             h('div', { class: 'chest-new' }, h('span', { class: 'chest-ico swap', 'aria-hidden': 'true' }, h('span', { class: 'c-closed' }, chestEl(false)), h('span', { class: 'c-open' }, chestEl(true))), h('strong', null, t('chestNew', { n: items.length }))),
             h('div', { class: 'chest-grid mini' }, items.map(s => souvenirEl(s, false))),

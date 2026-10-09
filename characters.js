@@ -1,5 +1,5 @@
 // Family Points — personajes fijos (8 chicos y 8 chicas) y rangos del viaje.
-// Cada niño elige un personaje. Lo que cambia con el viaje es el rango (uno por continente), que se ve en el marco del retrato.
+// Cada niño elige un personaje. Lo que cambia con el viaje es el rango (10, de Novato a Gran viajero), que se ve en el marco del retrato.
 // Mientras no haya ilustración (art/personajes/<id>.webp, ver art.js), se dibuja con avatar.js usando `look`.
 // `desc` sirve para pedir la ilustración a la IA de imágenes.
 (function (root) {
@@ -23,16 +23,23 @@
     P('zoe', 'Zoe', 'girl', 'la inventora', 'coleta rosa, ojos grises, piel clara, gafas de aviador en la frente', '#FF7A3D', { hair: 'coleta', hairColor: 'rosa', eyes: 'gris', skin: 1 }),
     P('ayo', 'Ayo', 'girl', 'la cantante', 'trenzas negras, ojos marrones, piel oscura, micrófono', '#FF4F5E', { hair: 'trenzas', hairColor: 'negro', eyes: 'marron', skin: 4 })
   ];
-  // Rangos: uno por continente (en el orden del viaje). Cada uno con el color de su marco.
+  // Rangos del viaje: 10, que se consiguen al llegar al nivel `lv` (los primeros llegan antes y luego se espacian).
+  // No dependen del continente. El marco del retrato va subiendo de material, de madera a diamante.
+  const R = (id, lv, boy, girl, material, color, light) => ({ id, lv, boy, girl, material, color, light });
   const RANKS = [
-    { id: 'turista', boy: 'Turista', girl: 'Turista', color: '#CD7F32', light: '#F3C08C' },
-    { id: 'explorador', boy: 'Explorador', girl: 'Exploradora', color: '#9AA6BC', light: '#E4E9F2' },
-    { id: 'aventurero', boy: 'Aventurero', girl: 'Aventurera', color: '#F2A900', light: '#FFE38A' },
-    { id: 'trotamundos', boy: 'Trotamundos', girl: 'Trotamundos', color: '#16A37F', light: '#9BEBD3' },
-    { id: 'granviajero', boy: 'Gran viajero', girl: 'Gran viajera', color: '#7A4DFF', light: '#D6C6FF' }
+    R('novato', 1, 'Novato', 'Novata', 'madera', '#9C6B3E', '#E3C29B'),
+    R('turista', 3, 'Turista', 'Turista', 'cobre', '#B8693A', '#F0B48A'),
+    R('mochilero', 6, 'Mochilero', 'Mochilera', 'bronce', '#CD7F32', '#F3C08C'),
+    R('explorador', 10, 'Explorador', 'Exploradora', 'plata', '#9AA6BC', '#E4E9F2'),
+    R('aventurero', 15, 'Aventurero', 'Aventurera', 'oro', '#F2A900', '#FFE38A'),
+    R('navegante', 21, 'Navegante', 'Navegante', 'esmeralda', '#16A37F', '#9BEBD3'),
+    R('trotamundos', 28, 'Trotamundos', 'Trotamundos', 'zafiro', '#2F6BFF', '#B9D0FF'),
+    R('piloto', 35, 'Piloto', 'Piloto', 'rubí', '#D7263D', '#FFB3BE'),
+    R('embajador', 42, 'Embajador', 'Embajadora', 'amatista', '#7A4DFF', '#D6C6FF'),
+    R('granviajero', 50, 'Gran viajero', 'Gran viajera', 'diamante', '#6CC8F5', '#F0FBFF')
   ];
-  // Rango según el índice del país (0..49): 10 países por continente
-  const rankFor = countryIndex => RANKS[Math.min(RANKS.length - 1, Math.floor(Math.max(0, countryIndex) / 10))];
+  // Rango según el índice del país (0..49): el último cuyo nivel ya se ha alcanzado
+  const rankFor = countryIndex => { let r = RANKS[0]; for (const x of RANKS) if (x.lv - 1 <= countryIndex) r = x; return r; };
   const api = { CHARACTERS, RANKS, rankFor };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP_CHARACTERS = api;
