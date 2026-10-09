@@ -61,6 +61,9 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 - Fondo `.scene` fijo: cielo, sol, nubes y colinas; en modo oscuro el mismo paisaje de noche (luna y estrellas). Todo con tokens en `:root`.
 - Tarjetas con relieve (`--shadow`), botones «de juego» (`.btn` con `--b`/`--e`: canto inferior que se hunde al tocar), barra flotante.
 - Fuentes: Baloo 2 (títulos y números) y Nunito (texto), con Dynamic Type.
+- Capa 3D «de juguete» (al final del CSS): brillo `--hi` arriba, sombra interior `--lo`, canto `--base` y sombra `--drop`;
+  títulos con borde `--title-edge` y números extruidos `--num-edge`; `--lift` sustituye al blanco en mezclas para que el modo noche no se aclare.
+  Paisaje con colinas sombreadas y decorados 3D (`.scene .deco`).
 - **Iconos 3D**: Fluent Emoji 3D (Microsoft, MIT) en `emoji/`, mapa en `emoji-map.js`. `h()` convierte en icono cualquier texto que sea
   un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Emojis sin icono se ven como texto.
   Si añades emojis nuevos al código, regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>`.
