@@ -77,6 +77,8 @@
     quizDone: v => 'Prueba superada: ' + v.n + ' de 3 (+' + v.s + ' estrellas)', quizTicket: v => '¡Prueba de ' + v.name + '!',
     ppTitle: 'Pasaporte', ppOf: v => 'Pasaporte de ' + v.name, ppCount: v => v.n + ' de ' + v.total + ' países visitados', ppOpen: 'Pasaporte',
     ppStamp: v => 'Sello de ' + v.name + (v.date ? ', ' + v.date : ''), ppUnknown: 'país por descubrir', ppSealed: v => 'Sellado el ' + v.date, ppOpenAll: 'Abrir el pasaporte',
+    remTitle: 'Recordatorio diario', remNote: 'Elige a qué hora quieres que el iPhone o el iPad os recuerde cada día anotar las estrellas.',
+    remHow: 'Se abrirá Calendario: pulsa «Añadir todo». Cada día a esa hora saldrá un aviso. Para quitarlo, borra el evento «Anotar las estrellas de hoy» en Calendario.',
     stampLabel: v => v.name + ': ' + v.state, stampDone: 'visitado', stampHere: 'está aquí', stampLocked: 'por visitar',
     pickChar: 'Elige tu personaje', changeChar: 'Cambiar personaje', noChar: '¡Elige tu personaje!', character: 'Personaje',
     pickCharSub: 'Cada uno elige su personaje. Con el viaje irá subiendo de rango, de Novato a Gran viajero, y cada rango nuevo trae 10 estrellas de regalo.',
@@ -2361,6 +2363,14 @@
       h('h2', null, t('effects')),
       h('div', { class: 'switch' }, h('label', { for: 's-sound' }, t('sounds')), toggle('s-sound', st.sound, v => saveSettings({ sound: v }), t('sounds'))),
       h('div', { class: 'switch' }, h('label', { for: 's-conf' }, t('confetti')), toggle('s-conf', st.confetti, v => saveSettings({ confetti: v }), t('confetti'))));
+    // Recordatorio diario: archivos .ics de docs/recordatorios (versión de GitHub); en el visor de claude.ai, con la dirección completa
+    const remBase = (window.claude ? 'https://aagudoupm.github.io/family-points/' : '') + 'recordatorios/estrellas-';
+    const remCard = h('section', { class: 'card set-card' },
+      h('h2', null, h('span', null, emo('🔔'), ' ' + t('remTitle'))),
+      h('p', { class: 'note' }, t('remNote')),
+      h('div', { class: 'chips', style: { 'padding-bottom': '.4rem' } }, FP.REMINDER_HOURS.map(hr =>
+        h('a', { class: 'btn small', href: remBase + hr + '.ics', target: '_blank', rel: 'noopener' }, hr + ':00'))),
+      h('p', { class: 'note' }, t('remHow')));
     const allEntries = () => FP.historyEntries(movements(), redemptions());
     const dataCard = h('section', { class: 'card set-card' },
       h('h2', null, t('data')),
@@ -2388,7 +2398,7 @@
         h('button', { class: 'btn small primary', type: 'button', onclick: setNewPin }, t('createPin'))) : null,
       h('div', { class: 'settings' },
         h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, membersCard, rulesCard, rewardsCard, challengesCard, levelsCard),
-        h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, secCard, resetCard, fxCard, dataCard)));
+        h('div', { style: { display: 'grid', gap: '1.25rem', 'grid-template-columns': 'minmax(0, 1fr)' } }, secCard, resetCard, fxCard, remCard, dataCard)));
   }
   function saveBackup() {
     const logs = {};

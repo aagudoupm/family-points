@@ -762,6 +762,12 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
   .reward .cost { grid-area: cost; font-size: 1.1rem; }
   .reward .progress { grid-area: prog; width: 100%; margin: .15rem 0 0; }
   .reward .need { grid-area: need; justify-self: end; white-space: nowrap; }
+  /* «¿Quién canjea?»: los miembros en fila, cada uno en una columna (cara, nombre y estrellas) */
+  .who { padding: .7rem .8rem .8rem; gap: .5rem; margin-bottom: .9rem; }
+  .who .col-title { font-size: 1.1rem; }
+  .who .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr)); gap: .45rem; width: 100%; }
+  .who .chip { flex-direction: column; justify-content: center; gap: .15rem; min-height: 0; padding: .4rem .3rem; border-radius: 16px; min-width: 0; }
+  .who .chip .pill { font-size: .8rem; padding: .05rem .5rem; }
 }
 /* Ambiente del continente: ilustración (art/fondos) o paisaje con degradados */
 .scene-europa { --scene: radial-gradient(70% 55% at 18% 100%, #86C95B 0 98%, transparent 100%), radial-gradient(80% 60% at 82% 100%, #6CB84C 0 98%, transparent 100%), linear-gradient(#A9DCFF, #E8F6FF); }
@@ -827,6 +833,7 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 .stamp-detail { display: grid; gap: .8rem; justify-items: center; }
 .sd-stamp { width: 12rem; height: 12rem; padding: .6rem; border-radius: 20px; background: #FFF8E6; border: 3px solid var(--k); }
 .stamp-detail .ficha, .stamp-detail .pf-box { width: 100%; }
+a.btn { text-decoration: none; }
 </style>
 
 <div class="scene" aria-hidden="true"></div>

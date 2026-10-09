@@ -115,6 +115,10 @@ Después: `node scripts/build-art.js` (o cualquier build) y publicar también lo
 - Premios: en pantallas estrechas (≤ 640 px, iPhone) el catálogo es una lista compacta (icono, nombre, precio y botón a la derecha) para ver al menos 4; en el iPad, tarjetas.
 - Panel: sonido y ajustes arriba a la derecha (`.top-actions`). Cada tarjeta: personaje con marco de rango, nombre, estrellas, país y nivel, rango y el vuelo hacia el siguiente país (`flightTrack`).
 
+- Icono de la app (`scripts/make-icons.js`): el globo, el avión y la estrella de `art/iconos` sobre los rayos azules (dentro del 80 % central, sirve como «maskable»).
+- **Recordatorio diario** (Ajustes): no hay notificaciones push (harían falta un servidor y claves). Se usa el Calendario: `FP.reminderIcs(hora, url)` genera
+  un evento diario con aviso; `build-standalone` escribe `docs/recordatorios/estrellas-<18..21>.ics` y Ajustes los enlaza (en el visor de claude.ai, con la URL de GitHub Pages).
+
 ### Navegación
 Barra inferior de 4, pensada para que la usen los niños: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Más.
 «Más» reúne lo de adultos: Ajustes, Insignias, Historial y Gráficos (vista `summary`, con botón «‹ Más»), exportar, copia y sonido.

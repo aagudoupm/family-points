@@ -515,6 +515,23 @@
     return { current, best, today: days.has(today) };
   }
 
+  // ---------- Recordatorio diario (archivo de calendario .ics) ----------
+  // Un evento que se repite cada día a la hora `hour` (hora local del dispositivo) con un aviso a esa misma hora.
+  // Al abrirlo en el iPhone o el iPad, Calendario ofrece añadirlo y avisa cada día sin servidor ni cuentas.
+  const REMINDER_HOURS = [18, 19, 20, 21];
+  // Las líneas de un .ics no deben pasar de 75 bytes: se parten y la continuación empieza con un espacio
+  const fold = line => { const out = []; let cur = ''; for (const ch of line) { if (utf8Len(cur + ch) > 73) { out.push(cur); cur = ' '; } cur += ch; } out.push(cur); return out.join('\r\n'); };
+  const utf8Len = str => unescape(encodeURIComponent(str)).length;
+  function reminderIcs(hour, appUrl) {
+    const hh = String(hour).padStart(2, '0'), msg = '¿Habéis anotado las estrellas de hoy?';
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Family Points//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+      'BEGIN:VEVENT', 'UID:family-points-recordatorio-' + hh + '@family-points', 'DTSTAMP:20260101T000000Z',
+      'DTSTART:20260101T' + hh + '0000', 'DTEND:20260101T' + hh + '1000', 'RRULE:FREQ=DAILY',
+      'SUMMARY:⭐ Anotar las estrellas de hoy', 'DESCRIPTION:' + msg + ' ' + appUrl, 'URL:' + appUrl,
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + msg, 'TRIGGER:-PT0M', 'END:VALARM',
+      'END:VEVENT', 'END:VCALENDAR'].map(fold).join('\r\n') + '\r\n';
+  }
+
   // ---------- Copia de seguridad ----------
   function makeBackup(data, now) {
     return {
@@ -556,7 +573,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVEL_STEP, RANK_BONUS, QUIZ_STAR, quizFor, quizMovement, quizResult, arrivalDates, ranksCrossed, rankBonus, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
+    LEVEL_STEP, RANK_BONUS, QUIZ_STAR, REMINDER_HOURS, reminderIcs, quizFor, quizMovement, quizResult, arrivalDates, ranksCrossed, rankBonus, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

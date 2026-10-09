@@ -1,0 +1,22 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Family Points//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:family-points-recordatorio-21@family-points
+DTSTAMP:20260101T000000Z
+DTSTART:20260101T210000
+DTEND:20260101T211000
+RRULE:FREQ=DAILY
+SUMMARY:⭐ Anotar las estrellas de hoy
+DESCRIPTION:¿Habéis anotado las estrellas de hoy? https://aagudoupm.git
+ hub.io/family-points/
+URL:https://aagudoupm.github.io/family-points/
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:¿Habéis anotado las estrellas de hoy?
+TRIGGER:-PT0M
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -421,3 +421,17 @@ test('pasaporte: fecha de llegada a cada país', () => {
   assert.equal(d[0], 10); assert.equal(d[1], 20); assert.equal(d[2], 30); assert.equal(d[3], 30); assert.equal(d[4], 30); assert.equal(d[5], null);
   assert.deepEqual(FP.arrivalDates('x', ms, 150, 3), [null, null, null]);
 });
+
+test('recordatorio diario: evento .ics que se repite cada día con aviso', () => {
+  const ics = FP.reminderIcs(19, 'https://ejemplo/app/');
+  assert.ok(ics.startsWith('BEGIN:VCALENDAR\r\n') && ics.endsWith('END:VCALENDAR\r\n'));
+  assert.match(ics, /DTSTART:20260101T190000\r\n/);
+  assert.match(ics, /RRULE:FREQ=DAILY/);
+  assert.match(ics, /BEGIN:VALARM[\s\S]*TRIGGER:-PT0M[\s\S]*END:VALARM/);
+  assert.match(FP.reminderIcs(8, 'x'), /DTSTART:20260101T080000/);
+  assert.deepEqual(FP.REMINDER_HOURS, [18, 19, 20, 21]);
+});
+
+test('recordatorio diario: ninguna línea pasa de 75 bytes', () => {
+  for (const line of FP.reminderIcs(21, 'https://aagudoupm.github.io/family-points/').split('\r\n')) assert.ok(Buffer.byteLength(line) <= 75, line);
+});

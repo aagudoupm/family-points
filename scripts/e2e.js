@@ -238,6 +238,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   const lucia = page.locator('.mcard', { hasText: 'Lucía' });
   check(/Nivel 1 · España/.test(await lucia.innerText()), 'Estrellas por país configurables (1000 → vuelve a España)');
   await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
+  check(await page.locator('a[href$="estrellas-19.ics"]').count() === 1, 'Ajustes: recordatorio diario (Calendario)');
   await page.fill('#s-step', '150'); await page.locator('#s-step').dispatchEvent('change'); await settle();
   await page.locator('#tabs').getByRole('button', { name: 'Más', exact: true }).click(); await settle();
   await page.locator('.more-tile', { hasText: 'La vuelta al mundo' }).click(); await settle();

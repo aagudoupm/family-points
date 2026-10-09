@@ -26,6 +26,10 @@ const src = f => f === 'firebase-config.js' ? cfgPath : path.join(root, f);
 const hash = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(src(f), 'utf8')).join(''));
 for (const f of ART_FILES) hash.update(fs.readFileSync(path.join(root, f)));
 const version = hash.digest('hex').slice(0, 10);
+// Recordatorios diarios para el Calendario (docs/recordatorios/estrellas-HH.ics); los enlaza Ajustes → Recordatorio diario
+const FPL = require('../logic.js');
+fs.mkdirSync(path.join(out, 'recordatorios'), { recursive: true });
+for (const hr of FPL.REMINDER_HOURS) fs.writeFileSync(path.join(out, 'recordatorios', 'estrellas-' + hr + '.ics'), FPL.reminderIcs(hr, 'https://aagudoupm.github.io/family-points/'));
 
 fs.writeFileSync(path.join(out, 'index.html'), `<!doctype html>
 <html lang="es">
