@@ -1,7 +1,5 @@
-// Family Points — avatar del viajero: niño o niña dibujado en SVG, con el mismo trazo grueso que los iconos propios.
-// look: { g: 'boy'|'girl', hair, hairColor, eyes, skin }. outfit: { head, eyes, neck, back, top, feet } (ids de ITEMS).
-// La ropa empieza siendo básica (camiseta del color del miembro, pantalón y zapatillas) y las prendas se desbloquean
-// por nivel (país) y se compran con monedas.
+// Family Points — dibujo provisional de los personajes (SVG), con el trazo grueso de los iconos propios.
+// Se usa mientras no exista la ilustración del personaje en art/personajes/. look: { g: 'boy'|'girl', hair, hairColor, eyes, skin }.
 (function (root) {
   'use strict';
   const K = '#1D1240';
@@ -66,52 +64,18 @@
     }
   }
 
-  // ── Ropa que se desbloquea con los países (lv = nivel en el que se desbloquea)
-  const ITEMS = [
-    { id: 'gorra', n: 'Gorra', slot: 'head', lv: 2, p: 30, r: 'common',
-      front: () => '<path d="M58 40 C72 35 93 35 101 42 C93 47 72 47 58 45Z" fill="#C93636" ' + S() + '/><path d="M31 41 C31 23 44 14 60 14 C76 14 89 23 89 41Z" fill="#FF4F4F" ' + S() + '/><circle cx="60" cy="14" r="3" fill="#FF4F4F" ' + S(2.5) + '/><path d="M40 26 C44 21 50 19 55 19" stroke="#fff" stroke-width="3" opacity=".5" fill="none" stroke-linecap="round"/>' },
-    { id: 'mochila', n: 'Mochila', slot: 'back', lv: 4, p: 40, r: 'common',
-      back: () => '<rect x="29" y="88" width="62" height="36" rx="11" fill="#FFAE00" ' + S() + '/>',
-      front: () => '<path d="M46 85 L44 114 M74 85 L76 114" stroke="' + K + '" stroke-width="7" stroke-linecap="round"/><path d="M46 85 L44 114 M74 85 L76 114" stroke="#E08A00" stroke-width="3.5" stroke-linecap="round"/>' },
-    { id: 'bufanda', n: 'Bufanda', slot: 'neck', lv: 6, p: 40, r: 'common',
-      front: () => '<path d="M66 86 L74 106 L66 108 L60 88Z" fill="#E0306A" ' + S() + '/><path d="M43 80 C52 87 68 87 77 80 L79 88 C69 95 51 95 41 88Z" fill="#FF4F7A" ' + S() + '/><path d="M48 87 L48 91 M56 89 L56 93 M64 89 L64 93 M72 87 L72 91" stroke="#fff" stroke-width="2" opacity=".6"/>' },
-    { id: 'sudadera', n: 'Sudadera', slot: 'top', lv: 9, p: 60, r: 'rare', color: '#8B45FF' },
-    { id: 'gafas', n: 'Gafas de sol', slot: 'eyes', lv: 11, p: 60, r: 'rare',
-      front: () => '<rect x="39" y="48" width="19" height="14" rx="6" fill="' + K + '"/><rect x="62" y="48" width="19" height="14" rx="6" fill="' + K + '"/><path d="M57 53 L63 53" ' + S(3) + '/><path d="M43 52 L48 51 M66 52 L71 51" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/>' },
-    { id: 'sombrero', n: 'Sombrero', slot: 'head', lv: 15, p: 80, r: 'rare',
-      front: () => '<ellipse cx="60" cy="35" rx="45" ry="9" fill="#E8B04A" ' + S() + '/><path d="M39 35 C39 17 47 10 60 10 C73 10 81 17 81 35Z" fill="#F2C462" ' + S() + '/><path d="M40 29 L80 29" stroke="#C93636" stroke-width="5"/>' },
-    { id: 'salacot', n: 'Sombrero de explorador', slot: 'head', lv: 21, p: 100, r: 'epic',
-      front: () => '<ellipse cx="60" cy="38" rx="41" ry="8" fill="#D9C99A" ' + S() + '/><path d="M31 38 C31 18 45 8 60 8 C75 8 89 18 89 38Z" fill="#EFE3BC" ' + S() + '/><path d="M32 32 L88 32" stroke="#7A5B2E" stroke-width="5"/><path d="M42 20 C47 15 53 13 58 13" stroke="#fff" stroke-width="3" opacity=".6" fill="none" stroke-linecap="round"/>' },
-    { id: 'botas', n: 'Botas de explorador', slot: 'feet', lv: 24, p: 90, r: 'rare' },
-    { id: 'camara', n: 'Cámara de fotos', slot: 'neck', lv: 31, p: 120, r: 'epic',
-      front: () => '<path d="M48 82 L54 98 M72 82 L66 98" stroke="' + K + '" stroke-width="2.5"/><rect x="49" y="96" width="22" height="15" rx="4" fill="#3B3F55" ' + S(3) + '/><circle cx="60" cy="103.5" r="5" fill="#9ED0FF" ' + S(2.5) + '/><rect x="64" y="93" width="5" height="4" rx="1" fill="#3B3F55" ' + S(2) + '/>' },
-    { id: 'buceo', n: 'Gafas de buceo', slot: 'eyes', lv: 41, p: 120, r: 'epic',
-      front: () => '<path d="M29 54 C40 50 80 50 91 54" stroke="#2E8BFF" stroke-width="5" fill="none"/><rect x="37" y="45" width="46" height="21" rx="10" fill="#9EE2FF" fill-opacity=".75" ' + S() + '/><path d="M43 50 L50 49" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>' },
-    { id: 'capa', n: 'Capa de gran viajero', slot: 'back', lv: 46, p: 250, r: 'legend',
-      back: () => '<path d="M39 86 L22 142 C40 149 80 149 98 142 L81 86Z" fill="#D62F4F" ' + S() + '/><path d="M30 130 C44 136 76 136 90 130" stroke="#FFD43B" stroke-width="3" fill="none"/>',
-      front: () => '<path d="M40 84 L50 92 L60 86 L70 92 L80 84" fill="none" stroke="#FFD43B" stroke-width="4" stroke-linejoin="round"/>' },
-    { id: 'corona', n: 'Corona de la vuelta al mundo', slot: 'head', lv: 50, p: 400, r: 'legend',
-      front: () => '<path d="M37 32 L34 9 L46 19 L60 3 L74 19 L86 9 L83 32Z" fill="#FFD43B" ' + S() + '/><rect x="36" y="29" width="48" height="9" rx="3" fill="#FFAE00" ' + S() + '/><circle cx="60" cy="33.5" r="3" fill="#FF3D6E" ' + S(2) + '/><circle cx="34" cy="8" r="2.5" fill="#FFE680" ' + S(2) + '/><circle cx="60" cy="3" r="2.5" fill="#FFE680" ' + S(2) + '/><circle cx="86" cy="8" r="2.5" fill="#FFE680" ' + S(2) + '/>' }
-  ];
-  const item = id => ITEMS.find(x => x.id === id);
-
   // ── Cuerpo
-  function body(look, outfit, shirt) {
-    const skin = SKINS[look.skin] || SKINS[1];
-    const top = outfit.top && item(outfit.top), tc = top ? top.color : shirt, tcd = shade(tc, .22);
-    const pants = '#3E5BA9';
-    const boots = outfit.feet === 'botas';
-    const arm = (x, rot) => '<g transform="rotate(' + rot + ' ' + (x + 6.5) + ' 88)"><rect x="' + x + '" y="86" width="13" height="32" rx="6.5" fill="' + (top ? tc : skin) + '" ' + S() + '/>' +
-      (top ? '<circle cx="' + (x + 6.5) + '" cy="117" r="5.5" fill="' + skin + '" ' + S(3) + '/>' : '<rect x="' + (x - 1) + '" y="85" width="15" height="14" rx="6" fill="' + tc + '" ' + S() + '/>') + '</g>';
-    const shoes = boots
-      ? '<path d="M40 132 L58 132 L59 147 C59 149 57 150 55 150 L41 150 C39 150 38 149 38 147Z" fill="#8A5A2B" ' + S() + '/><path d="M62 132 L80 132 L82 147 C82 149 81 150 79 150 L65 150 C63 150 61 149 61 147Z" fill="#8A5A2B" ' + S() + '/><path d="M40 138 L58 138 M62 138 L80 138" stroke="#5E3B19" stroke-width="2.5"/>'
-      : '<path d="M39 147 C39 141 42 139 49 139 C56 139 59 141 59 145 L59 147 C59 149 57 150 55 150 L42 150 C40 150 39 149 39 147Z" fill="#fff" ' + S() + '/><path d="M61 145 C61 141 64 139 71 139 C78 139 81 141 81 147 C81 149 80 150 78 150 L65 150 C63 150 61 149 61 147Z" fill="#fff" ' + S() + '/>';
+  function body(look, shirt) {
+    const skin = SKINS[look.skin] || SKINS[1], pants = '#3E5BA9';
+    const arm = (x, rot) => '<g transform="rotate(' + rot + ' ' + (x + 6.5) + ' 88)"><rect x="' + x + '" y="86" width="13" height="32" rx="6.5" fill="' + skin + '" ' + S() + '/>' +
+      '<rect x="' + (x - 1) + '" y="85" width="15" height="14" rx="6" fill="' + shirt + '" ' + S() + '/></g>';
+    const shoes = '<path d="M39 147 C39 141 42 139 49 139 C56 139 59 141 59 145 L59 147 C59 149 57 150 55 150 L42 150 C40 150 39 149 39 147Z" fill="#fff" ' + S() + '/>' +
+      '<path d="M61 145 C61 141 64 139 71 139 C78 139 81 141 81 147 C81 149 80 150 78 150 L65 150 C63 150 61 149 61 147Z" fill="#fff" ' + S() + '/>';
     return '<rect x="41" y="117" width="38" height="11" rx="4" fill="' + pants + '" ' + S() + '/>' +
       '<rect x="43" y="120" width="15" height="24" rx="5" fill="' + pants + '" ' + S() + '/><rect x="62" y="120" width="15" height="24" rx="5" fill="' + pants + '" ' + S() + '/>' + shoes +
       arm(26, 14) + arm(81, -14) +
-      '<path d="M38 92 C38 84 46 82 60 82 C74 82 82 84 82 92 L84 121 C84 124 82 126 79 126 L41 126 C38 126 36 124 36 121Z" fill="' + tc + '" ' + S() + '/>' +
-      '<path d="M44 92 C44 89 46 88 49 88" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".45"/>' +
-      (top ? '<path d="M46 108 L74 108 L72 120 L48 120Z" fill="' + tcd + '" ' + S(2.5) + '/><path d="M41 86 C45 76 75 76 79 86 C70 82 50 82 41 86Z" fill="' + tcd + '" ' + S(3) + '/>' : '');
+      '<path d="M38 92 C38 84 46 82 60 82 C74 82 82 84 82 92 L84 121 C84 124 82 126 79 126 L41 126 C38 126 36 124 36 121Z" fill="' + shirt + '" ' + S() + '/>' +
+      '<path d="M44 92 C44 89 46 88 49 88" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".45"/>';
   }
 
   function head(look) {
@@ -131,28 +95,15 @@
   }
 
   // SVG completo. opts.viewBox permite recortar (por ejemplo, solo la cabeza)
-  function svg(look, outfit, shirt, opts) {
-    look = look || {}; outfit = outfit || {}; opts = opts || {};
-    const h = hair(look), it = s => outfit[s] && item(outfit[s]);
-    const part = (s, k) => { const x = it(s); return x && x[k] ? x[k]() : ''; };
+  function svg(look, shirt, opts) {
+    look = look || {}; opts = opts || {};
+    const h = hair(look);
     return '<svg viewBox="' + (opts.viewBox || '0 0 120 160') + '" aria-hidden="true" overflow="' + (opts.viewBox ? 'hidden' : 'visible') + '">' +
       '<ellipse cx="60" cy="153" rx="30" ry="5" fill="rgba(29,18,64,.22)"/>' +
-      h.back + part('back', 'back') + body(look, outfit, shirt || '#2E8BFF') + part('back', 'front') +
-      head(look) + part('neck', 'front') + h.front + part('eyes', 'front') + part('head', 'front') + '</svg>';
+      h.back + body(look, shirt || '#2E8BFF') + head(look) + h.front + '</svg>';
   }
 
-  // Dibujo de una prenda suelta, para la tienda
-  const PREVIEW = { head: '14 0 92 52', eyes: '30 36 60 36', neck: '34 74 52 42', back: '16 80 88 70', top: '20 74 80 62', feet: '34 129 52 23' };
-  function itemSvg(id) {
-    const x = item(id);
-    if (!x) return '';
-    let inner;
-    if (x.slot === 'top' || x.slot === 'feet') inner = body({ skin: 1 }, { [x.slot]: id }, '#fff');
-    else inner = (x.back ? x.back() : '') + (x.front ? x.front() : '');
-    return '<svg viewBox="' + PREVIEW[x.slot] + '" aria-hidden="true" overflow="' + (x.slot === 'top' || x.slot === 'feet' ? 'hidden' : 'visible') + '">' + inner + '</svg>';
-  }
-
-  const api = { svg, itemSvg, ITEMS, HAIRS, HAIR_COLORS, EYE_COLORS, SKINS, item };
+  const api = { svg, HAIRS, HAIR_COLORS, EYE_COLORS, SKINS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP_AVATAR = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

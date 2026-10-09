@@ -4,22 +4,22 @@ Estrellas por portarse bien y premios para canjearlas. Pensada para usarla en fa
 
 ## Aspecto
 Estilo videojuego: fondo de rayos azul, tarjetas con contorno grueso, botones que se hunden y títulos con borde.
-Cada miembro es un **viajero** dibujado a medida (niño o niña, peinado, color de pelo, de ojos y de piel).
 Iconos propios dibujados a mano para lo principal y [Fluent Emoji 3D](https://github.com/microsoft/fluentui-emoji) de Microsoft (licencia MIT) para el resto.
+Las ilustraciones de personajes, recuerdos y trofeos van en `art/` (mientras no estén, se ve un dibujo provisional).
 
 ## La vuelta al mundo
 - **Cada nivel es un país.** Cada 150 estrellas ganadas (configurable en Ajustes) se viaja al siguiente: 10 de Europa empezando por España
   y después América, África, Asia y Oceanía, de los países con más habitantes a los que menos. No se incluyen países en guerra.
+- **Personajes**: cada niño elige uno de los 16 personajes (8 chicos y 8 chicas). Con el viaje sube de **rango**, uno por continente
+  (Turista, Explorador, Aventurero, Trotamundos y Gran viajero), y el marco de su retrato cambia de color.
 - El **perfil** se viste del país donde está: colores de su bandera, cómo se saluda (con botón para escucharlo), la ficha del país
   (bandera, capital, idioma, gentilicio y monumento), un dato curioso y el pasaporte del continente.
-- Al llegar a un país nuevo sale un **billete de avión**, se ganan **50 monedas** y un **sobre de cromos**.
-- **Armario**: todos empiezan con ropa básica. Al llegar a ciertos países se desbloquean prendas, que se compran con monedas.
-  Las estrellas siguen siendo para los premios reales.
-- **Álbum**: 3 cromos por país y uno legendario por continente.
+- Al llegar a un país nuevo sale un **billete de avión** y entra un **recuerdo en el baúl**: la maqueta del monumento del país.
+  Al terminar un continente, un **trofeo legendario**. Las estrellas siguen siendo para los premios reales.
 
 ## Qué hace
-- **Panel**: una tarjeta por persona con su viajero, sus estrellas, el país donde está y el vuelo hacia el siguiente, y el ranking de la semana.
-- **Perfil**: al tocar a alguien se abre su ficha del viaje, su racha, insignias y retos. Al final, el apartado para darle estrellas.
+- **Panel**: una tarjeta por persona con su personaje, sus estrellas, el país donde está, su rango y el vuelo hacia el siguiente, y el ranking de la semana.
+- **Perfil**: al tocar a alguien se abre su ficha del viaje, su baúl, su racha, insignias y retos. Al final, el apartado para darle estrellas.
 - **Dar puntos**: en el perfil, elige una regla. Las verdes suman y las rojas restan. Puedes dar puntos personalizados
   con un motivo libre, y deshacer al momento con el botón «Deshacer».
 - **Historial**: filtra por persona, tipo y fechas. Toca un movimiento para editarlo o borrarlo. Puedes exportarlo a CSV o PDF.
@@ -27,7 +27,7 @@ Iconos propios dibujados a mano para lo principal y [Fluent Emoji 3D](https://gi
 - **Retos**: cinco tipos (constancia, racha, semana limpia, en familia y libre), para cada niño o para todos, con estrellas
   extra configurables. Se comprueban solos y un adulto confirma antes de dar las estrellas. Al superarlos hay celebración e insignia.
 - **Más**: la vuelta al mundo, historial y gráficos (días, semanas o meses), insignias, exportar, copia de seguridad y ajustes.
-- **Ajustes**: miembros (con su viajero), reglas, premios y retos (crear, editar, borrar y reordenar), estrellas por país, plantillas, reinicio de puntos
+- **Ajustes**: miembros (con su personaje), reglas, premios y retos (crear, editar, borrar y reordenar), estrellas por país, plantillas, reinicio de puntos
   (manual, semanal o mensual), PIN parental, sonido y confeti.
 
 ## Cómo instalarla en el iPad

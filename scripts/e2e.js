@@ -170,7 +170,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   check(/Nivel 1 · España/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el país y el nivel');
   check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.flight').count() === 1 && /para viajar a Alemania/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el vuelo y lo que falta para el siguiente país');
-  check(await page.locator('.mcard .kid svg').count() === 3, 'Cada tarjeta muestra su viajero (avatar propio)');
+  check(await page.locator('.mcard .portrait').count() === 3 && /turista/i.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'Cada tarjeta muestra su personaje con el marco de su rango (Turista)');
   check(await page.locator('img.emo').count() > 10, 'Iconos 3D en el panel');
   check(await balance('Lucía') === bal0 + 4 + 5, 'Al confirmar se suman las 5 estrellas extra');
   check(!(await page.locator('.banners').innerText()).includes('esperando'), 'El aviso desaparece tras confirmar');
@@ -207,32 +207,29 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   for (let i = 0; i < Math.ceil((150 - earned0) / 50); i++) { await sheet().getByRole('button', { name: 'Dar puntos' }).click(); await pinIfAsked(); await page.waitForTimeout(200); }
   await page.waitForTimeout(1200);
   const ticket = sheet().locator('.ticket');
-  check(await ticket.count() === 1 && /Lucía viaja a Alemania/.test(await ticket.innerText()) && /\+50 monedas/.test(await ticket.innerText()) && await ticket.locator('.tcard').count() === 3, 'Nuevo país: billete de avión, 50 monedas y sobre con 3 cromos');
+  check(await ticket.count() === 1 && /Lucía viaja a Alemania/.test(await ticket.innerText()) && /recuerdo nuevo para el baúl/.test(await ticket.innerText()) && /Puerta de Brandeburgo/.test(await ticket.locator('.souv').innerText()), 'Nuevo país: billete de avión y el recuerdo nuevo (Puerta de Brandeburgo) para el baúl');
   await page.screenshot({ path: path.join(shots, '21-billete.png') });
   await sheet().getByRole('button', { name: '¡A volar!' }).click(); await settle();
   check(/Está en Alemania/.test(await sheet().locator('.pf-level').innerText()) && /Berlín/.test(await sheet().locator('.ficha').innerText()) && /Hallo/.test(await sheet().locator('.hello-word').innerText()), 'El perfil cambia al nuevo país (Alemania, Berlín, «Hallo»)');
-  // Armario: gorra desbloqueada en el nivel 2 y comprada con monedas
-  await sheet().getByRole('button', { name: /Armario · 50/ }).click(); await settle();
-  check(await sheet().locator('.item.locked').count() === 11, 'Armario: solo la primera prenda está desbloqueada en el nivel 2');
-  await sheet().locator('.item', { hasText: 'Gorra' }).click();
-  await sheet().getByRole('button', { name: /Comprar · 30/ }).click(); await settle();
-  check(/20/.test(await sheet().locator('.wd-top').innerText()) && /Puesto/.test(await sheet().locator('.item', { hasText: 'Gorra' }).innerText()), 'Compra la gorra: quedan 20 monedas y la lleva puesta');
-  await sheet().locator('.item', { hasText: 'Mochila' }).click();
-  check(/Se desbloquea al viajar a Francia/.test(await sheet().locator('.fitting').innerText()), 'Las prendas bloqueadas se pueden probar y dicen dónde se desbloquean');
-  await page.screenshot({ path: path.join(shots, '24-armario.png') });
+  // Baúl: recuerdos de España y Alemania; el resto por descubrir
+  await sheet().getByRole('button', { name: /Baúl · 2/ }).click(); await settle();
+  check(await sheet().locator('.souv').count() === 55 && await sheet().locator('.souv.locked').count() === 53, 'Baúl: 55 huecos (50 recuerdos y 5 trofeos), 2 conseguidos');
+  await page.screenshot({ path: path.join(shots, '24-baul.png') });
+  await sheet().getByRole('button', { name: /Sagrada Familia, recuerdo de España/ }).click(); await settle();
+  check(/Madrid/.test(await sheet().locator('.souv-detail').innerText()), 'Ficha de un recuerdo: país, capital y monumento');
+  await sheet().getByRole('button', { name: 'Cerrar' }).click();
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
-  // Crea tu viajero
-  await sheet().getByRole('button', { name: /Crea tu viajero/ }).click(); await settle();
-  await sheet().getByRole('button', { name: /Trenzas/ }).click();
-  await sheet().getByRole('button', { name: 'Color de pelo: Pelirrojo' }).click();
-  await page.screenshot({ path: path.join(shots, '25-crear-viajero.png') });
+  // Elegir personaje
+  await sheet().getByRole('button', { name: 'Cambiar personaje' }).click(); await settle();
+  check(await sheet().locator('.char-pick').count() === 8 && /Lo tiene Mateo/.test(await sheet().locator('.char-grid').innerText()) === false, 'Elegir personaje: 8 chicas');
+  await sheet().locator('.seg button', { hasText: 'Chicos' }).click();
+  check(/Lo tiene Mateo/.test(await sheet().locator('.char-grid').innerText()), 'Se ve qué personaje tiene ya cada hermano');
+  await sheet().locator('.seg button', { hasText: 'Chicas' }).click();
+  await sheet().getByRole('button', { name: /^Aitana/ }).click();
+  await page.screenshot({ path: path.join(shots, '25-personajes.png') });
   await sheet().getByRole('button', { name: 'Listo' }).click(); await settle();
   const lk = await page.evaluate(() => [...window.__FP_APP__.S.members.values()].find(m => m.name === 'Lucía'));
-  check(lk.look.hair === 'trenzas' && lk.look.hairColor === 'pelirrojo' && lk.outfit.head === 'gorra' && lk.owned.includes('gorra'), 'El viajero y la ropa se guardan en el miembro');
-  await sheet().getByRole('button', { name: /Álbum de cromos · 6/ }).click(); await settle();
-  await page.screenshot({ path: path.join(shots, '26-album.png') });
-  check(await sheet().locator('.tcard').count() === 155 && await sheet().locator('.tcard:not(.locked)').count() === 6, 'Álbum: 155 cromos y 6 conseguidos');
-  await sheet().getByRole('button', { name: 'Cerrar' }).click();
+  check(lk.character === 'aitana' && /Turista · Aitana/.test(await sheet().locator('.pf-rank').innerText()), 'El personaje se guarda y el perfil muestra rango y personaje');
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   // Estrellas por país en Ajustes
   await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();

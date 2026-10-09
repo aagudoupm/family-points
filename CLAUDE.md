@@ -14,8 +14,10 @@ HTML + JS sin dependencias, con persistencia en la base de datos del Artifact (`
 | `logic.js` | **Lógica pura** (`window.FP` / `module.exports`): saldo, ranking, canjes, reinicios, filtros, estadísticas, CSV, PIN, plantillas. Sin DOM. |
 | `app.js` | Interfaz: estado `S`, persistencia, vistas (panel, historial, premios, estadísticas, ajustes), hojas, PIN, sonido y confeti. |
 | `countries.js` | La vuelta al mundo (`window.FP_WORLD`): 5 continentes × 10 países con capital, monumento, idioma, gentilicio, saludo (y voz), algo típico, dato curioso y colores de la bandera. |
-| `avatar.js` | Viajero en SVG propio (`window.FP_AVATAR`): niño o niña, peinado, colores de pelo, ojos y piel, y las prendas del armario (`ITEMS`, con nivel de desbloqueo y precio). |
-| `icons.js` | Iconos propios dibujados a mano (`window.FP_OWN_ICONS`): estrella, moneda, avión, corona, candado y cromos. Tienen prioridad sobre los de Fluent. |
+| `characters.js` | Los 16 personajes fijos (8 chicos y 8 chicas, `window.FP_CHARACTERS`) y los 5 rangos del viaje (uno por continente, con el color del marco). |
+| `avatar.js` | Dibujo provisional de un personaje en SVG (`window.FP_AVATAR.svg(look, color)`), mientras no haya ilustración. |
+| `art/` + `art.js` | Ilustraciones (personajes, recuerdos, trofeos y baúl). `node scripts/build-art.js` genera `art.js` con las que existen; lo hacen también los builds. |
+| `icons.js` | Iconos propios dibujados a mano (`window.FP_OWN_ICONS`): estrella, moneda, avión, corona, candado, baúl (🧰) y cromos. Tienen prioridad sobre los de Fluent. |
 | `tests/logic.test.js` | Tests unitarios (node:test) de la lógica. |
 | `scripts/e2e.js` | Prueba de extremo a extremo con Playwright en un iPad simulado. Deja capturas en `shots/`. |
 | `scripts/build-standalone.js` | Genera `docs/` (versión independiente para GitHub Pages): HTML completo, manifiesto, iconos y service worker sin conexión. **Regenera `docs/` tras cada cambio** (`npm run build`). |
@@ -27,8 +29,8 @@ Patrón: estado + vista. Las vistas son funciones `renderX()` que devuelven nodo
 `changed()`, que vuelve a pintar en el siguiente frame. Las hojas pueden registrar `ctx.update` para refrescarse.
 
 ### Modelo de datos (documentos del `db`)
-- `members/{id}`: `{id, name, look:{g,hair,hairColor,eyes,skin}, outfit:{head,eyes,neck,back,top,feet}, owned:[ids de prendas], color, role:'child'|'adult', order, createdAt}`
-  (`emoji` y `photo` son de versiones antiguas y ya no se muestran; sin `look` se usa un viajero por defecto).
+- `members/{id}`: `{id, name, character (id de characters.js), color, role:'child'|'adult', order, createdAt}`
+  (`emoji`, `photo`, `look`, `outfit` y `owned` son de versiones antiguas y ya no se usan; sin `character` se muestra una interrogación y el botón «¡Elige tu personaje!»).
 - `rules/{id}`: `{id, title, icon, points(±), category, order}`
 - `rewards/{id}`: `{id, title, icon, cost, active, order}`
 - `log/{YYYY-MM}`: `{movements:[...], redemptions:[...]}`. Se agrupa por mes para no superar el límite de documentos.
@@ -61,20 +63,26 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
   «No contar» guarda un logro `status: 'dismissed'` para no volver a preguntar.
 - Los bonus de retos (`kind: 'challenge'`) y los reinicios no cuentan para los retos; sí para saldo, ranking y gráficos.
 
-### La vuelta al mundo (niveles, monedas, armario y cromos)
+### La vuelta al mundo (niveles, personajes, rangos y baúl)
 - **Nivel = país.** `FP.travelFor(total, step, 50)`: cada `levelStep` estrellas ganadas en total (`FP.earnedTotal`, no baja al canjear ni al reiniciar)
   se viaja al país siguiente. Orden: Europa (empieza en España), América, África, Asia y Oceanía; en cada continente, de más a menos habitantes.
   **No se incluyen países en guerra** (se salta al siguiente por población). En la app usa `travelAt(total)`/`travelOf(id)`, que añaden país (`c`), siguiente (`nx`) y continente (`ct`).
-- **Monedas** = 50 por país − precio de lo comprado (`FP.coinsFor`). Se calculan, nunca se guardan.
-- **Armario** (`openWardrobe`): prendas de `avatar.js` (`ITEMS`, campo `lv` = nivel en el que se desbloquea). Todos empiezan con ropa básica
-  (camiseta del color del miembro, vaquero y zapatillas). `FP.shopState` / `FP.buyItem`. Se compra sin PIN (son monedas del juego).
-- **Cromos** (`FP.allCards`, `FP.cardsFor`, `FP.newCardsAt`): 3 por país (bandera, capital y algo típico) y uno legendario por continente: 155. Se derivan del nivel.
-- **Nuevo país** (`checkLevelUp`): billete de avión con el país de origen y destino, +50 monedas y el sobre de cromos. Las celebraciones van en fila (`showCelebration`).
-- **Perfil** (`openProfile`): ambientado en el país actual (colores de la bandera en `--stripes`, icono típico), saludo con «Escuchar»
+- **Personajes fijos** (`characters.js`): cada niño elige uno (`openCharacterPicker`, desde el perfil o al editar el miembro). No hay ropa ni personalización.
+  Se pinta con `charArt(ch)` (ilustración de `art/personajes/<id>.webp` o, si no existe, el dibujo provisional de `avatar.js`), `portrait(m, v)` (con el marco del rango) y `avatar(m)` (la cara).
+- **Rangos**: uno por continente (`CH.rankFor(i)`): Turista, Explorador/a, Aventurero/a, Trotamundos y Gran viajero/a. Cambian el color del marco.
+- **Baúl de recuerdos** (`openChest`, `openSouvenir`): cada país visitado da la maqueta de su monumento (`art/recuerdos/<código>.webp`; si no, el icono del país)
+  y cada continente terminado un trofeo legendario (`art/trofeos/<continente>.webp`). `FP.allSouvenirs`, `FP.souvenirsFor`, `FP.newSouvenirsAt`: 55 en total, derivados del nivel; nunca se guardan.
+- **Nuevo país** (`checkLevelUp`): billete de avión, nuevo rango si cambia de continente y el baúl con lo que entra. Las celebraciones van en fila (`showCelebration`).
+- **Perfil** (`openProfile`): ambientado en el país actual (colores de la bandera en `--stripes`, icono típico), retrato con rango, saludo con «Escuchar»
   (`speechSynthesis` en la voz del país; si el dispositivo no la tiene, lee el campo `es` con voz española), ficha del país (bandera, capital,
   idioma, gentilicio y monumento) con «Escuchar la ficha», dato curioso, pasaporte del continente, racha, insignias, retos y dar estrellas.
-  Botones: Crea tu viajero (`openMaker`), Armario y Álbum (`openAlbum`). En «Más» y en Ajustes, «La vuelta al mundo» (`openRoute`).
-- **Viajero**: `kid(m)` (cuerpo entero) y `avatar(m)` (cara en un círculo). Nunca emojis ni fotos.
+  En «Más» y en Ajustes, «La vuelta al mundo» (`openRoute`).
+- No hay monedas: las estrellas son para los premios reales y el viaje da recuerdos.
+
+### Ilustraciones (art/)
+Nombres de archivo: `art/personajes/<id>.webp` (ids en characters.js), `art/recuerdos/<código ISO>.webp`, `art/trofeos/<europa|america|africa|asia|oceania>.webp`,
+`art/baul/cerrado.webp` y `art/baul/abierto.webp`. Fondo transparente, WebP de unos 512 px (ImageMagick: `convert in.png -resize 512x512 -quality 82 out.webp`).
+Después: `node scripts/build-art.js` (o cualquier build) y publicar también los archivos de `art/`.
 
 ### Aspecto (estilo videojuego)
 - Fondo `.scene` de rayos (`repeating-conic-gradient`) en azul; de noche, azul oscuro. Tokens en `:root` para claro y oscuro.
@@ -84,7 +92,7 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
 - **Iconos**: primero los propios (`icons.js`); si no hay, Fluent Emoji 3D (Microsoft, MIT) en `emoji/` con `emoji-map.js`. `h()` convierte en icono
   cualquier texto que sea un emoji (o empiece por uno); `emo(ch)` lo hace explícitamente. Si añades emojis al código o países,
   regenera: `node scripts/build-emoji.js <assets de @lobehub/fluent-emoji-3d>` (incluye las banderas de `countries.js`).
-- Panel: sonido y ajustes arriba a la derecha (`.top-actions`). Cada tarjeta: viajero, nombre, estrellas, país y nivel, y el vuelo hacia el siguiente país (`flightTrack`).
+- Panel: sonido y ajustes arriba a la derecha (`.top-actions`). Cada tarjeta: personaje con marco de rango, nombre, estrellas, país y nivel, rango y el vuelo hacia el siguiente país (`flightTrack`).
 
 ### Navegación
 Barra inferior de 4, pensada para que la usen los niños: Panel · Retos · Premios (Catálogo | Canjes | Insignias) · Más.
@@ -113,7 +121,7 @@ npm run build     # regenera docs/
 npm run e2e:standalone  # prueba docs/ en iPhone simulado (instalación, sin conexión, copias)
 npm run e2e:cloud # dos dispositivos con la misma cuenta familiar (Firebase simulado: tests/fake-firebase.js)
 ```
-Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic.js`, `app.js`, `emoji-map.js`, `countries.js`, `avatar.js`, `icons.js` y `emoji/*`
+Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic.js`, `app.js`, `emoji-map.js`, `countries.js`, `avatar.js`, `characters.js`, `art.js`, `icons.js`, `emoji/*` y `art/**`
 y `capabilities: {db: {}, downloads: true}`. Para actualizar, vuelve a publicar en la misma URL (ver README).
 
 ## Reglas de estilo

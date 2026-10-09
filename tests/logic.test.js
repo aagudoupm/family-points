@@ -339,39 +339,17 @@ test('estrellas por país: valores válidos o 150', () => {
   assert.equal(FP.levelStep('x'), 150);
 });
 
-const ITEMS = [{ id: 'gorra', slot: 'head', lv: 2, p: 30 }, { id: 'mochila', slot: 'back', lv: 4, p: 40 }, { id: 'corona', slot: 'head', lv: 50, p: 400 }];
-test('monedas: 50 por país menos lo gastado en ropa', () => {
-  assert.equal(FP.coinsFor(1, [], ITEMS), 0);
-  assert.equal(FP.coinsFor(3, [], ITEMS), 100);
-  assert.equal(FP.coinsFor(3, ['gorra'], ITEMS), 70);
-  assert.equal(FP.coinsFor(3, ['gorra', 'desconocida'], ITEMS), 70);
-});
-
-test('armario: prendas bloqueadas hasta su país y compra con monedas', () => {
-  assert.equal(FP.shopState(ITEMS[1], 3, 100, []), 'locked');
-  assert.equal(FP.shopState(ITEMS[0], 3, 100, []), 'buy');
-  assert.equal(FP.shopState(ITEMS[0], 3, 10, []), 'short');
-  assert.equal(FP.shopState(ITEMS[0], 3, 100, ['gorra']), 'owned');
-  const m = { owned: [], outfit: { eyes: 'gafas' } };
-  const r = FP.buyItem(m, ITEMS[0], 2, ITEMS);
-  assert.deepEqual(r.owned, ['gorra']);
-  assert.deepEqual(r.outfit, { eyes: 'gafas', head: 'gorra' });
-  assert.equal(FP.buyItem(m, ITEMS[0], 1, ITEMS), null); // aún no ha llegado (y sin monedas)
-  assert.equal(FP.buyItem({ owned: ['gorra'] }, ITEMS[0], 5, ITEMS), null); // ya la tiene
-  assert.equal(FP.buyItem(m, ITEMS[1], 4, ITEMS) && true, true);
-  assert.equal(FP.buyItem({ owned: ['mochila'] }, ITEMS[0], 2, ITEMS), null); // 50 − 40 = 10 monedas
-});
-
-test('cromos: 3 por país y uno legendario por continente', () => {
+test('baúl: un recuerdo por país y un trofeo por continente', () => {
   const W = require('../countries.js');
   assert.equal(W.COUNTRIES.length, 50);
-  assert.equal(FP.allCards(W.CONTINENTS).length, 155);
-  assert.equal(FP.cardsFor(1, W.CONTINENTS).length, 3);
-  assert.deepEqual(FP.newCardsAt(2, W.CONTINENTS).map(c => c.id), [W.COUNTRIES[1].code + '-flag', W.COUNTRIES[1].code + '-capital', W.COUNTRIES[1].code + '-typical']);
-  const tenth = FP.newCardsAt(10, W.CONTINENTS);
-  assert.equal(tenth.length, 4); assert.equal(tenth[3].rarity, 'legend');
-  assert.equal(FP.cardsFor(10, W.CONTINENTS).length, 31);
-  assert.equal(FP.cardsFor(50, W.CONTINENTS).length, 155);
+  assert.equal(FP.allSouvenirs(W.CONTINENTS).length, 55);
+  assert.deepEqual(FP.souvenirsFor(1, W.CONTINENTS).map(s => s.id), ['rec-ES']);
+  assert.deepEqual(FP.newSouvenirsAt(2, W.CONTINENTS).map(s => s.code), [W.COUNTRIES[1].code]);
+  const tenth = FP.newSouvenirsAt(10, W.CONTINENTS);
+  assert.deepEqual(tenth.map(s => s.kind), ['souvenir', 'trophy']);
+  assert.equal(tenth[1].continent, 'europa');
+  assert.equal(FP.souvenirsFor(10, W.CONTINENTS).length, 11);
+  assert.equal(FP.souvenirsFor(50, W.CONTINENTS).length, 55);
 });
 
 test('ruta: Europa empieza en España y los demás continentes van de más a menos habitantes', () => {
@@ -385,13 +363,19 @@ test('ruta: Europa empieza en España y los demás continentes van de más a men
   for (const code of ['RU', 'UA', 'SD', 'CD', 'ET', 'IR', 'VE']) assert.ok(!W.COUNTRIES.some(c => c.code === code), code);
 });
 
-test('avatar: dibuja niño o niña con su ropa y prendas por nivel', () => {
-  const A = require('../avatar.js');
-  const svg = A.svg({ g: 'girl', hair: 'trenzas', hairColor: 'rubio', eyes: 'azul', skin: 3 }, { head: 'gorra' }, '#FF0000');
-  assert.ok(svg.startsWith('<svg') && svg.includes('#FF4F4F') && svg.includes(A.SKINS[3]));
-  assert.ok(!/undefined|NaN/.test(svg));
-  for (const g of ['boy', 'girl']) for (const hh of A.HAIRS[g]) assert.ok(!/undefined|NaN/.test(A.svg({ g, hair: hh.id }, {}, '#000')));
-  for (const it of A.ITEMS) assert.ok(A.itemSvg(it.id).startsWith('<svg'), it.id);
-  assert.deepEqual(A.ITEMS.map(x => x.lv), A.ITEMS.map(x => x.lv).slice().sort((a, b) => a - b));
-  assert.ok(A.ITEMS.every(x => x.lv >= 2 && x.lv <= 50));
+test('personajes: 8 chicos y 8 chicas, y un rango por continente', () => {
+  const C = require('../characters.js'), A = require('../avatar.js');
+  assert.equal(C.CHARACTERS.filter(c => c.g === 'boy').length, 8);
+  assert.equal(C.CHARACTERS.filter(c => c.g === 'girl').length, 8);
+  assert.equal(new Set(C.CHARACTERS.map(c => c.id)).size, 16);
+  for (const c of C.CHARACTERS) {
+    assert.ok(c.name && c.role && c.desc, c.id);
+    assert.ok(!/undefined|NaN/.test(A.svg(c.look, c.color)), c.id); // dibujo provisional
+  }
+  assert.equal(C.RANKS.length, 5);
+  assert.equal(C.rankFor(0).id, 'turista');
+  assert.equal(C.rankFor(9).id, 'turista');
+  assert.equal(C.rankFor(10).id, 'explorador');
+  assert.equal(C.rankFor(49).id, 'granviajero');
+  assert.equal(C.rankFor(10).girl, 'Exploradora');
 });

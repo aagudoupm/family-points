@@ -270,10 +270,10 @@
   function exampleData(now) {
     now = now || Date.now();
     const members = [
-      { name: 'Lucía', emoji: '🦊', role: 'child', look: { g: 'girl', hair: 'coleta', hairColor: 'castano', eyes: 'verde', skin: 1 } },
-      { name: 'Mateo', emoji: '🐼', role: 'child', look: { g: 'boy', hair: 'pincho', hairColor: 'rubio', eyes: 'azul', skin: 0 } },
-      { name: 'Papá', emoji: '🦁', role: 'adult', look: { g: 'boy', hair: 'corto', hairColor: 'negro', eyes: 'marron', skin: 2 } }
-    ].map((m, i) => ({ id: uid(), name: m.name, emoji: m.emoji, photo: '', look: m.look, outfit: {}, owned: [], color: MEMBER_COLORS[i], role: m.role, order: i, createdAt: now }));
+      { name: 'Lucía', emoji: '🦊', role: 'child', character: 'sofia' },
+      { name: 'Mateo', emoji: '🐼', role: 'child', character: 'leo' },
+      { name: 'Papá', emoji: '🦁', role: 'adult', character: 'omar' }
+    ].map((m, i) => ({ id: uid(), name: m.name, emoji: m.emoji, photo: '', character: m.character, color: MEMBER_COLORS[i], role: m.role, order: i, createdAt: now }));
     const rules = RULE_TEMPLATES.slice(0, 10).map((r, i) => ({ id: uid(), ...r, order: i }));
     const rewards = REWARD_TEMPLATES.slice(0, 5).map((r, i) => ({ id: uid(), ...r, active: true, order: i }));
     return { members, rules, rewards };
@@ -426,7 +426,7 @@
   // ---------- La vuelta al mundo: un país por nivel ----------
   // El nivel depende de las estrellas ganadas en total (no del saldo): canjear o reiniciar no hace bajar de nivel.
   // Cada `step` estrellas (150 por defecto) se viaja al país siguiente. Los países están en countries.js.
-  const LEVEL_STEP = 150, COINS_PER_LEVEL = 50;
+  const LEVEL_STEP = 150;
   function earnedTotal(memberId, movements) {
     let t = 0;
     for (const m of movements) if (m.memberId === memberId && m.kind !== 'reset' && m.points > 0) t += m.points;
@@ -444,41 +444,21 @@
     const i = Math.min(count - 1, Math.floor(t / step)), min = i * step, last = i === count - 1;
     return { i, n: i + 1, min, next: last ? null : min + step, missing: last ? 0 : min + step - t, progress: last ? 1 : (t - min) / step, last };
   }
-  // Monedas: 50 por cada país al que se ha viajado, menos lo gastado en ropa. Se calculan, nunca se guardan.
-  function coinsFor(levelN, owned, items) {
-    const spent = (owned || []).reduce((acc, id) => { const it = items.find(x => x.id === id); return acc + (it ? it.p : 0); }, 0);
-    return COINS_PER_LEVEL * (levelN - 1) - spent;
-  }
-  // Estado de una prenda en el armario: 'owned' (ya es suya), 'locked' (aún no ha llegado al país), 'buy' o 'short' (faltan monedas)
-  function shopState(item, levelN, coins, owned) {
-    if ((owned || []).includes(item.id)) return 'owned';
-    if (item.lv > levelN) return 'locked';
-    return coins >= item.p ? 'buy' : 'short';
-  }
-  // Compra: devuelve los nuevos owned/outfit (con la prenda puesta) o null si no se puede
-  function buyItem(member, item, levelN, items) {
-    const owned = member.owned || [];
-    if (shopState(item, levelN, coinsFor(levelN, owned, items), owned) !== 'buy') return null;
-    return { owned: owned.concat(item.id), outfit: Object.assign({}, member.outfit, { [item.slot]: item.id }) };
-  }
-  // Cromos: 3 por país (bandera, capital y algo típico) y uno legendario por continente completado
-  const CARD_RARITY = { flag: 'common', capital: 'rare', typical: 'epic', continent: 'legend' };
-  function countryCards(c, i) {
-    return ['flag', 'capital', 'typical'].map(kind => ({ id: c.code + '-' + kind, kind, rarity: CARD_RARITY[kind], code: c.code, i }));
-  }
-  function allCards(continents) {
+  // Baúl de recuerdos: cada país visitado da un recuerdo (la maqueta de su monumento)
+  // y cada continente completado (llegar a su décimo país) da un trofeo legendario. Se derivan del nivel; nunca se guardan.
+  function allSouvenirs(continents) {
     const out = [];
     let i = 0;
     for (const ct of continents) {
-      for (const c of ct.countries) out.push(...countryCards(c, i++));
-      out.push({ id: 'ct-' + ct.id, kind: 'continent', rarity: 'legend', continent: ct.id, i: i - 1 });
+      for (const c of ct.countries) out.push({ id: 'rec-' + c.code, kind: 'souvenir', code: c.code, continent: ct.id, i: i++ });
+      out.push({ id: 'tro-' + ct.id, kind: 'trophy', continent: ct.id, i: i - 1 });
     }
     return out;
   }
-  // Cromos conseguidos con el nivel levelN (se llega a un país = se consiguen sus cromos)
-  function cardsFor(levelN, continents) { return allCards(continents).filter(c => c.i < levelN); }
-  // Sobre que se abre al llegar al nivel levelN
-  function newCardsAt(levelN, continents) { return allCards(continents).filter(c => c.i === levelN - 1); }
+  // Recuerdos conseguidos con el nivel levelN
+  function souvenirsFor(levelN, continents) { return allSouvenirs(continents).filter(s => s.i < levelN); }
+  // Lo que entra en el baúl al llegar al nivel levelN
+  function newSouvenirsAt(levelN, continents) { return allSouvenirs(continents).filter(s => s.i === levelN - 1); }
   // Racha: días seguidos ganando alguna estrella. Si hoy aún no ha ganado, la racha sigue viva desde ayer.
   function streakDays(memberId, movements, now) {
     const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.points > 0).map(m => dayStart(m.date)));
@@ -531,7 +511,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVEL_STEP, COINS_PER_LEVEL, earnedTotal, levelStep, travelFor, coinsFor, shopState, buyItem, allCards, cardsFor, newCardsAt, streakDays
+    LEVEL_STEP, earnedTotal, levelStep, travelFor, allSouvenirs, souvenirsFor, newSouvenirsAt, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

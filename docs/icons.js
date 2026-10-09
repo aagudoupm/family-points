@@ -1,5 +1,5 @@
 // Family Points — iconos propios dibujados a mano (SVG), con el trazo grueso del avatar.
-// Sustituyen al emoji 3D de Microsoft con el mismo carácter: emo('⭐') usa este dibujo si existe.
+// (🧰 es el baúl de recuerdos.) Sustituyen al emoji 3D de Microsoft con el mismo carácter: emo('⭐') usa este dibujo si existe.
 // Las claves van sin el selector de variación (U+FE0F).
 (function (root) {
   'use strict';
@@ -22,6 +22,12 @@
       '<path d="M20 30 L20 22 C20 14 25 9 32 9 C39 9 44 14 44 22 L44 30" fill="none" stroke="#B9C2D6" stroke-width="4" stroke-linecap="round"/>' +
       '<rect x="12" y="28" width="40" height="29" rx="8" fill="url(#g)" ' + SW + '/><circle cx="32" cy="40" r="4" fill="' + K + '"/><path d="M32 42 L32 49" stroke="' + K + '" stroke-width="4" stroke-linecap="round"/>' + shine(20, 33, 4, 2, 0),
       grad('g', '#FFD95A', '#F2A300')),
+    '🧰': svg('<path d="M8 33 L8 22 C8 14 17 9 32 9 C47 9 56 14 56 22 L56 33Z" fill="url(#g)" ' + SW + '/>' +
+      '<rect x="8" y="31" width="48" height="25" rx="4" fill="#9A5626" ' + SW + '/>' +
+      '<path d="M15 11 L15 56 M49 11 L49 56" stroke="' + K + '" stroke-width="8"/><path d="M15 12 L15 55 M49 12 L49 55" stroke="#FFC21A" stroke-width="4"/>' +
+      '<path d="M8 32 L56 32" stroke="' + K + '" stroke-width="6"/><path d="M9 32 L55 32" stroke="#FFC21A" stroke-width="2.5"/>' +
+      '<rect x="26" y="26" width="12" height="14" rx="3" fill="#FFD95A" ' + SW + '/><circle cx="32" cy="32" r="2.2" fill="' + K + '"/><path d="M32 33 L32 37" stroke="' + K + '" stroke-width="2.5" stroke-linecap="round"/>' +
+      shine(22, 17, 5, 2, -10), grad('g', '#D9893F', '#A8642B')),
     '🃏': svg('<rect x="10" y="12" width="32" height="44" rx="6" fill="#9B4DFF" transform="rotate(-12 26 34)" ' + SW + '/>' +
       '<rect x="22" y="8" width="32" height="44" rx="6" fill="#fff" transform="rotate(8 38 30)" ' + SW + '/>' +
       '<path d="M38 20 L41 27 L48 27.5 L42.6 32 L44.4 39 L38 35.2 L31.6 39 L33.4 32 L28 27.5 L35 27Z" fill="#FFC21A" stroke="' + K + '" stroke-width="2.5" stroke-linejoin="round" transform="rotate(8 38 30)"/>')
