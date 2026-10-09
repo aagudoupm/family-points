@@ -7,11 +7,14 @@ const fs = require('fs'), path = require('path');
 const assets = process.argv[2];
 if (!assets || !fs.existsSync(assets)) { console.error('Indica la carpeta assets del paquete @lobehub/fluent-emoji-3d'); process.exit(1); }
 const root = path.join(__dirname, '..'), out = path.join(root, 'emoji');
-// Iconos de la interfaz y del tema Aventura que no aparecen literalmente en el código
-const EXTRA = '🏠 🧭 ✨ 🗺️ ⛰️ ☁️ 🌳 🌲 🏰 🌋 🌈 🌼 🌊 🏕️ 🚩 👣 🎉 📊 🌞 🌛 🎖️ ⚙️ 👋 🔐 📅 🔔 📦 🥳 😊 😢';
-const src = ['app.js', 'logic.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n') + ' ' + EXTRA;
+// Iconos de la interfaz que no aparecen literalmente en el código, y las banderas de la vuelta al mundo
+const EXTRA = '🏠 🧭 ✨ 🗺️ 🚩 🎉 📊 ⚙️ 👋 🔐 📅 🔔 📦 🥳 😊 😢';
+const W = require(path.join(root, 'countries.js'));
+const FLAGS = W.COUNTRIES.map(c => W.flag(c.code)).join(' ');
+const src = ['app.js', 'logic.js', 'countries.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n') + ' ' + EXTRA;
 const re = /(?:\p{Extended_Pictographic}(?:️|[\u{1F3FB}-\u{1F3FF}])?(?:‍\p{Extended_Pictographic}️?)*|[0-9#*]️⃣)/gu;
-const list = [...new Set(src.match(re))].filter(e => e !== '★');
+const FLAG_RE = /[\u{1F1E6}-\u{1F1FF}]{2}/gu;
+const list = [...new Set(src.match(re).concat(FLAGS.match(FLAG_RE)))].filter(e => e !== '★');
 const code = e => [...e].map(c => c.codePointAt(0).toString(16)).join('-');
 fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out);
 const map = {}, missing = [];

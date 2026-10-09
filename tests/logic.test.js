@@ -302,30 +302,6 @@ test('copia de seguridad incluye retos y logros', () => {
 });
 
 // ---------- Aventura ----------
-test('niveles por estrellas ganadas en total (no bajan al canjear ni al reiniciar)', () => {
-  const movs = [mv('a', 15, 1), mv('a', -3, 2), mv('a', 10, 3), mv('a', -22, 4, 'reset'), { id: 'x', memberId: 'a', points: 5, date: 5, kind: 'challenge' }];
-  assert.equal(FP.earnedTotal('a', movs), 30);
-  const lv = FP.levelFor(30);
-  assert.equal(lv.n, 2); assert.equal(lv.name, 'Bosque'); assert.equal(lv.to, 'al Bosque'); assert.equal(lv.next, 50);
-  assert.ok(Math.abs(lv.progress - 10 / 30) < 1e-9);
-  assert.equal(FP.levelFor(0).name, 'Pradera');
-  assert.equal(FP.levelFor(99999).next, null);
-  assert.equal(FP.levelFor(99999).progress, 1);
-});
-
-test('camino de premios: paradas alrededor del saldo y lo que falta', () => {
-  const rw = [10, 15, 20, 40, 60, 80].map((c, i) => ({ id: 'r' + i, title: 'P' + c, icon: '🎁', cost: c, active: true }));
-  let tr = FP.trail(17, rw);
-  assert.deepEqual(tr.stops.map(s => s.cost), [15, 20, 40, 60]);
-  assert.equal(tr.next.cost, 20); assert.equal(tr.missing, 3);
-  assert.deepEqual(tr.stops.map(s => s.reached), [true, false, false, false]);
-  tr = FP.trail(0, rw);
-  assert.deepEqual(tr.stops.map(s => s.cost), [10, 15, 20, 40]); assert.equal(tr.pos, 0);
-  tr = FP.trail(100, rw);
-  assert.equal(tr.next, null); assert.equal(tr.pos, 1); assert.deepEqual(tr.stops.map(s => s.cost), [20, 40, 60, 80]);
-  assert.equal(FP.trail(5, [{ ...rw[0], active: false }]).stops.length, 0);
-});
-
 test('racha de días ganando estrellas', () => {
   const now = T(2026, 10, 9, 18);
   const movs = [mv('a', 1, T(2026, 10, 6)), mv('a', 2, T(2026, 10, 7)), mv('a', -3, T(2026, 10, 7)), mv('a', 1, T(2026, 10, 8)), mv('a', 1, T(2026, 10, 9, 8)),
@@ -341,21 +317,81 @@ test('racha de días ganando estrellas', () => {
   assert.equal(FP.streakDays('a', [mv('a', -1, T(2026, 10, 9))], now).current, 0);
 });
 
-test('nivel: siguiente lugar con artículo', () => {
-  assert.equal(FP.levelFor(30).nextTo, 'al Río');
-  assert.equal(FP.levelFor(5000).nextTo, '');
+test('viaje: un país cada 150 estrellas ganadas (no baja al canjear ni al reiniciar)', () => {
+  const movs = [mv('a', 100, 1), mv('a', -3, 2), mv('a', 60, 3), mv('a', -22, 4, 'reset'), { id: 'x', memberId: 'a', points: 5, date: 5, kind: 'challenge' }];
+  assert.equal(FP.earnedTotal('a', movs), 165);
+  const v = FP.travelFor(165, 150, 50);
+  assert.equal(v.i, 1); assert.equal(v.n, 2); assert.equal(v.min, 150); assert.equal(v.next, 300); assert.equal(v.missing, 135);
+  assert.ok(Math.abs(v.progress - 15 / 150) < 1e-9);
+  assert.equal(FP.travelFor(0, 150, 50).n, 1);
+  assert.equal(FP.travelFor(149, 150, 50).n, 1);
+  assert.equal(FP.travelFor(150, 150, 50).n, 2);
+  const end = FP.travelFor(99999, 150, 50);
+  assert.equal(end.n, 50); assert.equal(end.next, null); assert.equal(end.progress, 1); assert.equal(end.last, true);
+  assert.equal(FP.travelFor(100, 50, 50).n, 3); // estrellas por país configurables
 });
 
-test('niveles configurables: ordenados, el primero en 0 y sin umbrales repetidos', () => {
-  const lv = FP.normalizeLevels([
-    { name: 'Cueva', icon: '🦇', min: 30 }, { name: 'Casa', icon: '🏠', min: 5 }, { name: ' ', min: 10 },
-    { name: 'Torre', icon: '🗼', min: 30 }, { name: 'Isla', icon: '🏝️', min: 80, to: 'a la Isla' }]);
-  assert.deepEqual(lv.map(l => [l.name, l.min]), [['Casa', 0], ['Cueva', 30], ['Isla', 80]]);
-  assert.equal(lv[1].to, 'a Cueva');
-  assert.equal(lv[2].to, 'a la Isla');
-  assert.equal(FP.normalizeLevels([]), null);
-  assert.equal(FP.normalizeLevels('x'), null);
-  const r = FP.levelFor(40, lv);
-  assert.equal(r.n, 2); assert.equal(r.name, 'Cueva'); assert.equal(r.next, 80); assert.equal(r.nextTo, 'a la Isla');
-  assert.equal(FP.levelFor(40).name, 'Bosque'); // sin lista, los de por defecto
+test('estrellas por país: valores válidos o 150', () => {
+  assert.equal(FP.levelStep(200), 200);
+  assert.equal(FP.levelStep('80'), 80);
+  assert.equal(FP.levelStep(5), 150);
+  assert.equal(FP.levelStep(undefined), 150);
+  assert.equal(FP.levelStep('x'), 150);
+});
+
+const ITEMS = [{ id: 'gorra', slot: 'head', lv: 2, p: 30 }, { id: 'mochila', slot: 'back', lv: 4, p: 40 }, { id: 'corona', slot: 'head', lv: 50, p: 400 }];
+test('monedas: 50 por país menos lo gastado en ropa', () => {
+  assert.equal(FP.coinsFor(1, [], ITEMS), 0);
+  assert.equal(FP.coinsFor(3, [], ITEMS), 100);
+  assert.equal(FP.coinsFor(3, ['gorra'], ITEMS), 70);
+  assert.equal(FP.coinsFor(3, ['gorra', 'desconocida'], ITEMS), 70);
+});
+
+test('armario: prendas bloqueadas hasta su país y compra con monedas', () => {
+  assert.equal(FP.shopState(ITEMS[1], 3, 100, []), 'locked');
+  assert.equal(FP.shopState(ITEMS[0], 3, 100, []), 'buy');
+  assert.equal(FP.shopState(ITEMS[0], 3, 10, []), 'short');
+  assert.equal(FP.shopState(ITEMS[0], 3, 100, ['gorra']), 'owned');
+  const m = { owned: [], outfit: { eyes: 'gafas' } };
+  const r = FP.buyItem(m, ITEMS[0], 2, ITEMS);
+  assert.deepEqual(r.owned, ['gorra']);
+  assert.deepEqual(r.outfit, { eyes: 'gafas', head: 'gorra' });
+  assert.equal(FP.buyItem(m, ITEMS[0], 1, ITEMS), null); // aún no ha llegado (y sin monedas)
+  assert.equal(FP.buyItem({ owned: ['gorra'] }, ITEMS[0], 5, ITEMS), null); // ya la tiene
+  assert.equal(FP.buyItem(m, ITEMS[1], 4, ITEMS) && true, true);
+  assert.equal(FP.buyItem({ owned: ['mochila'] }, ITEMS[0], 2, ITEMS), null); // 50 − 40 = 10 monedas
+});
+
+test('cromos: 3 por país y uno legendario por continente', () => {
+  const W = require('../countries.js');
+  assert.equal(W.COUNTRIES.length, 50);
+  assert.equal(FP.allCards(W.CONTINENTS).length, 155);
+  assert.equal(FP.cardsFor(1, W.CONTINENTS).length, 3);
+  assert.deepEqual(FP.newCardsAt(2, W.CONTINENTS).map(c => c.id), [W.COUNTRIES[1].code + '-flag', W.COUNTRIES[1].code + '-capital', W.COUNTRIES[1].code + '-typical']);
+  const tenth = FP.newCardsAt(10, W.CONTINENTS);
+  assert.equal(tenth.length, 4); assert.equal(tenth[3].rarity, 'legend');
+  assert.equal(FP.cardsFor(10, W.CONTINENTS).length, 31);
+  assert.equal(FP.cardsFor(50, W.CONTINENTS).length, 155);
+});
+
+test('ruta: Europa empieza en España y los demás continentes van de más a menos habitantes', () => {
+  const W = require('../countries.js');
+  assert.deepEqual(W.CONTINENTS.map(c => c.name), ['Europa', 'América', 'África', 'Asia', 'Oceanía']);
+  assert.equal(W.COUNTRIES[0].code, 'ES');
+  W.CONTINENTS.forEach(c => assert.equal(c.countries.length, 10));
+  for (const c of W.COUNTRIES) for (const k of ['capital', 'monument', 'language', 'demonym', 'hello', 'es', 'icon', 'iconName', 'fact']) assert.ok(c[k], c.code + ' sin ' + k);
+  assert.equal(new Set(W.COUNTRIES.map(c => c.code)).size, 50);
+  // Sin países en guerra
+  for (const code of ['RU', 'UA', 'SD', 'CD', 'ET', 'IR', 'VE']) assert.ok(!W.COUNTRIES.some(c => c.code === code), code);
+});
+
+test('avatar: dibuja niño o niña con su ropa y prendas por nivel', () => {
+  const A = require('../avatar.js');
+  const svg = A.svg({ g: 'girl', hair: 'trenzas', hairColor: 'rubio', eyes: 'azul', skin: 3 }, { head: 'gorra' }, '#FF0000');
+  assert.ok(svg.startsWith('<svg') && svg.includes('#FF4F4F') && svg.includes(A.SKINS[3]));
+  assert.ok(!/undefined|NaN/.test(svg));
+  for (const g of ['boy', 'girl']) for (const hh of A.HAIRS[g]) assert.ok(!/undefined|NaN/.test(A.svg({ g, hair: hh.id }, {}, '#000')));
+  for (const it of A.ITEMS) assert.ok(A.itemSvg(it.id).startsWith('<svg'), it.id);
+  assert.deepEqual(A.ITEMS.map(x => x.lv), A.ITEMS.map(x => x.lv).slice().sort((a, b) => a - b));
+  assert.ok(A.ITEMS.every(x => x.lv >= 2 && x.lv <= 50));
 });

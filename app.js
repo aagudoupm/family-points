@@ -19,6 +19,8 @@
     typeHelpClean: 'Que una regla negativa no ocurra en toda la semana. Se comprueba el domingo por la noche.',
     typeHelpFamily: 'Entre todos, conseguir un número de estrellas en la semana.', typeHelpFree: 'Un objetivo especial. Lo marca un adulto cuando se consiga.',
     newChallenge: 'Nuevo reto', editChallenge: 'Editar reto',
+    challengesS: 'Retos', challengesNote: 'Retos semanales para cada niño o para todos. Se comprueban solos y un adulto confirma antes de dar las estrellas extra.',
+    challengesNone: 'Todavía no hay retos. Créalos aquí o desde la pestaña Retos.',
     challengeType: 'Tipo de reto', challengeRule: 'Regla', noRuleOfType: 'Primero crea una regla de ese tipo en Ajustes.', chooseRule: 'Elige una regla',
     targetCount: 'Veces en la semana', targetStreak: 'Días seguidos', targetFamily: 'Estrellas entre todos',
     bonusStars: 'Estrellas extra al conseguirlo', bonusStarsFamily: 'Estrellas extra para cada uno',
@@ -45,26 +47,45 @@
     removeBadge: 'Quitar insignia', removeBadgeQ: v => '¿Quitar una insignia «' + v.title + '»?', removeBadgeBody: 'También se quitan las estrellas extra que dio.', badgeRemoved: 'Insignia quitada',
     // Más
     moreTitle: 'Más', moreSound: 'Sonido', moreBackup: 'Guardar copia',
-    hello: '¡Hola, aventureros!',
+    hello: '¡Hola, viajeros!',
     tapToGive: 'Toca a alguien para darle estrellas',
     levelChip: v => 'Nivel ' + v.n + ' · ' + v.name,
-    trailMissing: v => 'Faltan ' + v.n + ' para ' + v.title, trailAll: '¡Puede canjear cualquier premio!', trailNone: 'Añade premios para ver el camino',
     profileHint: 'Toca a alguien para ver su perfil y darle estrellas',
-    profileLevelNext: v => 'Faltan ' + v.n + ' ⭐ para llegar ' + v.to, profileLevelMax: '¡Ha llegado a lo más alto de la aventura!',
-    jumpGive: 'Dar estrellas', mapTitle: 'Mapa de la aventura',
-    mapNode: v => v.name + ', nivel ' + v.n + ', ' + v.state, mapDone: 'conseguido', mapHere: 'está aquí', mapLocked: v => 'bloqueado, se abre con ' + v.min + ' estrellas',
+    profileLevelNext: v => 'Faltan ' + v.n + ' ⭐ para viajar ' + v.to, profileLevelMax: '¡Ha dado la vuelta al mundo!',
+    jumpGive: 'Dar estrellas',
     streakTitle: 'Racha', streakText: v => v.n === 1 ? '1 día ganando estrellas' : v.n + ' días seguidos ganando estrellas',
     streakToday: '¡Hoy ya ha ganado estrellas!', streakKeep: 'Gana una estrella hoy para no perder la racha',
     streakZero: '¡Gana una estrella hoy para empezar una racha!', streakBest: v => 'Mejor racha: ' + v.n + (v.n === 1 ? ' día' : ' días'),
     badgesSection: 'Sus insignias', noBadgesMember: 'Aún no tiene insignias. ¡Supera un reto para conseguir la primera!',
     challengesSection: 'Sus retos', noChallengesMember: 'No tiene retos esta semana',
     giveSection: 'Dar estrellas', earnedTotalL: v => v.n + ' estrellas ganadas en total',
-    levelsS: 'Niveles', levelsNote: 'Los niveles se ganan con las estrellas conseguidas en total (canjear o restar no hace bajar). El primero siempre empieza en 0.',
-    newLevel: 'Nuevo nivel', editLevel: 'Editar nivel', levelName: 'Nombre del lugar', levelMin: 'Estrellas ganadas para llegar',
-    levelTo: 'Frase al llegar (opcional)', levelToPh: 'Por ejemplo: «al Bosque», «a la Montaña»', levelFrom: v => 'Desde ' + v.n + ' ⭐',
-    levelsReset: 'Restaurar niveles', levelsResetQ: '¿Volver a los niveles de la aventura?', levelsResetBody: 'Se recuperan los 10 lugares originales (Pradera, Bosque, Río…).',
-    levelsRestored: 'Niveles restaurados', lastLevel: 'Tiene que haber al menos un nivel', levelFirstNote: 'Es el primer nivel: empieza siempre en 0 estrellas.',
-    levelUpTitle: '¡Nuevo nivel!', levelUpText: v => v.name + ' llega ' + v.place, levelUpSub: v => 'Nivel ' + v.n + (v.next ? ' · siguiente parada: ' + v.next : ''),
+    // La vuelta al mundo
+    hereIn: v => 'Está en ' + v.name, levelCont: v => 'Nivel ' + v.n + ' · ' + v.ct,
+    helloTitle: v => 'Así se saluda en ' + v.name, saidIn: v => 'Se dice en ' + v.lang + '.', listen: 'Escuchar', listenSheet: 'Escuchar la ficha',
+    sheetTitle: v => 'Ficha de ' + v.name, fFlag: 'Bandera', fFlagOf: v => 'Bandera de ' + v.name, fCapital: 'Capital', fLang: 'Idioma oficial',
+    fDemonym: 'Gentilicio', fMonument: 'Monumento',
+    sayFicha: v => v.name + '. Su capital es ' + v.capital + '. Su idioma oficial: ' + v.language + '. Sus habitantes se llaman ' + v.demonym + '. Su monumento más famoso: ' + v.monument + '.',
+    factTitle: '¿Sabías que…?',
+    passportTitle: v => 'Pasaporte de ' + v.ct, passportCount: v => v.n + ' de 10 países',
+    stampLabel: v => v.name + ': ' + v.state, stampDone: 'visitado', stampHere: 'está aquí', stampLocked: 'por visitar',
+    makerOpen: 'Crea tu viajero', makerNew: '¡Crea tu viajero!', makerHint: v => v.name + ' empieza con ropa básica. ¡La irá mejorando por el camino!',
+    iAm: 'Soy…', boy: 'Niño', girl: 'Niña', hairStyle: 'Peinado', hairColor: 'Color de pelo', eyeColor: 'Color de ojos', skinTone: 'Tono de piel',
+    swatchLabel: v => v.what + ': ' + v.name, skinN: v => 'tono ' + v.n, done: 'Listo',
+    wardrobe: 'Armario', fitting: 'Probador', tapToTry: 'Toca una prenda para probártela',
+    buy: v => 'Comprar · ' + v.p, wear: 'Ponérmelo', takeOff: 'Quitármelo', unlockAt: v => 'Se desbloquea al viajar ' + v.to,
+    lockedAt: v => 'Nivel ' + v.n + ' · ' + v.name, noCoins: v => 'Faltan ' + v.n + ' monedas', owned: 'Tuyo', worn: 'Puesto',
+    bought: v => '¡' + v.name + ' estrena ' + v.item + '!',
+    itemLabel: v => v.name + ', ' + v.rarity + ', ' + v.state, coinsN: v => v.n + (v.n === 1 ? ' moneda' : ' monedas'),
+    rCommon: 'Común', rRare: 'Raro', rEpic: 'Épico', rLegend: 'Legendario',
+    album: 'Álbum de cromos', cardLocked: 'Cromo por descubrir', cardContinent: v => '¡' + v.ct + ' completo!',
+    albumNote: 'Cada país tiene 3 cromos: su bandera, su capital y algo típico. Al terminar un continente se consigue un cromo legendario.',
+    cardLabel2: v => v.title + ', ' + v.rarity,
+    tripTitle: v => '¡' + v.name + ' viaja ' + v.to + '!', tripInfo: v => 'Nivel ' + v.n + ' · Capital: ' + v.capital + ' · Saludo: ' + v.hello,
+    tripCoins: v => '+' + v.n + ' monedas', tripPack: v => 'Sobre con ' + v.n + ' cromos', tripGo: '¡A volar!', tripNew: 'Cromos nuevos',
+    routeTitle: 'La vuelta al mundo', routeSub: v => 'Cada ' + v.n + ' estrellas ganadas se viaja a un país nuevo.', routeLevels: v => 'niveles ' + v.a + '–' + v.b,
+    travelS: 'Viaje', stepLabel: 'Estrellas para viajar a otro país',
+    stepNote: 'Cuenta el total de estrellas ganadas: canjear premios o restar no hace volver atrás. Cada país nuevo da 50 monedas para el armario.',
+    levelUpTitle: '¡Nuevo país!', traveler: 'Viajero', editLook: 'Cambiar su viajero',
     stars: v => v.n === 1 || v.n === -1 ? v.n + ' estrella' : v.n + ' estrellas',
     thisWeek: v => (v.n > 0 ? '+' : '') + v.n + ' esta semana',
     cardLabel: v => v.name + ', ' + v.stars + ', ' + v.level + (v.goal ? ', ' + v.goal : '') + '. Toca para ver su perfil',
@@ -121,8 +142,7 @@
     // Ajustes
     settingsTitle: 'Ajustes', members: 'Miembros', rules: 'Reglas', rewards: 'Premios',
     child: 'Niño/a', adult: 'Adulto',
-    newMember: 'Nuevo miembro', editMember: 'Editar miembro', name: 'Nombre', avatar: 'Avatar', color: 'Color', role: 'Rol',
-    photo: 'Usar foto', removePhoto: 'Quitar foto', otherEmoji: 'Otro emoji',
+    newMember: 'Nuevo miembro', editMember: 'Editar miembro', name: 'Nombre', color: 'Color de la camiseta', role: 'Rol', otherEmoji: 'Otro emoji',
     newRule: 'Nueva regla', editRule: 'Editar regla', title: 'Título', icon: 'Icono', category: 'Categoría', positive: 'Positiva', negative: 'Negativa',
     newReward: 'Nuevo premio', editReward: 'Editar premio', cost: 'Coste en estrellas', active: 'Disponible para canjear', inactive: 'Oculto',
     moveUp: v => 'Subir ' + v.name, moveDown: v => 'Bajar ' + v.name, editItem: v => 'Editar ' + v.name,
@@ -187,15 +207,20 @@
   // Utilidades DOM
   // =====================================================================
   const $ = sel => document.querySelector(sel);
-  // Iconos 3D (Fluent Emoji, MIT) incluidos en emoji/ y listados en emoji-map.js. Si un emoji no está, se ve el del sistema.
-  const EMAP = window.FP_EMOJI_MAP || {};
+  // Iconos: primero los propios (icons.js, dibujados a mano); si no hay, el 3D de Fluent Emoji (MIT) en emoji/ y emoji-map.js;
+  // si tampoco, el emoji del sistema.
+  const EMAP = window.FP_EMOJI_MAP || {}, OWN = window.FP_OWN_ICONS || {};
   const EMO_RE = /^((?:\p{Extended_Pictographic}(?:\uFE0F|[\u{1F3FB}-\u{1F3FF}])?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*|[0-9#*]\uFE0F\u20E3))(?:\s+([\s\S]+))?$/u;
-  const emoFile = ch => ch && (EMAP[ch] || EMAP[String(ch).replace(/\uFE0F/g, '')]);
+  const emoSrc = ch => {
+    if (!ch) return null;
+    const bare = String(ch).replace(/\uFE0F/g, ''), f = EMAP[ch] || EMAP[bare];
+    return OWN[bare] || (f ? 'emoji/' + f : null);
+  };
   function emo(ch, cls) {
-    const f = emoFile(ch);
-    if (!f) return document.createTextNode(ch || '');
+    const src = emoSrc(ch);
+    if (!src) return document.createTextNode(ch || '');
     const img = document.createElement('img');
-    img.className = 'emo' + (cls ? ' ' + cls : ''); img.src = 'emoji/' + f; img.alt = ''; img.draggable = false;
+    img.className = 'emo' + (cls ? ' ' + cls : ''); img.src = src; img.alt = ''; img.draggable = false;
     return img;
   }
   function h(tag, props, ...kids) {
@@ -217,7 +242,7 @@
       if (kid.nodeType) { el.append(kid); continue; }
       const str = String(kid);
       const m = tag !== 'option' && tag !== 'textarea' && EMO_RE.exec(str);
-      if (m && emoFile(m[1])) { el.append(emo(m[1])); if (m[2]) el.append(' ' + m[2]); continue; }
+      if (m && emoSrc(m[1])) { el.append(emo(m[1])); if (m[2]) el.append(' ' + m[2]); continue; }
       el.append(str);
     }
     return el;
@@ -263,7 +288,7 @@
   // Estado y persistencia
   // =====================================================================
   function defaultSettings() {
-    return { resetMode: 'manual', lastResetKey: '', sound: true, confetti: true, pinForPoints: false, pinHash: '', pinSalt: '', onboarded: false,
+    return { resetMode: 'manual', lastResetKey: '', sound: true, confetti: true, pinForPoints: false, pinHash: '', pinSalt: '', onboarded: false, levelStep: 150
     };
   }
   const S = {
@@ -722,9 +747,10 @@
     animateBalances(view);
   }
 
+  // Avatar pequeño: la cara del viajero (avatar.js) dentro de un círculo del color del miembro
   function avatar(m, size) {
-    return h('span', { class: 'avatar' + (size ? ' ' + size : ''), style: { '--c': m.color || '#888' }, 'aria-hidden': 'true' },
-      m.photo ? h('img', { src: m.photo, alt: '' }) : (m.emoji || '🙂'));
+    return h('span', { class: 'avatar' + (size ? ' ' + size : ''), style: { '--c': m.color || '#888' }, 'aria-hidden': 'true',
+      html: window.FP_AVATAR.svg(Object.assign({ g: 'boy', hair: 'corto', hairColor: 'castano', eyes: 'marron', skin: 1 }, m.look), m.outfit, m.color, { viewBox: '14 2 92 92' }) });
   }
   function balanceEl(m, b) {
     return h('span', { class: 'balance', 'data-balance': m.id, 'data-value': b }, emo('⭐', 'star'), h('span', { class: 'n' }, shown.has(m.id) ? shown.get(m.id) : b));
@@ -820,18 +846,17 @@
       return { total, done };
     };
     const cards = h('div', { class: 'members' }, ms.map(m => {
-      const total = FP.earnedTotal(m.id, movs), lv = FP.levelFor(total, levelsList());
-      const goal = lv.next != null ? t('profileLevelNext', { n: lv.next - total, to: lv.nextTo }) : t('profileLevelMax');
+      const lv = travelAt(FP.earnedTotal(m.id, movs));
+      const goal = goalText(lv);
       const c = chalCount(m.id);
       return h('button', {
         class: 'mcard', type: 'button', style: { '--c': m.color },
         'aria-label': t('cardLabel', { name: m.name, stars: t('stars', { n: bal[m.id] }), level: t('levelChip', lv), goal }),
         onclick: () => openProfile(m)
       },
-      h('span', { class: 'mc-top', 'aria-hidden': 'true' }, avatar(m, 'lg'),
-        h('span', { class: 'mc-id' }, h('span', { class: 'name' }, m.name), h('span', { class: 'lvl' }, lv.icon + ' ' + t('levelChip', lv))),
-        balanceEl(m, bal[m.id])),
-      levelTrack(m, lv),
+      h('span', { class: 'mc-top', 'aria-hidden': 'true' }, kid(m, null, 'card-kid'), h('span', { class: 'name' }, m.name), balanceEl(m, bal[m.id]),
+        h('span', { class: 'where' }, flagEmo(lv.c), h('span', null, t('levelChip', lv)))),
+      flightTrack(lv),
       h('span', { class: 'goal', 'aria-hidden': 'true' }, goal),
       h('span', { class: 'mc-foot', 'aria-hidden': 'true' },
         h('span', { class: 'week' }, t('thisWeek', { n: week[m.id] || 0 })),
@@ -847,31 +872,71 @@
     return h('div', null, head, challengeBanners(), h('div', { class: 'dash' }, cards, ranking));
   }
 
-  // Niveles en uso (configurables en Ajustes)
-  const DEFAULT_LEVELS = FP.LEVELS.map((L, i) => Object.assign({ id: 'lv' + i }, L));
-  const levelsList = () => FP.normalizeLevels(S.settings.levels) || DEFAULT_LEVELS;
-  const levelOf = memberId => FP.levelFor(FP.earnedTotal(memberId, movements()), levelsList());
+  // ---------- La vuelta al mundo ----------
+  // Cada nivel es un país (countries.js). El nivel sale de las estrellas ganadas en total; las monedas y los cromos, del nivel.
+  const W = window.FP_WORLD, AV = window.FP_AVATAR;
+  const DEFAULT_LOOK = { g: 'boy', hair: 'corto', hairColor: 'castano', eyes: 'marron', skin: 1 };
+  const lookOf = m => Object.assign({}, DEFAULT_LOOK, m.look);
+  const stepOf = () => FP.levelStep(S.settings.levelStep);
+  function travelAt(total) {
+    const v = FP.travelFor(total, stepOf(), W.COUNTRIES.length);
+    v.c = W.COUNTRIES[v.i]; v.nx = W.COUNTRIES[v.i + 1] || null; v.ct = W.CONTINENTS.find(x => x.id === v.c.continent);
+    v.name = v.c.name; v.total = total;
+    return v;
+  }
+  const travelOf = memberId => travelAt(FP.earnedTotal(memberId, movements()));
+  const coinsOf = m => FP.coinsFor(travelOf(m.id).n, m.owned, AV.ITEMS);
+  const flagEmo = c => emo(W.flag(c.code));
+  const RAR = { common: ['rCommon', '#B7C3D1'], rare: ['rRare', '#2E8BFF'], epic: ['rEpic', '#9B4DFF'], legend: ['rLegend', '#FFB300'] };
+  const goalText = v => v.nx ? t('profileLevelNext', { n: v.missing, to: v.nx.to }) : t('profileLevelMax');
+  // Viajero de cuerpo entero (SVG propio, avatar.js)
+  function kid(m, outfit, cls) {
+    return h('span', { class: 'kid' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true', html: AV.svg(lookOf(m), outfit || m.outfit, m.color) });
+  }
+  // Vuelo hacia el siguiente país: bandera actual → avión → bandera siguiente
+  function flightTrack(v) {
+    const pct = Math.round(v.progress * 100);
+    return h('span', { class: 'flight', 'aria-hidden': 'true' },
+      h('span', { class: 'fl-flag' }, flagEmo(v.c)),
+      h('span', { class: 'fl-route' }, h('span', { class: 'fl-fill', style: { width: pct + '%' } }),
+        h('span', { class: 'fl-plane', style: { left: pct + '%' } }, emo('✈️'))),
+      h('span', { class: 'fl-flag next' }, v.nx ? flagEmo(v.nx) : emo('🏆')));
+  }
+  // Voz: el saludo en el idioma del país (o con voz española si el dispositivo no tiene esa voz) y la ficha en español
+  function hasVoice(lang) {
+    if (!lang || !window.speechSynthesis) return false;
+    const vs = speechSynthesis.getVoices();
+    return !vs.length || vs.some(x => x.lang.replace('_', '-').toLowerCase().slice(0, 2) === lang.slice(0, 2).toLowerCase());
+  }
+  function speak(text, lang) {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang || 'es-ES'; u.rate = 0.9;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) { /* sin voz */ }
+  }
+  const sayHello = c => hasVoice(c.voice) ? speak(c.say, c.voice) : speak(c.es, 'es-ES');
+  const sayFicha = c => speak(t('sayFicha', Object.assign({}, c, { demonym: c.demonym.replace(' · ', ' o ') })), 'es-ES');
 
-  // Progreso hacia el siguiente nivel en la tarjeta: lugar actual → avatar avanzando → siguiente lugar
-  function levelTrack(m, lv) {
-    const pct = Math.round(lv.progress * 100);
-    return h('span', { class: 'lvtrack', 'aria-hidden': 'true' },
-      h('span', { class: 'lv-end here' }, lv.icon),
-      h('span', { class: 'lv-road' }, h('span', { class: 'lv-fill', style: { width: pct + '%' } }),
-        h('span', { class: 'walker', style: { left: pct + '%' } }, m.photo ? h('img', { src: m.photo, alt: '' }) : (m.emoji || '🙂'))),
-      h('span', { class: 'lv-end' + (lv.next == null ? ' here' : '') }, lv.next == null ? '🏆' : lv.nextIcon));
+  // Cromos
+  function cardInfo(card) {
+    if (card.kind === 'continent') { const ct = W.CONTINENTS.find(x => x.id === card.continent); return { icon: ct.icon, title: t('cardContinent', { ct: ct.name }), country: null }; }
+    const c = W.COUNTRIES[card.i];
+    if (card.kind === 'flag') return { icon: W.flag(c.code), title: c.name, country: c };
+    if (card.kind === 'capital') return { icon: '🏙️', title: c.capital, country: c };
+    return { icon: c.icon, title: c.iconName, country: c };
+  }
+  function cardEl(card, locked) {
+    const inf = cardInfo(card), r = RAR[card.rarity];
+    return h('div', { class: 'tcard' + (locked ? ' locked' : '') + (card.rarity === 'legend' && !locked ? ' shine' : ''), style: { '--r': r[1] }, role: 'img',
+      'aria-label': locked ? t('cardLocked') : t('cardLabel2', { title: inf.title, rarity: t(r[0]) }) },
+      inf.country ? h('span', { class: 'tc-flag', 'aria-hidden': 'true' }, flagEmo(inf.country)) : null,
+      h('span', { class: 'tc-r', 'aria-hidden': 'true' }, locked ? '???' : t(r[0])),
+      h('span', { class: 'tc-in', 'aria-hidden': 'true' }, emo(inf.icon)),
+      h('span', { class: 'tc-t', 'aria-hidden': 'true' }, locked ? '???' : inf.title));
   }
 
-  // Camino de premios: paradas con el icono de cada premio y el avatar avanzando
-  function trailEl(m, tr) {
-    const pos = v => (Math.min(v, tr.max) / tr.max * 100).toFixed(1) + '%';
-    return h('span', { class: 'trail', 'aria-hidden': 'true' },
-      h('span', { class: 'trail-fill', style: { width: (tr.pos * 100).toFixed(1) + '%' } }),
-      tr.stops.map(st => h('span', { class: 'stop' + (st.reached ? ' reached' : ''), style: { left: pos(st.cost) } }, st.icon || '🎁')),
-      h('span', { class: 'walker', style: { left: (tr.pos * 100).toFixed(1) + '%' } }, m.photo ? h('img', { src: m.photo, alt: '' }) : (m.emoji || '🙂')));
-  }
-
-  // Animaciones de Aventura: la estrella vuela hasta el contador y el avatar salta (o se sacude)
+  // Animaciones: la estrella vuela hasta el contador y el viajero salta (o se sacude)
   function flyStar(fromEl, toEl) {
     if (reduceMotion() || !fromEl || !toEl) return;
     const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
@@ -889,7 +954,7 @@
     if (!el || reduceMotion()) return;
     el.classList.remove('bounce', 'shake'); void el.offsetWidth; el.classList.add(good ? 'bounce' : 'shake');
   }
-  // Las celebraciones (reto superado, nuevo nivel) se muestran de una en una, en fila
+  // Las celebraciones (reto superado, nuevo país) se muestran de una en una, en fila
   const celebQueue = []; let celebOpen = false;
   function showCelebration(fx, build) {
     if (celebOpen) { celebQueue.push([fx, build]); return; }
@@ -897,61 +962,94 @@
     fx();
     openSheet({ build, onClose: () => { celebOpen = false; const nx = celebQueue.shift(); if (nx) setTimeout(() => showCelebration(nx[0], nx[1]), 250); } });
   }
-  // Subida de nivel: celebración con el nuevo lugar del mapa
+  // Nuevo país: billete de avión, monedas y sobre de cromos
   function checkLevelUp(memberId, before) {
     const m = S.members.get(memberId); if (!m) return;
-    const a = FP.levelFor(before, levelsList()), b = levelOf(memberId);
+    const a = travelAt(before), b = travelOf(memberId);
     if (b.n <= a.n) return;
+    const cards = [];
+    for (let n = a.n + 1; n <= b.n; n++) cards.push(...FP.newCardsAt(n, W.CONTINENTS));
     setTimeout(() => {
       showCelebration(() => { Sound.play('challenge'); confetti(150); }, ctx => [
-          sheetHead(ctx, t('levelUpTitle')),
-          h('div', { class: 'celebrate' },
-            h('div', { class: 'big-badge', 'aria-hidden': 'true' }, b.icon),
-            h('div', { class: 'chal-who', 'aria-hidden': 'true' }, avatar(m, 'md')),
-            h('p', { class: 'ct' }, t('levelUpText', { name: m.name, place: b.to })),
-            h('p', { class: 'cb' }, t('levelUpSub', { n: b.n, next: b.nextName })),
-            h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('great')))
-        ]);
+        sheetHead(ctx, t('levelUpTitle')),
+        h('div', { class: 'ticket celebrate' },
+          h('div', { class: 'tk-top' }, emo('🎫'), h('strong', null, t('tripTitle', { name: m.name, to: b.c.to }))),
+          h('div', { class: 'tk-body' },
+            h('div', { class: 'tk-legs', 'aria-hidden': 'true' },
+              h('span', null, flagEmo(a.c), h('b', null, a.c.name)), h('span', { class: 'tk-plane' }, emo('✈️')), h('span', null, flagEmo(b.c), h('b', null, b.c.name))),
+            kid(m, null, 'tk-kid'),
+            h('p', { class: 'tk-info' }, t('tripInfo', { n: b.n, capital: b.c.capital, hello: b.c.hello })),
+            h('div', { class: 'tk-gains' }, h('span', { class: 'pillc' }, emo('🪙'), t('tripCoins', { n: FP.COINS_PER_LEVEL * (b.n - a.n) })),
+              h('span', { class: 'pillc' }, emo('🃏'), t('tripPack', { n: cards.length }))),
+            h('div', { class: 'album mini' }, cards.map(c => cardEl(c, false))),
+            h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: () => ctx.close() }, t('tripGo'))))
+      ]);
     }, 700);
   }
 
-  // ---------- Asignar puntos ----------
   // ---------- Perfil del miembro ----------
-  // Cabecera con nivel y lo que falta, mapa de la aventura, racha, insignias, sus retos y, al final, dar estrellas.
+  // Ambientado en el país donde está: colores de la bandera, saludo, ficha del país, dato curioso y pasaporte del continente.
+  // Después racha, insignias, sus retos y, al final, dar estrellas.
   function openProfile(m) {
     openSheet({
       wide: true,
       build: ctx => {
-        const headAvatar = avatar(m, 'lg');
+        const kidBox = h('div', { class: 'pf-kid' });
         const balBox = h('span', { class: 'pf-bal' });
         const levelBox = h('div', { class: 'pf-level' });
-        const mapBox = h('ol', { class: 'pf-map', 'aria-label': t('mapTitle') });
+        const actions = h('div', { class: 'pf-actions' });
+        const landmark = h('span', { class: 'pf-landmark', 'aria-hidden': 'true' });
+        const hero = h('div', { class: 'pf-hero' }, h('span', { class: 'pf-stripes', 'aria-hidden': 'true' }), landmark,
+          h('div', { class: 'pf-id' }, kidBox, balBox), levelBox, actions);
+        const tripBox = h('div', { class: 'pf-trip' });
         const streakBox = h('div', { class: 'pf-streak card' });
         const badgesBox = h('div');
         const chalBox = h('div');
-        let lastLevel = 0;
+        let lastLook = '', lastCountry = -1;
         const paint = () => {
           const cur = S.members.get(m.id); if (!cur) { ctx.close(); return; }
-          const movs = movements(), total = FP.earnedTotal(m.id, movs), lv = FP.levelFor(total, levelsList());
+          const movs = movements(), v = travelAt(FP.earnedTotal(m.id, movs)), c = v.c;
+          const lk = JSON.stringify([cur.look, cur.outfit, cur.color]);
+          if (lk !== lastLook) { lastLook = lk; fill(kidBox, kid(cur)); }
           fill(balBox, balanceEl(cur, balanceOf(m.id))); animateBalances(balBox);
+          hero.style.setProperty('--c', cur.color);
+          hero.style.setProperty('--stripes', 'linear-gradient(90deg,' + c.colors.map((col, k) => col + ' ' + (k * 100 / c.colors.length) + '% ' + ((k + 1) * 100 / c.colors.length) + '%').join(',') + ')');
           fill(levelBox,
-            h('div', { class: 'pf-lvl-row' }, h('span', { class: 'pf-lvl-ico', 'aria-hidden': 'true' }, lv.icon),
-              h('span', null, h('strong', null, t('levelChip', lv)), h('span', { class: 'pf-sub' }, t('earnedTotalL', { n: total })))),
-            h('span', { class: 'bar pf-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(lv.progress * 100)), 'aria-label': t('levelChip', lv) },
-              h('i', { style: { width: Math.round(lv.progress * 100) + '%', background: 'var(--star)' } })),
-            h('p', { class: 'pf-next' }, lv.next != null ? t('profileLevelNext', { n: lv.next - total, to: lv.nextTo }) : t('profileLevelMax')));
-          // Mapa: lugares conseguidos, el actual (con su avatar) y los bloqueados
-          fill(mapBox, levelsList().map((L, i) => {
-            const n = i + 1, state = n < lv.n ? 'done' : n === lv.n ? 'here' : 'locked';
-            return h('li', { class: 'pf-node ' + state, 'aria-label': t('mapNode', { name: L.name, n, state: state === 'done' ? t('mapDone') : state === 'here' ? t('mapHere') : t('mapLocked', { min: L.min }) }) },
-              h('span', { class: 'pf-dot', 'aria-hidden': 'true' }, L.icon, state === 'locked' ? h('span', { class: 'pf-lock' }, '🔒') : null),
-              state === 'here' ? h('span', { class: 'pf-me', 'aria-hidden': 'true' }, cur.photo ? h('img', { src: cur.photo, alt: '' }) : (cur.emoji || '🙂')) : null,
-              h('span', { class: 'pf-name', 'aria-hidden': 'true' }, L.name),
-              h('span', { class: 'pf-min', 'aria-hidden': 'true' }, '⭐ ' + L.min));
-          }));
-          if (lv.n !== lastLevel) {
-            lastLevel = lv.n;
-            requestAnimationFrame(() => { const here = mapBox.querySelector('.here'); if (here) mapBox.scrollLeft = here.offsetLeft - mapBox.clientWidth / 2 + here.clientWidth / 2; });
+            h('h3', { class: 'pf-where' }, t('hereIn', c)),
+            h('span', { class: 'where' }, flagEmo(c), h('span', null, t('levelCont', { n: v.n, ct: v.ct.name }))),
+            h('span', { class: 'bar pf-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(v.progress * 100)), 'aria-label': goalText(v) },
+              h('i', { style: { width: Math.round(v.progress * 100) + '%' } })),
+            h('p', { class: 'pf-next' }, goalText(v)),
+            h('span', { class: 'pf-sub' }, t('earnedTotalL', { n: v.total })));
+          const got = FP.cardsFor(v.n, W.CONTINENTS).length;
+          fill(actions,
+            h('button', { class: 'btn primary', type: 'button', onclick: () => giveSec.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }) }, '⭐ ' + t('jumpGive') + ' ↓'),
+            h('button', { class: 'btn' + (cur.look ? '' : ' good'), type: 'button', onclick: () => openMaker(cur, look => saveItem('members', Object.assign({}, S.members.get(m.id), { look }))) },
+              cur.look ? t('makerOpen') : t('makerNew')),
+            h('button', { class: 'btn', type: 'button', onclick: () => openWardrobe(cur) }, emo('🪙'), t('wardrobe') + ' · ' + coinsOf(cur)),
+            h('button', { class: 'btn', type: 'button', onclick: () => openAlbum(cur) }, emo('🃏'), t('album') + ' · ' + got));
+          if (v.i !== lastCountry) {
+            lastCountry = v.i;
+            fill(landmark, emo(c.icon));
+            const pos = v.ct.countries.findIndex(x => x.code === c.code);
+            const row = (ico, label, value) => h('div', { class: 'frow' }, h('span', { class: 'f-ico', 'aria-hidden': 'true' }, ico), h('div', null, h('small', null, label), h('b', null, value)));
+            fill(tripBox,
+              h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('👋'), t('helloTitle', c)),
+                h('div', { class: 'hello-word' }, c.hello), h('p', { class: 'sub' }, t('saidIn', { lang: c.helloLang })),
+                h('button', { class: 'btn small listen', type: 'button', onclick: () => sayHello(c) }, emo('🔊'), t('listen'))),
+              h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('📍'), t('sheetTitle', c)),
+                h('div', { class: 'ficha' },
+                  row(flagEmo(c), t('fFlag'), t('fFlagOf', c)), row(emo('🏙️'), t('fCapital'), c.capital), row(emo('🗣️'), t('fLang'), c.language),
+                  row(emo('🙋'), t('fDemonym'), c.demonym), row(emo('🏛️'), t('fMonument'), c.monument)),
+                h('button', { class: 'btn small listen', type: 'button', onclick: () => sayFicha(c) }, emo('🔊'), t('listenSheet'))),
+              h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('💡'), t('factTitle')), h('p', { class: 'fact' }, c.fact)),
+              h('section', { class: 'pf-box card' }, h('h3', { class: 'pf-h' }, emo('🛂'), t('passportTitle', { ct: v.ct.name })),
+                h('span', { class: 'bar' }, h('i', { style: { width: ((pos + 1) * 10) + '%' } })), h('p', { class: 'pf-sub' }, t('passportCount', { n: pos + 1 })),
+                h('ol', { class: 'stamps' }, v.ct.countries.map((x, k) => {
+                  const st = k < pos ? 'done' : k === pos ? 'here' : 'lock';
+                  return h('li', { class: 'stamp ' + st, 'aria-label': t('stampLabel', { name: x.name, state: t(st === 'done' ? 'stampDone' : st === 'here' ? 'stampHere' : 'stampLocked') }) },
+                    flagEmo(x), h('small', { 'aria-hidden': 'true' }, x.name));
+                }))));
           }
           // Racha
           const sk = FP.streakDays(m.id, movs, Date.now());
@@ -972,7 +1070,6 @@
           fill(chalBox, board.length ? h('div', { class: 'chal-grid' }, board.map(b => challengeCard(b.ch, b.st, m.id))) : h('p', { class: 'sub' }, t('noChallengesMember')));
         };
         ctx.update = paint;
-        paint();
 
         // Dar estrellas
         let pinOk = !S.settings.pinForPoints;
@@ -982,7 +1079,7 @@
           const earnedBefore = FP.earnedTotal(m.id, movements());
           addMovement(mv);
           if (mv.points > 0) flyStar(btn, balBox);
-          wiggle(headAvatar, mv.points >= 0);
+          wiggle(kidBox, mv.points >= 0);
           if (mv.points > 0) checkLevelUp(m.id, earnedBefore);
           const after = before + mv.points;
           Sound.play(mv.points >= 0 ? 'plus' : 'minus');
@@ -992,6 +1089,7 @@
           if (ms) { setTimeout(() => { Sound.play('milestone'); confetti(80); }, 250); toast(t('milestone', { name: m.name, n: ms }), { label: t('undo'), fn: () => { removeEntry(mv.id); toast(t('undone')); } }); return; }
           toast(t('gave', { name: m.name, n: mv.points, title: mv.title }), { label: t('undo'), fn: () => { removeEntry(mv.id); toast(t('undone')); } });
         };
+
         const ruleBtn = r => h('button', {
           class: 'rule ' + (r.points >= 0 ? 'pos' : 'neg'), type: 'button', 'aria-label': t('ruleLabel', r),
           onclick: e => give(FP.movementFromRule(m, r, Date.now()), e.currentTarget)
@@ -1022,18 +1120,136 @@
           h('div', { class: 'assign-cols' }, col(t('good'), pos, 'var(--good)'), col(t('bad'), neg, 'var(--bad)')),
           custom);
         const sec = (icon, title, body, cls) => h('section', { class: 'pf-sec' + (cls ? ' ' + cls : '') }, h('h3', { class: 'pf-h' }, icon + ' ' + title), body);
+        paint();
         return [
           sheetHead(ctx, m.name, null),
-          h('div', { class: 'pf-hero', style: { '--c': m.color } },
-            h('div', { class: 'pf-id' }, headAvatar, balBox),
-            levelBox,
-            h('button', { class: 'btn primary pf-jump', type: 'button', onclick: () => giveSec.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }) }, '⭐ ' + t('jumpGive') + ' ↓')),
-          sec('🗺️', t('mapTitle'), mapBox, 'pf-map-sec'),
+          hero,
+          tripBox,
           sec('🔥', t('streakTitle'), streakBox),
           sec('🏅', t('badgesSection'), badgesBox),
           sec('🏆', t('challengesSection'), chalBox),
           giveSec
         ];
+      }
+    });
+  }
+
+  // Crea tu viajero: niño o niña, peinado, color de pelo, color de ojos y tono de piel. Cada cambio se guarda al momento.
+  function openMaker(m, onSave) {
+    const look = lookOf(m);
+    openSheet({
+      wide: true,
+      build: ctx => {
+        const prev = h('div', { class: 'mk-prev' });
+        const opts = h('div', { class: 'mk-opts' });
+        const commit = () => { onSave(Object.assign({}, look)); paint(); };
+        const swatches = (key, list, what) => h('div', { class: 'opt-row', role: 'group', 'aria-label': what }, list.map(x => h('button', {
+          class: 'sw', type: 'button', style: { background: x.c }, 'aria-label': t('swatchLabel', { what, name: x.n }), 'aria-pressed': String(look[key] === x.id),
+          onclick: () => { look[key] = x.id; commit(); }
+        })));
+        const paint = () => {
+          fill(prev, h('span', { class: 'kid', 'aria-hidden': 'true', html: AV.svg(look, m.outfit, m.color) }));
+          fill(opts,
+            h('h3', null, t('iAm')),
+            h('div', { class: 'opt-row' }, [['boy', t('boy')], ['girl', t('girl')]].map(g => h('button', {
+              class: 'pick', type: 'button', 'aria-pressed': String(look.g === g[0]),
+              onclick: () => { look.g = g[0]; if (!AV.HAIRS[look.g].some(x => x.id === look.hair)) look.hair = AV.HAIRS[look.g][0].id; commit(); }
+            }, g[1]))),
+            h('h3', null, t('hairStyle')),
+            h('div', { class: 'opt-row' }, AV.HAIRS[look.g].map(hh => h('button', {
+              class: 'hb', type: 'button', 'aria-pressed': String(look.hair === hh.id), onclick: () => { look.hair = hh.id; commit(); }
+            }, h('span', { 'aria-hidden': 'true', html: AV.svg(Object.assign({}, look, { hair: hh.id }), {}, m.color, { viewBox: '14 0 92 92' }) }), hh.n))),
+            h('h3', null, t('hairColor')), swatches('hairColor', AV.HAIR_COLORS, t('hairColor')),
+            h('h3', null, t('eyeColor')), swatches('eyes', AV.EYE_COLORS, t('eyeColor')),
+            h('h3', null, t('skinTone')), swatches('skin', AV.SKINS.map((c, i) => ({ id: i, n: t('skinN', { n: i + 1 }), c })), t('skinTone')));
+        };
+        paint();
+        return [sheetHead(ctx, t('makerOpen')),
+          h('div', { class: 'maker' }, h('div', { class: 'mk-side card' }, prev, h('p', { class: 'sub' }, t('makerHint', { name: m.name || '' }))), h('div', { class: 'card mk-card' }, opts)),
+          h('div', { class: 'form-actions' }, h('button', { class: 'btn primary', type: 'button', onclick: () => ctx.close() }, t('done')))];
+      }
+    });
+  }
+
+  // Armario: probador y prendas que se desbloquean al llegar a ciertos países y se compran con monedas
+  function openWardrobe(m) {
+    let tryOn = null;
+    openSheet({
+      wide: true,
+      build: ctx => {
+        const box = h('div', { class: 'wardrobe' });
+        const coinsBox = h('span', { class: 'pillc coins' });
+        const paint = () => {
+          const cur = S.members.get(m.id); if (!cur) { ctx.close(); return; }
+          const lv = travelOf(cur.id).n, coins = coinsOf(cur), outfit = Object.assign({}, cur.outfit);
+          if (tryOn) outfit[tryOn.slot] = tryOn.id;
+          fill(coinsBox, emo('🪙'), String(coins));
+          let action = h('p', { class: 'sub' }, t('tapToTry'));
+          if (tryOn) {
+            const it = tryOn, st = FP.shopState(it, lv, coins, cur.owned), on = (cur.outfit || {})[it.slot] === it.id;
+            if (st === 'locked') action = h('p', { class: 'wd-msg' }, emo('🔒'), ' ' + t('unlockAt', { to: W.COUNTRIES[it.lv - 1].to }));
+            else if (st === 'short') action = h('p', { class: 'wd-msg' }, t('noCoins', { n: it.p - coins }));
+            else if (st === 'owned') action = h('button', { class: 'btn primary', type: 'button', onclick: () => {
+              const o = Object.assign({}, cur.outfit); if (on) delete o[it.slot]; else o[it.slot] = it.id;
+              tryOn = null; saveItem('members', Object.assign({}, cur, { outfit: o }));
+            } }, on ? t('takeOff') : t('wear'));
+            else action = h('button', { class: 'btn good', type: 'button', onclick: () => {
+              const r = FP.buyItem(cur, it, lv, AV.ITEMS); if (!r) return;
+              tryOn = null; saveItem('members', Object.assign({}, cur, r));
+              Sound.play('milestone'); confetti(60); toast(t('bought', { name: cur.name, item: it.n.toLowerCase() }));
+            } }, emo('🪙'), t('buy', { p: it.p }));
+          }
+          fill(box,
+            h('section', { class: 'fitting card' }, h('h3', null, t('fitting')), kid(cur, outfit, 'fit-kid'), action),
+            h('div', { class: 'items' }, AV.ITEMS.map(it => {
+              const st = FP.shopState(it, lv, coins, cur.owned), worn = (cur.outfit || {})[it.slot] === it.id, r = RAR[it.r];
+              const stTxt = st === 'locked' ? t('lockedAt', { n: it.lv, name: W.COUNTRIES[it.lv - 1].name }) : st === 'owned' ? (worn ? t('worn') : t('owned')) : t('coinsN', { n: it.p });
+              return h('button', {
+                class: 'item' + (st === 'locked' ? ' locked' : ''), type: 'button', style: { '--r': r[1] }, 'aria-pressed': String(tryOn === it),
+                'aria-label': t('itemLabel', { name: it.n, rarity: t(r[0]), state: stTxt }), onclick: () => { tryOn = tryOn === it ? null : it; paint(); }
+              },
+              h('span', { class: 'rar', 'aria-hidden': 'true' }, t(r[0])), h('span', { class: 'it-img', 'aria-hidden': 'true', html: AV.itemSvg(it.id) }),
+              h('span', { class: 'n', 'aria-hidden': 'true' }, it.n),
+              st === 'locked' ? h('span', { class: 'lockt', 'aria-hidden': 'true' }, emo('🔒'), ' ' + stTxt)
+                : st === 'owned' ? h('span', { class: 'tag', 'aria-hidden': 'true' }, stTxt)
+                  : h('span', { class: 'price', 'aria-hidden': 'true' }, emo('🪙'), String(it.p)));
+            })));
+        };
+        ctx.update = paint;
+        paint();
+        return [sheetHead(ctx, t('wardrobe') + ' · ' + m.name), h('div', { class: 'wd-top' }, coinsBox), box];
+      }
+    });
+  }
+
+  // Álbum de cromos: los de los países visitados y los que faltan por descubrir
+  function openAlbum(m) {
+    openSheet({
+      wide: true,
+      build: ctx => {
+        const lv = travelOf(m.id).n, all = FP.allCards(W.CONTINENTS), got = all.filter(c => c.i < lv).length;
+        return [sheetHead(ctx, t('album') + ' · ' + m.name),
+          h('p', { class: 'album-count' }, emo('🃏'), ' ' + got + ' / ' + all.length),
+          h('p', { class: 'sub' }, t('albumNote')),
+          ...W.CONTINENTS.map(ct => h('section', { class: 'pf-sec' }, h('h3', { class: 'pf-h' }, emo(ct.icon), ct.name),
+            h('div', { class: 'album' }, all.filter(c => (c.kind === 'continent' ? c.continent : W.COUNTRIES[c.i].continent) === ct.id).map(c => cardEl(c, c.i >= lv)))))];
+      }
+    });
+  }
+
+  // La vuelta al mundo: los 50 países por continente y dónde está cada uno
+  function openRoute() {
+    openSheet({
+      wide: true,
+      build: ctx => {
+        const ms = members(), pos = new Map(ms.map(m => [m.id, travelOf(m.id).i]));
+        return [sheetHead(ctx, t('routeTitle')), h('p', { class: 'sub' }, t('routeSub', { n: stepOf() })),
+          h('div', { class: 'route-list' }, W.CONTINENTS.map((ct, ci) => h('section', { class: 'route-ct card' },
+            h('h3', { class: 'pf-h' }, emo(ct.icon), ct.name, h('small', null, t('routeLevels', { a: ci * 10 + 1, b: ci * 10 + 10 }))),
+            h('ol', { class: 'route-flags' }, ct.countries.map((c, k) => {
+              const idx = ci * 10 + k, here = ms.filter(m => pos.get(m.id) === idx);
+              return h('li', { class: here.length ? 'here' : '' }, h('b', null, String(idx + 1)), flagEmo(c), h('span', null, c.name), here.map(m => avatar(m)));
+            })))))];
       }
     });
   }
@@ -1286,6 +1502,7 @@
     return h('div', null,
       h('div', { class: 'page-head' }, h('h1', null, t('moreTitle'))),
       h('div', { class: 'more-grid' },
+        tile('🌍', t('routeTitle'), openRoute),
         tile('⚙️', t('tabSettings'), () => goTab('settings')),
         tile('🏅', t('badgesTitle'), () => { S.rewardsView = 'badges'; goTab('rewards'); }),
         tile('🗒️', t('viewHistory'), () => { S.summaryView = 'history'; goTab('summary'); }),
@@ -1666,7 +1883,6 @@
   }
 
   // ---------- Ajustes ----------
-  const EMOJIS_AVATAR = ['🦊', '🐼', '🦁', '🐯', '🐨', '🐸', '🐵', '🐰', '🐻', '🐶', '🐱', '🦄', '🐲', '🐙', '🦖', '🐧', '🦉', '🐝', '🌻', '🚀', '⚽', '🎨', '👑', '🧑', '👩', '👨', '👧', '👦', '👶', '👵', '👴'];
   const EMOJIS_ITEM = ['⭐', '🛏️', '🪥', '🧸', '🧹', '📚', '🥦', '📖', '👕', '🍽️', '💛', '😴', '🤝', '🚿', '🐕', '🎒', '🧺', '🌱', '😠', '📢', '🙉', '🤥', '📵', '🌪️', '🤬', '😭', '👊', '📱', '🎬', '🍦', '🛝', '🎁', '🍕', '🌙', '🎲', '🏞️', '🧒', '🎮', '🍫', '🏊', '🚲', '🎟️', '💶'];
 
   function emojiPicker(list, current, onPick, idp) {
@@ -1682,22 +1898,6 @@
     b.addEventListener('click', () => { const v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v ? 'true' : 'false'); onChange(v); });
     return b;
   }
-  function resizePhoto(file) {
-    return new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const size = 192, c = document.createElement('canvas'); c.width = c.height = size;
-          const s = Math.min(img.width, img.height);
-          c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-          res(c.toDataURL('image/jpeg', .82));
-        };
-        img.onerror = rej; img.src = fr.result;
-      };
-      fr.onerror = rej; fr.readAsDataURL(file);
-    });
-  }
   function deleteButton(ctx, name, body, onDelete) {
     return h('button', { class: 'btn bad', type: 'button', onclick: async () => {
       const ok = await confirmSheet({ title: t('deleteQ', { name }), body, ok: t('delete'), danger: true });
@@ -1707,11 +1907,11 @@
   function nextOrder(list) { return list.reduce((a, x) => Math.max(a, (x.order || 0) + 1), 0); }
 
   function editMember(existing) {
-    const m = existing ? clone(existing) : { id: FP.uid(), name: '', emoji: '🦊', photo: '', color: FP.MEMBER_COLORS[S.members.size % FP.MEMBER_COLORS.length], role: 'child', order: nextOrder(members()), createdAt: Date.now() };
+    const m = existing ? clone(existing) : { id: FP.uid(), name: '', emoji: '🙂', photo: '', look: null, outfit: {}, owned: [], color: FP.MEMBER_COLORS[S.members.size % FP.MEMBER_COLORS.length], role: 'child', order: nextOrder(members()), createdAt: Date.now() };
     openSheet({
       build: ctx => {
         const preview = h('span');
-        const paintPreview = () => preview.replaceChildren(avatar(m, 'lg'));
+        const paintPreview = () => preview.replaceChildren(h('span', { class: 'kid mk-mini', 'aria-hidden': 'true', html: AV.svg(lookOf(m), m.outfit, m.color) }));
         paintPreview();
         const name = h('input', { class: 'input', id: 'm-name', type: 'text', maxlength: '24', value: m.name, autofocus: !existing });
         const err = h('p', { class: 'pin-msg', role: 'alert' });
@@ -1721,17 +1921,14 @@
         const swBox = h('div', { class: 'swatches', role: 'group', 'aria-label': t('color') });
         const paintSw = () => swBox.replaceChildren(...FP.MEMBER_COLORS.map((c, i) => h('button', { class: 'swatch', type: 'button', style: { background: c }, 'aria-label': t('color') + ' ' + (i + 1), 'aria-pressed': m.color === c ? 'true' : 'false', onclick: () => { m.color = c; paintSw(); paintPreview(); } })));
         paintSw();
-        const file = h('input', { type: 'file', accept: 'image/*', id: 'm-photo', class: 'sr' });
-        file.addEventListener('change', async () => { if (file.files[0]) { try { m.photo = await resizePhoto(file.files[0]); paintPreview(); } catch (e) { toast(t('saveError')); } } });
         return [
           sheetHead(ctx, existing ? t('editMember') : t('newMember')),
           h('div', { class: 'form' },
             h('div', { style: { display: 'flex', 'justify-content': 'center', padding: '.5rem' } }, preview),
             h('label', { class: 'field', for: 'm-name' }, h('span', null, t('name')), name), err,
             h('div', { class: 'field' }, h('span', null, t('role')), roleBox),
-            h('div', { class: 'field' }, h('span', null, t('avatar')), emojiPicker(EMOJIS_AVATAR, m.emoji, e => { m.emoji = e; m.photo = ''; paintPreview(); }, 'm-emoji'),
-              h('div', { class: 'chips' }, h('label', { class: 'btn small', for: 'm-photo' }, '📷 ' + t('photo')), file,
-                h('button', { class: 'btn small ghost', type: 'button', onclick: () => { m.photo = ''; paintPreview(); } }, t('removePhoto')))),
+            h('div', { class: 'field' }, h('span', null, t('traveler')),
+              h('div', { class: 'chips' }, h('button', { class: 'btn small', type: 'button', onclick: () => openMaker(Object.assign({}, m, { name: name.value.trim() || m.name }), look => { m.look = look; paintPreview(); }) }, t('editLook')))),
             h('div', { class: 'field' }, h('span', null, t('color')), swBox),
             h('div', { class: 'form-actions' },
               existing ? deleteButton(ctx, m.name, t('deleteMemberBody'), () => deleteItem('members', m.id)) : null,
@@ -1885,19 +2082,14 @@
       h('h2', null, t('challengesS'), addBtn(t('add'), () => editChallenge())),
       h('p', { class: 'note' }, t('challengesNote')),
       chalList.length ? orderedList('challenges', chalList, chalRow, c => editChallenge(c)) : h('p', { class: 'note' }, t('challengesNone')));
-    const lvList = levelsList();
+    const step = stepOf();
+    const stepIn = h('input', { class: 'input', id: 's-step', type: 'number', inputmode: 'numeric', min: '10', max: '1000', step: '10', value: String(step), style: { 'max-width': '9rem' } });
+    stepIn.addEventListener('change', () => { const n = FP.levelStep(stepIn.value); stepIn.value = String(n); if (n !== step) { saveSettings({ levelStep: n }); toast(t('saved')); } });
     const levelsCard = h('section', { class: 'card set-card' },
-      h('h2', null, t('levelsS'), addBtn(t('add'), () => editLevel())),
-      h('p', { class: 'note' }, t('levelsNote')),
-      h('ul', { class: 'list' }, lvList.map((L, i) => h('li', { class: 'row' },
-        h('button', { class: 'grow', type: 'button', 'aria-label': t('editItem', { name: L.name }), onclick: () => editLevel(L) },
-          h('span', { class: 'ico', 'aria-hidden': 'true' }, L.icon),
-          h('span', { class: 'grow' }, h('div', { class: 'title' }, t('levelChip', { n: i + 1, name: L.name })), h('div', { class: 'meta' }, L.to))),
-        h('span', { class: 'pill neu' }, t('levelFrom', { n: L.min }))))),
-      st.levels ? h('div', { style: { padding: '.6rem 0' } }, h('button', { class: 'btn small ghost', type: 'button', onclick: async () => {
-        if (!(await confirmSheet({ title: t('levelsResetQ'), body: t('levelsResetBody'), ok: t('levelsReset') }))) return;
-        saveSettings({ levels: null }); toast(t('levelsRestored'));
-      } }, '↺ ' + t('levelsReset'))) : null);
+      h('h2', null, h('span', null, emo('✈️'), ' ' + t('travelS'))),
+      h('label', { class: 'field', for: 's-step' }, h('span', null, t('stepLabel')), stepIn),
+      h('p', { class: 'note' }, t('stepNote')),
+      h('div', { style: { 'padding-bottom': '.6rem' } }, h('button', { class: 'btn small', type: 'button', onclick: openRoute }, '🌍 ' + t('routeTitle'))));
     const resetCard = h('section', { class: 'card set-card' },
       h('h2', null, t('resetTitleS')),
       seg([['manual', t('resetManual')], ['weekly', t('resetWeekly')], ['monthly', t('resetMonthly')]], st.resetMode, v => saveSettings({ resetMode: v, lastResetKey: FP.periodKey(v, Date.now()) })),
@@ -1970,47 +2162,6 @@
     saveSettings(Object.assign({}, b.settings, { onboarded: true }));
     toast(t('restored'));
   }
-  const EMOJIS_PLACE = ['🌼', '🌲', '🌳', '🌊', '⛰️', '🗻', '🏔️', '🏰', '🌋', '☁️', '🌈', '🌟', '🌙', '🪐', '🚀', '🏝️', '🏜️', '🏕️', '🌵', '🐉', '🦄', '💎', '👑', '🏆', '🗺️', '🧭', '🏠', '⭐'];
-  function editLevel(existing) {
-    const list = levelsList().map(L => Object.assign({}, L));
-    const isFirst = existing && list[0] && list[0].id === existing.id && list[0].min === 0;
-    const L = existing ? Object.assign({}, existing) : { id: FP.uid(), name: '', icon: '🌟', min: (list[list.length - 1] || { min: 0 }).min + 50, to: '' };
-    const autoTo = existing && existing.to === 'a ' + existing.name;
-    openSheet({
-      build: ctx => {
-        const name = h('input', { class: 'input', id: 'lv-name', type: 'text', maxlength: '24', value: L.name, autofocus: !existing });
-        const min = h('input', { class: 'input', id: 'lv-min', type: 'number', inputmode: 'numeric', min: '0', step: '1', value: String(L.min), disabled: isFirst });
-        const to = h('input', { class: 'input', id: 'lv-to', type: 'text', maxlength: '40', value: autoTo ? '' : (L.to || ''), placeholder: t('levelToPh') });
-        const err = h('p', { class: 'pin-msg', role: 'alert' });
-        const save = list2 => { saveSettings({ levels: list2.map(x => ({ id: x.id, name: x.name, icon: x.icon, min: x.min, to: x.to })) }); ctx.close(); toast(t('saved')); };
-        return [
-          sheetHead(ctx, existing ? t('editLevel') : t('newLevel')),
-          h('div', { class: 'form' },
-            h('label', { class: 'field', for: 'lv-name' }, h('span', null, t('levelName')), name),
-            h('label', { class: 'field', for: 'lv-min' }, h('span', null, t('levelMin')), min, isFirst ? h('span', { class: 'note' }, t('levelFirstNote')) : null),
-            h('div', { class: 'field' }, h('span', null, t('icon')), emojiPicker(EMOJIS_PLACE, L.icon, e => { L.icon = e; }, 'lv-emoji')),
-            h('label', { class: 'field', for: 'lv-to' }, h('span', null, t('levelTo')), to),
-            err,
-            h('div', { class: 'form-actions' },
-              existing ? h('button', { class: 'btn bad', type: 'button', onclick: async () => {
-                if (list.length <= 1) { err.textContent = t('lastLevel'); return; }
-                if (!(await confirmSheet({ title: t('deleteQ', { name: L.name }), body: t('deleteBody'), ok: t('delete'), danger: true }))) return;
-                save(list.filter(x => x.id !== L.id));
-              } }, t('delete')) : null,
-              h('span', { class: 'spacer' }),
-              h('button', { class: 'btn ghost', type: 'button', onclick: () => ctx.close() }, t('cancel')),
-              h('button', { class: 'btn primary', type: 'button', onclick: () => {
-                L.name = name.value.trim(); if (!L.name) { err.textContent = t('required'); name.focus(); return; }
-                L.min = isFirst ? 0 : Math.max(0, Math.round(Number(min.value) || 0));
-                L.to = to.value.trim() || ('a ' + L.name);
-                const i = list.findIndex(x => x.id === L.id);
-                if (i >= 0) list[i] = L; else list.push(L);
-                save(list);
-              } }, t('save'))))
-        ];
-      }
-    });
-  }
   async function setNewPin() {
     const pin = await pinSheet('create');
     if (!pin) return;
@@ -2021,7 +2172,7 @@
   }
 
   // Exponer lo mínimo para pruebas automatizadas
-  window.__FP_APP__ = { S, t, balanceOf, achievements };
+  window.__FP_APP__ = { S, t, balanceOf, achievements, earned: name => { const m = [...S.members.values()].find(x => x.name === name); return m ? FP.earnedTotal(m.id, movements()) : 0; } };
 
   render();
   init();

@@ -270,10 +270,10 @@
   function exampleData(now) {
     now = now || Date.now();
     const members = [
-      { name: 'Lucía', emoji: '🦊', role: 'child' },
-      { name: 'Mateo', emoji: '🐼', role: 'child' },
-      { name: 'Papá', emoji: '🦁', role: 'adult' }
-    ].map((m, i) => ({ id: uid(), name: m.name, emoji: m.emoji, photo: '', color: MEMBER_COLORS[i], role: m.role, order: i, createdAt: now }));
+      { name: 'Lucía', emoji: '🦊', role: 'child', look: { g: 'girl', hair: 'coleta', hairColor: 'castano', eyes: 'verde', skin: 1 } },
+      { name: 'Mateo', emoji: '🐼', role: 'child', look: { g: 'boy', hair: 'pincho', hairColor: 'rubio', eyes: 'azul', skin: 0 } },
+      { name: 'Papá', emoji: '🦁', role: 'adult', look: { g: 'boy', hair: 'corto', hairColor: 'negro', eyes: 'marron', skin: 2 } }
+    ].map((m, i) => ({ id: uid(), name: m.name, emoji: m.emoji, photo: '', look: m.look, outfit: {}, owned: [], color: MEMBER_COLORS[i], role: m.role, order: i, createdAt: now }));
     const rules = RULE_TEMPLATES.slice(0, 10).map((r, i) => ({ id: uid(), ...r, order: i }));
     const rewards = REWARD_TEMPLATES.slice(0, 5).map((r, i) => ({ id: uid(), ...r, active: true, order: i }));
     return { members, rules, rewards };
@@ -423,42 +423,62 @@
     return 'Reto especial';
   }
 
-  // ---------- Aventura: niveles y camino de premios ----------
+  // ---------- La vuelta al mundo: un país por nivel ----------
   // El nivel depende de las estrellas ganadas en total (no del saldo): canjear o reiniciar no hace bajar de nivel.
-  const LEVELS = [
-    { min: 0, name: 'Pradera', to: 'a la Pradera', icon: '🌼' }, { min: 20, name: 'Bosque', to: 'al Bosque', icon: '🌲' }, { min: 50, name: 'Río', to: 'al Río', icon: '🌊' },
-    { min: 100, name: 'Montaña', to: 'a la Montaña', icon: '⛰️' }, { min: 175, name: 'Castillo', to: 'al Castillo', icon: '🏰' }, { min: 275, name: 'Volcán', to: 'al Volcán', icon: '🌋' },
-    { min: 400, name: 'Nubes', to: 'a las Nubes', icon: '☁️' }, { min: 600, name: 'Arcoíris', to: 'al Arcoíris', icon: '🌈' }, { min: 850, name: 'Estrellas', to: 'a las Estrellas', icon: '🌟' },
-    { min: 1200, name: 'Luna', to: 'a la Luna', icon: '🌙' }
-  ];
+  // Cada `step` estrellas (150 por defecto) se viaja al país siguiente. Los países están en countries.js.
+  const LEVEL_STEP = 150, COINS_PER_LEVEL = 50;
   function earnedTotal(memberId, movements) {
     let t = 0;
     for (const m of movements) if (m.memberId === memberId && m.kind !== 'reset' && m.points > 0) t += m.points;
     return t;
   }
-  // Niveles configurables: se ordenan por estrellas, el primero siempre empieza en 0 y no se repiten umbrales.
-  // Devuelve null si la lista no sirve (vacía o sin nombres), para usar los niveles por defecto.
-  function normalizeLevels(list) {
-    if (!Array.isArray(list)) return null;
-    const seen = new Set();
-    const out = list
-      .filter(l => l && String(l.name || '').trim() && Number.isFinite(Number(l.min)))
-      .map(l => ({ id: l.id || uid(), name: String(l.name).trim(), icon: l.icon || '⭐', min: Math.max(0, Math.round(Number(l.min))),
-        to: String(l.to || '').trim() || ('a ' + String(l.name).trim()) }))
-      .sort((a, b) => a.min - b.min)
-      .filter(l => !seen.has(l.min) && seen.add(l.min));
-    if (!out.length) return null;
-    out[0].min = 0;
+  // Estrellas por país válidas (entre 10 y 1000); si no, las de por defecto
+  function levelStep(v) {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) && n >= 10 && n <= 1000 ? n : LEVEL_STEP;
+  }
+  // i: índice del país (0 = el primero), n: nivel (i + 1), next: estrellas para el siguiente (null en el último)
+  function travelFor(total, step, count) {
+    step = levelStep(step);
+    const t = Math.max(0, total || 0);
+    const i = Math.min(count - 1, Math.floor(t / step)), min = i * step, last = i === count - 1;
+    return { i, n: i + 1, min, next: last ? null : min + step, missing: last ? 0 : min + step - t, progress: last ? 1 : (t - min) / step, last };
+  }
+  // Monedas: 50 por cada país al que se ha viajado, menos lo gastado en ropa. Se calculan, nunca se guardan.
+  function coinsFor(levelN, owned, items) {
+    const spent = (owned || []).reduce((acc, id) => { const it = items.find(x => x.id === id); return acc + (it ? it.p : 0); }, 0);
+    return COINS_PER_LEVEL * (levelN - 1) - spent;
+  }
+  // Estado de una prenda en el armario: 'owned' (ya es suya), 'locked' (aún no ha llegado al país), 'buy' o 'short' (faltan monedas)
+  function shopState(item, levelN, coins, owned) {
+    if ((owned || []).includes(item.id)) return 'owned';
+    if (item.lv > levelN) return 'locked';
+    return coins >= item.p ? 'buy' : 'short';
+  }
+  // Compra: devuelve los nuevos owned/outfit (con la prenda puesta) o null si no se puede
+  function buyItem(member, item, levelN, items) {
+    const owned = member.owned || [];
+    if (shopState(item, levelN, coinsFor(levelN, owned, items), owned) !== 'buy') return null;
+    return { owned: owned.concat(item.id), outfit: Object.assign({}, member.outfit, { [item.slot]: item.id }) };
+  }
+  // Cromos: 3 por país (bandera, capital y algo típico) y uno legendario por continente completado
+  const CARD_RARITY = { flag: 'common', capital: 'rare', typical: 'epic', continent: 'legend' };
+  function countryCards(c, i) {
+    return ['flag', 'capital', 'typical'].map(kind => ({ id: c.code + '-' + kind, kind, rarity: CARD_RARITY[kind], code: c.code, i }));
+  }
+  function allCards(continents) {
+    const out = [];
+    let i = 0;
+    for (const ct of continents) {
+      for (const c of ct.countries) out.push(...countryCards(c, i++));
+      out.push({ id: 'ct-' + ct.id, kind: 'continent', rarity: 'legend', continent: ct.id, i: i - 1 });
+    }
     return out;
   }
-  function levelFor(total, levels) {
-    const L = (levels && levels.length) ? levels : LEVELS;
-    let i = 0;
-    while (i + 1 < L.length && total >= L[i + 1].min) i++;
-    const cur = L[i], nx = L[i + 1] || null;
-    return { n: i + 1, name: cur.name, to: cur.to, icon: cur.icon, min: cur.min, next: nx ? nx.min : null, nextName: nx ? nx.name : '', nextTo: nx ? nx.to : '', nextIcon: nx ? nx.icon : '',
-      progress: nx ? (total - cur.min) / (nx.min - cur.min) : 1 };
-  }
+  // Cromos conseguidos con el nivel levelN (se llega a un país = se consiguen sus cromos)
+  function cardsFor(levelN, continents) { return allCards(continents).filter(c => c.i < levelN); }
+  // Sobre que se abre al llegar al nivel levelN
+  function newCardsAt(levelN, continents) { return allCards(continents).filter(c => c.i === levelN - 1); }
   // Racha: días seguidos ganando alguna estrella. Si hoy aún no ha ganado, la racha sigue viva desde ayer.
   function streakDays(memberId, movements, now) {
     const days = new Set(movements.filter(m => m.memberId === memberId && m.kind !== 'reset' && m.points > 0).map(m => dayStart(m.date)));
@@ -468,19 +488,6 @@
     let best = 0, run = 0, prev = null;
     for (const x of [...days].sort((a, b) => a - b)) { run = prev != null && addDays(prev, 1) === x ? run + 1 : 1; best = Math.max(best, run); prev = x; }
     return { current, best, today: days.has(today) };
-  }
-
-  // Camino hacia los premios: hasta 4 paradas alrededor del saldo actual.
-  function trail(balance, rewards) {
-    const list = rewards.filter(r => r.active !== false && Number(r.cost) > 0).sort((a, b) => a.cost - b.cost);
-    if (!list.length) return { stops: [], max: 0, next: null, missing: 0, pos: 0 };
-    let i = list.findIndex(r => r.cost > balance);
-    if (i < 0) i = list.length;
-    const start = Math.max(0, Math.min(i - 1, list.length - 4));
-    const stops = list.slice(start, start + 4).map(r => ({ id: r.id, title: r.title, icon: r.icon, cost: Number(r.cost), reached: balance >= r.cost }));
-    const max = stops[stops.length - 1].cost;
-    const next = list[i] || null;
-    return { stops, max, next, missing: next ? next.cost - balance : 0, pos: Math.max(0, Math.min(1, balance / max)) };
   }
 
   // ---------- Copia de seguridad ----------
@@ -524,7 +531,7 @@
     MEMBER_COLORS, RULE_TEMPLATES, REWARD_TEMPLATES, exampleData, makeBackup, parseBackup,
     CHALLENGE_TYPES, CHALLENGE_ICONS, challengePeriod, challengeMembers, challengeProgress, challengeState, pendingChallenges,
     confirmChallenge, dismissChallenge, badgesFor, challengeTitle,
-    LEVELS, normalizeLevels, earnedTotal, levelFor, trail, streakDays
+    LEVEL_STEP, COINS_PER_LEVEL, earnedTotal, levelStep, travelFor, coinsFor, shopState, buyItem, allCards, cardsFor, newCardsAt, streakDays
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FP = api;

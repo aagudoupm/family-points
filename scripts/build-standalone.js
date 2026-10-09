@@ -17,7 +17,7 @@ const FB_FILES = ['vendor/firebase/firebase-app-compat.js', 'vendor/firebase/fir
 if (cloud) page = page.replace('<script src="logic.js"></script>', FB_FILES.map(f => `<script src="${f}"></script>`).join('\n') + '\n<script src="logic.js"></script>');
 const split = page.indexOf('<div class="app">');
 const head = page.slice(0, split), body = page.slice(split);
-const files = ['app.js', 'logic.js', 'emoji-map.js'].concat(cloud ? FB_FILES : []);
+const files = ['app.js', 'logic.js', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js'].concat(cloud ? FB_FILES : []);
 const src = f => f === 'firebase-config.js' ? cfgPath : path.join(root, f);
 const version = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(src(f), 'utf8')).join('')).digest('hex').slice(0, 10);
 
@@ -26,7 +26,7 @@ fs.writeFileSync(path.join(out, 'index.html'), `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#F5B301">
+<meta name="theme-color" content="#1E86FF">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -46,11 +46,11 @@ for (const f of fs.readdirSync(path.join(root, 'icons'))) fs.copyFileSync(path.j
 
 fs.writeFileSync(path.join(out, 'manifest.webmanifest'), JSON.stringify({
   name: 'Family Points', short_name: 'Family Points', lang: 'es', start_url: './', scope: './',
-  display: 'standalone', background_color: '#F3F5FA', theme_color: '#F5B301',
+  display: 'standalone', background_color: '#1E86FF', theme_color: '#1E86FF',
   icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }]
 }, null, 2));
 
-const assets = ['./', 'index.html', 'app.js', 'logic.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'emoji-map.js'].concat(EMOJI_FILES, cloud ? FB_FILES : []);
+const assets = ['./', 'index.html', 'app.js', 'logic.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js'].concat(EMOJI_FILES, cloud ? FB_FILES : []);
 fs.writeFileSync(path.join(out, 'sw.js'), `// Generado por scripts/build-standalone.js — no editar a mano.
 const CACHE = 'family-points-${version}';
 const ASSETS = ${JSON.stringify(assets)};

@@ -167,13 +167,10 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await page.screenshot({ path: path.join(shots, '13-celebracion.png') });
   await sheet().getByRole('button', { name: '¡Genial!' }).click();
   await page.waitForTimeout(900);
-  const lvl = sheet().locator('.celebrate', { hasText: 'Lucía llega al Bosque' });
-  check(await lvl.count() === 1, 'Subida de nivel: Lucía llega al Bosque (20 estrellas ganadas)');
-  await page.screenshot({ path: path.join(shots, '13b-nivel.png') });
-  if (await lvl.count()) await sheet().getByRole('button', { name: '¡Genial!' }).click();
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
-  check(/Nivel 2 · Bosque/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el nuevo nivel');
-  check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.lvtrack').count() === 1 && /para llegar al Río/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra lo que falta para el siguiente nivel');
+  check(/Nivel 1 · España/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el país y el nivel');
+  check(await page.locator('.mcard', { hasText: 'Lucía' }).locator('.flight').count() === 1 && /para viajar a Alemania/.test(await page.locator('.mcard', { hasText: 'Lucía' }).innerText()), 'La tarjeta muestra el vuelo y lo que falta para el siguiente país');
+  check(await page.locator('.mcard .kid svg').count() === 3, 'Cada tarjeta muestra su viajero (avatar propio)');
   check(await page.locator('img.emo').count() > 10, 'Iconos 3D en el panel');
   check(await balance('Lucía') === bal0 + 4 + 5, 'Al confirmar se suman las 5 estrellas extra');
   check(!(await page.locator('.banners').innerText()).includes('esperando'), 'El aviso desaparece tras confirmar');
@@ -187,8 +184,11 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(gear && h1box && gear.x > 800 && gear.y < h1box.y, 'Sonido y ajustes en la esquina superior derecha');
   await page.locator('.mcard', { hasText: 'Lucía' }).click(); await settle();
   const pf = sheet();
-  check(/Nivel 2 · Bosque/.test(await pf.locator('.pf-level').innerText()) && /para llegar al Río/.test(await pf.locator('.pf-next').innerText()), 'Perfil: nivel y estrellas que faltan para el siguiente');
-  check(await pf.locator('.pf-node').count() === 10 && /Bosque/.test(await pf.locator('.pf-node.here').innerText()) && await pf.locator('.pf-node.locked').count() === 8, 'Perfil: mapa con 10 lugares, el actual y los bloqueados');
+  check(/Está en España/.test(await pf.locator('.pf-level').innerText()) && /Nivel 1 · Europa/.test(await pf.locator('.pf-level').innerText()) && /para viajar a Alemania/.test(await pf.locator('.pf-next').innerText()), 'Perfil: país, nivel y estrellas que faltan para el siguiente');
+  const ficha = await pf.locator('.ficha').innerText();
+  check(/Madrid/.test(ficha) && /español · española/.test(ficha) && /Sagrada Familia/.test(ficha) && /Bandera de España/.test(ficha), 'Perfil: ficha del país (bandera, capital, idioma, gentilicio y monumento)');
+  check(/¡Hola!/.test(await pf.locator('.hello-word').innerText()) && await pf.getByRole('button', { name: 'Escuchar', exact: true }).count() === 1, 'Perfil: saludo con botón para escucharlo');
+  check(await pf.locator('.stamp').count() === 10 && await pf.locator('.stamp.here').count() === 1 && await pf.locator('.stamp.lock').count() === 9, 'Perfil: pasaporte con los 10 países del continente');
   check(/día/.test(await pf.locator('.pf-streak').innerText()), 'Perfil: racha de días');
   check(await pf.locator('.badge').count() === 1, 'Perfil: insignias del miembro');
   check(/Hacer la cama/.test(await pf.locator('.chal-grid').innerText()), 'Perfil: sus retos');
@@ -199,24 +199,56 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   check(/\+1/.test(await page.locator('.toast').innerText()), 'Perfil: dar estrellas desde la ficha');
   await page.screenshot({ path: path.join(shots, '20-perfil-dar.png') });
   await pf.getByRole('button', { name: 'Cerrar' }).click(); await settle();
-  // Niveles configurables en Ajustes
+  // Viaje: 150 estrellas → nuevo país, billete, monedas y cromos
+  await page.locator('.mcard', { hasText: 'Lucía' }).click(); await settle();
+  const earned0 = await page.evaluate(() => window.__FP_APP__.S.members.size && window.__FP_APP__.earned('Lucía'));
+  await sheet().locator('summary', { hasText: 'Otros puntos' }).click();
+  for (let i = 0; i < 49; i++) await sheet().getByRole('button', { name: 'Más puntos' }).click();
+  for (let i = 0; i < Math.ceil((150 - earned0) / 50); i++) { await sheet().getByRole('button', { name: 'Dar puntos' }).click(); await pinIfAsked(); await page.waitForTimeout(200); }
+  await page.waitForTimeout(1200);
+  const ticket = sheet().locator('.ticket');
+  check(await ticket.count() === 1 && /Lucía viaja a Alemania/.test(await ticket.innerText()) && /\+50 monedas/.test(await ticket.innerText()) && await ticket.locator('.tcard').count() === 3, 'Nuevo país: billete de avión, 50 monedas y sobre con 3 cromos');
+  await page.screenshot({ path: path.join(shots, '21-billete.png') });
+  await sheet().getByRole('button', { name: '¡A volar!' }).click(); await settle();
+  check(/Está en Alemania/.test(await sheet().locator('.pf-level').innerText()) && /Berlín/.test(await sheet().locator('.ficha').innerText()) && /Hallo/.test(await sheet().locator('.hello-word').innerText()), 'El perfil cambia al nuevo país (Alemania, Berlín, «Hallo»)');
+  // Armario: gorra desbloqueada en el nivel 2 y comprada con monedas
+  await sheet().getByRole('button', { name: /Armario · 50/ }).click(); await settle();
+  check(await sheet().locator('.item.locked').count() === 11, 'Armario: solo la primera prenda está desbloqueada en el nivel 2');
+  await sheet().locator('.item', { hasText: 'Gorra' }).click();
+  await sheet().getByRole('button', { name: /Comprar · 30/ }).click(); await settle();
+  check(/20/.test(await sheet().locator('.wd-top').innerText()) && /Puesto/.test(await sheet().locator('.item', { hasText: 'Gorra' }).innerText()), 'Compra la gorra: quedan 20 monedas y la lleva puesta');
+  await sheet().locator('.item', { hasText: 'Mochila' }).click();
+  check(/Se desbloquea al viajar a Francia/.test(await sheet().locator('.fitting').innerText()), 'Las prendas bloqueadas se pueden probar y dicen dónde se desbloquean');
+  await page.screenshot({ path: path.join(shots, '24-armario.png') });
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  // Crea tu viajero
+  await sheet().getByRole('button', { name: /Crea tu viajero/ }).click(); await settle();
+  await sheet().getByRole('button', { name: /Trenzas/ }).click();
+  await sheet().getByRole('button', { name: 'Color de pelo: Pelirrojo' }).click();
+  await page.screenshot({ path: path.join(shots, '25-crear-viajero.png') });
+  await sheet().getByRole('button', { name: 'Listo' }).click(); await settle();
+  const lk = await page.evaluate(() => [...window.__FP_APP__.S.members.values()].find(m => m.name === 'Lucía'));
+  check(lk.look.hair === 'trenzas' && lk.look.hairColor === 'pelirrojo' && lk.outfit.head === 'gorra' && lk.owned.includes('gorra'), 'El viajero y la ropa se guardan en el miembro');
+  await sheet().getByRole('button', { name: /Álbum de cromos · 6/ }).click(); await settle();
+  await page.screenshot({ path: path.join(shots, '26-album.png') });
+  check(await sheet().locator('.tcard').count() === 155 && await sheet().locator('.tcard:not(.locked)').count() === 6, 'Álbum: 155 cromos y 6 conseguidos');
+  await sheet().getByRole('button', { name: 'Cerrar' }).click();
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  // Estrellas por país en Ajustes
   await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
-  await page.getByRole('button', { name: 'Editar Bosque' }).click();
-  await page.fill('#lv-min', '30');
-  await sheet().getByRole('button', { name: 'Guardar' }).click(); await settle();
-  await page.getByRole('button', { name: 'Añadir', exact: true }).last().click();
-  await page.fill('#lv-name', 'Isla'); await page.fill('#lv-min', '10'); await page.fill('#lv-to', 'a la Isla');
-  await sheet().getByRole('button', { name: 'Guardar' }).click(); await settle();
-  await page.screenshot({ path: path.join(shots, '22-ajustes-niveles.png'), fullPage: true });
+  await page.fill('#s-step', '1000'); await page.locator('#s-step').dispatchEvent('change'); await settle();
   await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
   const lucia = page.locator('.mcard', { hasText: 'Lucía' });
-  check(/Nivel 2 · Isla/.test(await lucia.innerText()) && /para llegar al Bosque/.test(await lucia.innerText()), 'Niveles configurables: nuevo nivel y estrellas cambiadas');
-  await page.screenshot({ path: path.join(shots, '23-panel-niveles.png') });
+  check(/Nivel 1 · España/.test(await lucia.innerText()), 'Estrellas por país configurables (1000 → vuelve a España)');
   await page.locator('#tabs').getByRole('button', { name: 'Ajustes', exact: true }).click(); await pinIfAsked(); await settle();
-  await page.getByRole('button', { name: /Restaurar niveles/ }).click();
-  await sheet().getByRole('button', { name: 'Restaurar niveles' }).click(); await settle();
+  await page.fill('#s-step', '150'); await page.locator('#s-step').dispatchEvent('change'); await settle();
+  await page.locator('#tabs').getByRole('button', { name: 'Más', exact: true }).click(); await settle();
+  await page.locator('.more-tile', { hasText: 'La vuelta al mundo' }).click(); await settle();
+  check(await sheet().locator('.route-flags li').count() === 50 && await sheet().locator('.route-flags li.here', { hasText: 'Alemania' }).count() === 1, 'La vuelta al mundo: 50 países y dónde está cada uno');
+  await page.screenshot({ path: path.join(shots, '23-ruta.png') });
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
-  check(/Nivel 2 · Bosque/.test(await lucia.innerText()), 'Restaurar los niveles de la aventura');
+  check(/Nivel 2 · Alemania/.test(await lucia.innerText()), 'Con 150 estrellas por país, Lucía vuelve a estar en Alemania');
   // Reto libre para Mateo, marcado por un adulto
   await page.getByRole('button', { name: 'Retos', exact: true }).click(); await settle();
   await page.getByRole('button', { name: /Nuevo reto/ }).click(); await pinIfAsked();
@@ -251,7 +283,7 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   const leaks = [];
   for (const tab of ['Panel', 'Retos', 'Premios', 'Más', 'Ajustes']) {
     await page.locator('#tabs').getByRole('button', { name: tab, exact: true }).click(); await pinIfAsked(); await page.waitForTimeout(200);
-    if (/\bnull\b|undefined|NaN/.test(await page.locator('#view').innerText())) leaks.push(tab);
+    if (/\bnull\b|undefined|NaN|challengesS|challengesNote|challengesNone/.test(await page.locator('#view').innerText())) leaks.push(tab);
   }
   for (const tile of ['Historial', 'Gráficos']) {
     await page.locator('#tabs').getByRole('button', { name: 'Más', exact: true }).click(); await page.locator('.more-tile', { hasText: tile }).click(); await page.waitForTimeout(200);
