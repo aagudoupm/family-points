@@ -9,7 +9,7 @@ fs.writeFileSync(path.join(dist, 'index.html'),
   '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>' +
   '</head><body>' + page + '</body></html>');
 const ART_FILES = require('./build-art.js');
-for (const f of ['logic.js', 'app.js', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js']) fs.copyFileSync(path.join(root, f), path.join(dist, f));
+for (const f of ['logic.js', 'app.js', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js', 'world-map.js']) fs.copyFileSync(path.join(root, f), path.join(dist, f));
 fs.rmSync(path.join(dist, 'emoji'), { recursive: true, force: true });
 fs.cpSync(path.join(root, 'emoji'), path.join(dist, 'emoji'), { recursive: true });
 fs.rmSync(path.join(dist, 'art'), { recursive: true, force: true });

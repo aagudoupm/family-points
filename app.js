@@ -79,6 +79,8 @@
     trophyOf: v => 'Trofeo de ' + v.ct, trophyText: v => 'Trofeo legendario por recorrer los 10 países de ' + v.ct + '.',
     tripTitle: v => '¡' + v.name + ' viaja ' + v.to + '!', tripInfo: v => 'Nivel ' + v.n + ' · Capital: ' + v.capital + ' · Saludo: ' + v.hello,
     tripGo: '¡A volar!',
+    mapTitle: 'Mapa del mundo', mapOpen: 'Ver el mapa del mundo', mapWorld: 'Mundo', mapNote: 'Así va el viaje de cada uno. Toca a un viajero para ver su perfil.',
+    mapWhere: v => v.name + ' está en ' + v.country + ', nivel ' + v.n + '. Toca para ver su perfil', mapAria: v => 'Mapa del mundo con la ruta de 50 países y ' + v.n + (v.n === 1 ? ' viajero' : ' viajeros'),
     routeTitle: 'La vuelta al mundo', routeSub: v => 'Cada ' + v.n + ' estrellas ganadas se viaja a un país nuevo.', routeLevels: v => 'niveles ' + v.a + '–' + v.b,
     travelS: 'Viaje', stepLabel: 'Estrellas para viajar a otro país',
     stepNote: 'Cuenta el total de estrellas ganadas: canjear premios o restar no hace volver atrás. Cada país nuevo trae un recuerdo para el baúl.',
@@ -831,6 +833,7 @@
     const week = {}; rank.forEach(r => { week[r.member.id] = r.points; });
     const head = h('div', { class: 'panel-head' },
       h('div', { class: 'top-actions' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('mapOpen'), onclick: openWorldMap }, emo('🌍')),
         h('button', { class: 'icon-btn', type: 'button', 'aria-pressed': S.settings.sound ? 'true' : 'false', 'aria-label': S.settings.sound ? t('soundOn') : t('soundOff'),
           onclick: () => saveSettings({ sound: !S.settings.sound }) }, emo(S.settings.sound ? '🔊' : '🔇')),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('openSettings'), onclick: () => goTab('settings') }, emo('⚙️'))),
@@ -1211,6 +1214,88 @@
     });
   }
 
+  // Mapa del mundo: dónde está cada viajero. Mapa real (world-map.js, proyección de Miller) con la ruta de los 50 países
+  // y el personaje de cada miembro en la capital de su país. Se puede acercar por continente.
+  const MAP = window.FP_MAP;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs, ...kids) => { const el = document.createElementNS(SVGNS, tag); for (const k in attrs || {}) if (attrs[k] != null) el.setAttribute(k, attrs[k]); kids.forEach(k => k && el.append(k)); return el; };
+  function mapXY(lat, lon) {
+    const rad = d => d * Math.PI / 180, miller = la => 1.25 * Math.log(Math.tan(Math.PI / 4 + 0.4 * rad(la)));
+    if (lon < MAP.lonMin) lon += 360;
+    return [rad(lon - MAP.lonMin) * MAP.K, (miller(MAP.latTop) - miller(lat)) * MAP.K];
+  }
+  // Encuadre de cada continente: sus capitales con margen y la proporción del mapa
+  function mapBox(ctId) {
+    if (!ctId) return [0, 0, MAP.w, MAP.h];
+    const pts = W.COUNTRIES.filter(c => c.continent === ctId).map(c => mapXY(c.lat, c.lon));
+    let x0 = Math.min(...pts.map(p => p[0])), x1 = Math.max(...pts.map(p => p[0])), y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1]));
+    let w = Math.max(90, (x1 - x0) * 1.35), hh = Math.max(50, (y1 - y0) * 1.45);
+    const ratio = MAP.w / MAP.h;
+    if (w / hh < ratio) w = hh * ratio; else hh = w / ratio;
+    // Sin salirse del mapa
+    const left = Math.min(Math.max(0, (x0 + x1) / 2 - w / 2), MAP.w - w), top = Math.min(Math.max(0, (y0 + y1) / 2 - hh / 2), MAP.h - hh);
+    return [left, top, w, hh];
+  }
+  function openWorldMap() {
+    let zoom = '';
+    openSheet({
+      wide: true,
+      build: ctx => {
+        const tabs = h('div'), mapBoxEl = h('div', { class: 'map-wrap' }), list = h('div', { class: 'map-list' });
+        const paint = () => {
+          const ms = members(), where = new Map(ms.map(m => [m.id, travelOf(m.id)]));
+          const hereIso = new Set([...where.values()].map(v => v.c.iso));
+          const routeIso = new Set(W.COUNTRIES.map(c => c.iso));
+          const far = Math.max(-1, ...[...where.values()].map(v => v.i));
+          const [vx, vy, vw, vh] = mapBox(zoom), u = vw / 1000; // u: tamaño relativo al encuadre, para que pines y puntos no crezcan al acercar
+          fill(tabs, seg([['', t('mapWorld')], ...W.CONTINENTS.map(ct => [ct.id, ct.name])], zoom, v => { zoom = v; paint(); }, t('mapTitle')));
+          const svg = sv('svg', { class: 'map-svg', viewBox: [vx, vy, vw, vh].map(n => n.toFixed(1)).join(' '), role: 'img', 'aria-label': t('mapAria', { n: ms.length }) });
+          svg.append(sv('defs', null,
+            sv('pattern', { id: 'map-waves', width: 24, height: 12, patternUnits: 'userSpaceOnUse' }, sv('path', { d: 'M0 8 Q6 4 12 8 T24 8', fill: 'none', stroke: 'rgba(255,255,255,.35)', 'stroke-width': 1.2 })),
+            sv('radialGradient', { id: 'map-sea', cx: '50%', cy: '45%', r: '75%' }, sv('stop', { offset: '0', 'stop-color': '#7CC6FF' }), sv('stop', { offset: '1', 'stop-color': '#2E8BFF' }))));
+          svg.append(sv('rect', { x: -50, y: -50, width: MAP.w + 100, height: MAP.h + 100, fill: 'url(#map-sea)' }));
+          svg.append(sv('rect', { x: -50, y: -50, width: MAP.w + 100, height: MAP.h + 100, fill: 'url(#map-waves)' }));
+          const land = sv('g', { class: 'map-land' });
+          for (const [id, d] of MAP.paths) land.append(sv('path', { d, class: hereIso.has(id) ? 'here' : routeIso.has(id) ? 'route' : null }));
+          svg.append(land);
+          // Ruta de la vuelta al mundo: línea discontinua por las 50 capitales y un punto en cada parada
+          const pts = W.COUNTRIES.map(c => mapXY(c.lat, c.lon));
+          svg.append(sv('path', { class: 'map-route', d: pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('') }));
+          pts.forEach((p, i) => svg.append(sv('circle', { class: 'map-stop' + (i <= far ? ' done' : ''), cx: p[0], cy: p[1], r: (3.2 * u).toFixed(2) })));
+          // Viajeros: si hay varios en el mismo país, se colocan uno al lado del otro
+          const byCountry = new Map();
+          ms.forEach(m => { const k = where.get(m.id).c.code; byCountry.set(k, (byCountry.get(k) || []).concat(m)); });
+          const R = 16 * u;
+          for (const [code, group] of byCountry) {
+            const c = W.COUNTRIES.find(x => x.code === code), [cx, cy] = mapXY(c.lat, c.lon);
+            group.forEach((m, k) => {
+              const x = cx + (k - (group.length - 1) / 2) * R * 2.3, y = cy - R * 1.9, ch = charOf(m), src = ch && art('personajes', ch.id);
+              const clip = 'map-clip-' + m.id;
+              const pin = sv('g', { class: 'map-pin', tabindex: '0', role: 'button', 'aria-label': t('mapWhere', { name: m.name, country: c.name, n: where.get(m.id).n }) },
+                sv('clipPath', { id: clip }, sv('circle', { cx: x, cy: y, r: R })),
+                sv('path', { class: 'pin-tail', d: 'M' + (x - R * .45) + ',' + (y + R * .8) + 'L' + cx + ',' + cy + 'L' + (x + R * .45) + ',' + (y + R * .8) + 'Z' }),
+                sv('circle', { cx: x, cy: y, r: R * 1.12, fill: m.color, class: 'pin-ring' }),
+                sv('circle', { cx: x, cy: y, r: R, fill: '#FFF6E5' }),
+                src ? sv('image', { href: src, x: x - R, y: y - R * .95, width: R * 2, height: R * 2.67, preserveAspectRatio: 'xMidYMin slice', 'clip-path': 'url(#' + clip + ')' })
+                  : sv('text', { x, y: y + R * .38, 'text-anchor': 'middle', 'font-size': R, class: 'pin-initial' }, document.createTextNode(m.name.charAt(0))),
+                sv('text', { x, y: y - R * 1.35, 'text-anchor': 'middle', 'font-size': (11 * u).toFixed(2), class: 'pin-name' }, document.createTextNode(m.name)));
+              const go = () => openProfile(S.members.get(m.id));
+              pin.addEventListener('click', go);
+              pin.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+              svg.append(pin);
+            });
+          }
+          fill(mapBoxEl, svg);
+          fill(list, ms.map(m => { const v = where.get(m.id); return h('button', { class: 'map-who', type: 'button', onclick: () => openProfile(S.members.get(m.id)) },
+            avatar(m, 'md'), h('span', { class: 'grow' }, h('b', null, m.name), h('span', { class: 'sub' }, t('levelChip', v))), flagEmo(v.c)); }));
+        };
+        ctx.update = paint;
+        paint();
+        return [sheetHead(ctx, t('mapTitle')), h('p', { class: 'sub' }, t('mapNote')), tabs, mapBoxEl, list];
+      }
+    });
+  }
+
   // La vuelta al mundo: los 50 países por continente y dónde está cada uno
   function openRoute() {
     openSheet({
@@ -1476,6 +1561,7 @@
     return h('div', null,
       h('div', { class: 'page-head' }, h('h1', null, t('moreTitle'))),
       h('div', { class: 'more-grid' },
+        tile('🗺️', t('mapTitle'), openWorldMap),
         tile('🌍', t('routeTitle'), openRoute),
         tile('⚙️', t('tabSettings'), () => goTab('settings')),
         tile('🏅', t('badgesTitle'), () => { S.rewardsView = 'badges'; goTab('rewards'); }),

@@ -715,6 +715,28 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 .sd-pic .emo, .sd-pic img { width: 75%; height: 75%; object-fit: contain; }
 .souv-detail .ficha { width: 100%; }
 
+/* Mapa del mundo */
+.map-wrap { margin: .9rem 0; border: 4px solid var(--k); border-radius: 20px; overflow: hidden; box-shadow: 0 6px 0 var(--k); background: #2E8BFF; }
+.map-svg { display: block; width: 100%; height: auto; aspect-ratio: 1000 / 466; }
+.map-land path { fill: #A8DB8A; stroke: #2F5E2B; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.map-land path.route { fill: #F6E2A6; }
+.map-land path.here { fill: #FFC21A; }
+.map-route { fill: none; stroke: #1D1240; stroke-width: 2; stroke-dasharray: 6 5; vector-effect: non-scaling-stroke; opacity: .75; }
+.map-stop { fill: #fff; stroke: #1D1240; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.map-stop.done { fill: #FFC21A; }
+.map-pin { cursor: pointer; }
+.map-pin .pin-tail { fill: #1D1240; }
+.map-pin .pin-ring { stroke: #1D1240; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.map-pin .pin-name { font-family: var(--font-display); fill: #fff; stroke: #1D1240; stroke-width: 3; paint-order: stroke fill; vector-effect: non-scaling-stroke; }
+.map-pin .pin-initial { font-family: var(--font-display); fill: #1D1240; }
+.map-pin:focus { outline: none; }
+.map-pin:focus-visible .pin-ring { stroke: #FFD43B; stroke-width: 5; }
+.map-list { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+.map-who { display: flex; align-items: center; gap: .7rem; padding: .5rem .8rem; border-radius: 18px; border: 3px solid var(--k); background: var(--surface); color: var(--fg); box-shadow: 0 4px 0 var(--k); text-align: left; }
+.map-who .grow { flex: 1; min-width: 0; display: grid; }
+.map-who .emo { width: 2rem; height: 2rem; }
+.map-who:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--k); }
+
 /* La vuelta al mundo */
 .route-list { display: grid; gap: 1rem; margin-top: .8rem; }
 .route-ct { padding: .9rem 1rem; display: grid; gap: .6rem; }
@@ -747,6 +769,7 @@ button.souv:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--k); }
 <script src="firebase-config.js"></script>
 <script src="logic.js"></script>
 <script src="countries.js"></script>
+<script src="world-map.js"></script>
 <script src="avatar.js"></script>
 <script src="characters.js"></script>
 <script src="art.js"></script>

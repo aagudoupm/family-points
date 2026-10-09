@@ -246,6 +246,17 @@ function check(cond, msg) { console.log((cond ? '  ✓ ' : '  ✗ ') + msg); if 
   await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   await page.locator('#tabs').getByRole('button', { name: 'Panel', exact: true }).click(); await settle();
   check(/Nivel 2 · Alemania/.test(await lucia.innerText()), 'Con 150 estrellas por país, Lucía vuelve a estar en Alemania');
+  // Mapa del mundo: cada miembro en su país
+  await page.getByRole('button', { name: 'Ver el mapa del mundo' }).click(); await settle();
+  check(await sheet().locator('.map-pin').count() === 3 && await sheet().locator('.map-land path.here').count() >= 1 && await sheet().locator('.map-stop').count() === 50, 'Mapa del mundo: 3 personajes, sus países marcados y las 50 paradas');
+  const vb0 = await sheet().locator('svg.map-svg').getAttribute('viewBox');
+  await sheet().locator('.seg button', { hasText: 'Europa' }).click(); await settle();
+  check(await sheet().locator('svg.map-svg').getAttribute('viewBox') !== vb0, 'Mapa del mundo: zoom a Europa');
+  await page.screenshot({ path: path.join(shots, '24-mapa.png') });
+  await sheet().locator('.map-who', { hasText: 'Lucía' }).click(); await settle();
+  check(/Alemania/.test(await sheet().innerText()), 'Mapa del mundo: tocar a un miembro abre su perfil');
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
+  await sheet().getByRole('button', { name: 'Cerrar' }).click(); await settle();
   // Nuevo rango (nivel 3 = Turista): 10 estrellas de regalo, una sola vez
   const e1 = await page.evaluate(() => window.__FP_APP__.earned('Lucía'));
   await lucia.click(); await settle();

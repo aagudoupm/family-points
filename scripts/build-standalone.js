@@ -20,7 +20,7 @@ const FB_FILES = ['vendor/firebase/firebase-app-compat.js', 'vendor/firebase/fir
 if (cloud) page = page.replace('<script src="logic.js"></script>', FB_FILES.map(f => `<script src="${f}"></script>`).join('\n') + '\n<script src="logic.js"></script>');
 const split = page.indexOf('<div class="app">');
 const head = page.slice(0, split), body = page.slice(split);
-const files = ['app.js', 'logic.js', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js'].concat(cloud ? FB_FILES : []);
+const files = ['app.js', 'logic.js', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js', 'world-map.js'].concat(cloud ? FB_FILES : []);
 const src = f => f === 'firebase-config.js' ? cfgPath : path.join(root, f);
 const version = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(src(f), 'utf8')).join('')).digest('hex').slice(0, 10);
 
@@ -53,7 +53,7 @@ fs.writeFileSync(path.join(out, 'manifest.webmanifest'), JSON.stringify({
   icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }]
 }, null, 2));
 
-const assets = ['./', 'index.html', 'app.js', 'logic.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js'].concat(EMOJI_FILES, ART_FILES, cloud ? FB_FILES : []);
+const assets = ['./', 'index.html', 'app.js', 'logic.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js', 'world-map.js'].concat(EMOJI_FILES, ART_FILES, cloud ? FB_FILES : []);
 fs.writeFileSync(path.join(out, 'sw.js'), `// Generado por scripts/build-standalone.js — no editar a mano.
 const CACHE = 'family-points-${version}';
 const ASSETS = ${JSON.stringify(assets)};

@@ -17,6 +17,7 @@ HTML + JS sin dependencias, con persistencia en la base de datos del Artifact (`
 | `characters.js` | Los 16 personajes fijos (8 chicos y 8 chicas, `window.FP_CHARACTERS`) y los 10 rangos del viaje (nivel en que se consiguen y material del marco). |
 | `avatar.js` | Dibujo provisional de un personaje en SVG (`window.FP_AVATAR.svg(look, color)`), mientras no haya ilustración. |
 | `art/` + `art.js` | Ilustraciones (personajes, recuerdos, trofeos y baúl). `node scripts/build-art.js` genera `art.js` con las que existen; lo hacen también los builds. |
+| `world-map.js` | Mapa del mundo ya proyectado (`window.FP_MAP`: contornos SVG de Natural Earth 110m, proyección de Miller, sin la Antártida). Lo genera `node scripts/build-map.js` a partir de `vendor/world-atlas/countries-110m.json` (world-atlas 2.0.2, ISC). |
 | `icons.js` | Iconos propios dibujados a mano (`window.FP_OWN_ICONS`): estrella, moneda, avión, corona, candado, baúl (🧰) y cromos. Tienen prioridad sobre los de Fluent. |
 | `tests/logic.test.js` | Tests unitarios (node:test) de la lógica. |
 | `scripts/e2e.js` | Prueba de extremo a extremo con Playwright en un iPad simulado. Deja capturas en `shots/`. |
@@ -80,6 +81,9 @@ period: 'weekly'|'week'|'open', weekStart, reward, active, order, createdAt}`.
   (`speechSynthesis` en la voz del país; si el dispositivo no la tiene, lee el campo `es` con voz española), ficha del país (bandera, capital,
   idioma, gentilicio y monumento) con «Escuchar la ficha», dato curioso, pasaporte del continente, racha, insignias, retos y dar estrellas.
   En «Más» y en Ajustes, «La vuelta al mundo» (`openRoute`).
+- **Mapa del mundo** (`openWorldMap`, botón 🌍 del panel y «Más → Mapa del mundo»): dibuja `world-map.js`, la ruta de los 50 países (capitales: `lat`, `lon` e `iso` de la tabla `GEO` de countries.js),
+  el país de cada miembro en amarillo y su personaje como chincheta (varios en el mismo país se colocan en fila). Zoom por continente (`mapBox`). Tocar un personaje abre su perfil.
+  Las islas pequeñas (Samoa, Kiribati, Micronesia, Tonga) no tienen contorno a esta escala: solo se ve su parada.
 - No hay monedas: las estrellas son para los premios reales y el viaje da recuerdos.
 
 ### Ilustraciones (art/)
@@ -125,7 +129,7 @@ npm run build     # regenera docs/
 npm run e2e:standalone  # prueba docs/ en iPhone simulado (instalación, sin conexión, copias)
 npm run e2e:cloud # dos dispositivos con la misma cuenta familiar (Firebase simulado: tests/fake-firebase.js)
 ```
-Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic.js`, `app.js`, `emoji-map.js`, `countries.js`, `avatar.js`, `characters.js`, `art.js`, `icons.js`, `emoji/*` y `art/**`
+Para publicar, usa la herramienta Artifact con `index.html`, los archivos `logic.js`, `app.js`, `emoji-map.js`, `countries.js`, `world-map.js`, `avatar.js`, `characters.js`, `art.js`, `icons.js`, `emoji/*` y `art/**`
 y `capabilities: {db: {}, downloads: true}`. Para actualizar, vuelve a publicar en la misma URL (ver README).
 
 ## Reglas de estilo

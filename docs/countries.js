@@ -123,8 +123,25 @@
         'Es un reino: tiene rey y nunca fue colonia de otro país.', ['#C10000', '#FFFFFF'])
     ] }
   ];
+  // Para el mapa: coordenadas de la capital [latitud, longitud] y código numérico ISO 3166-1 (el de los países del mapa)
+  const GEO = {
+    ES: [40.42, -3.70, '724'], DE: [52.52, 13.40, '276'], GB: [51.51, -0.13, '826'], FR: [48.86, 2.35, '250'], IT: [41.90, 12.50, '380'],
+    PL: [52.23, 21.01, '616'], RO: [44.43, 26.10, '642'], NL: [52.37, 4.90, '528'], BE: [50.85, 4.35, '056'], CZ: [50.08, 14.43, '203'],
+    US: [38.90, -77.04, '840'], BR: [-15.79, -47.88, '076'], MX: [19.43, -99.13, '484'], CO: [4.71, -74.07, '170'], AR: [-34.60, -58.38, '032'],
+    CA: [45.42, -75.70, '124'], PE: [-12.05, -77.04, '604'], CL: [-33.45, -70.67, '152'], GT: [14.63, -90.51, '320'], EC: [-0.18, -78.47, '218'],
+    NG: [9.06, 7.49, '566'], EG: [30.04, 31.24, '818'], TZ: [-6.16, 35.75, '834'], ZA: [-25.75, 28.19, '710'], KE: [-1.29, 36.82, '404'],
+    UG: [0.35, 32.58, '800'], DZ: [36.75, 3.06, '012'], MA: [34.02, -6.84, '504'], AO: [-8.84, 13.23, '024'], MZ: [-25.97, 32.57, '508'],
+    IN: [28.61, 77.21, '356'], CN: [39.90, 116.40, '156'], ID: [-6.20, 106.85, '360'], PK: [33.68, 73.05, '586'], BD: [23.81, 90.41, '050'],
+    JP: [35.68, 139.69, '392'], PH: [14.60, 120.98, '608'], VN: [21.03, 105.85, '704'], TR: [39.93, 32.86, '792'], TH: [13.75, 100.50, '764'],
+    AU: [-35.28, 149.13, '036'], PG: [-9.44, 147.18, '598'], NZ: [-41.29, 174.78, '554'], FJ: [-18.14, 178.44, '242'], SB: [-9.43, 159.95, '090'],
+    VU: [-17.73, 168.32, '548'], WS: [-13.83, -171.76, '882'], KI: [1.33, 172.98, '296'], FM: [6.92, 158.16, '583'], TO: [-21.14, -175.20, '776']
+  };
   const COUNTRIES = [];
-  CONTINENTS.forEach(ct => ct.countries.forEach(c => COUNTRIES.push(Object.assign({ continent: ct.id, continentName: ct.name }, c))));
+  CONTINENTS.forEach(ct => ct.countries.forEach(c => {
+    const g = GEO[c.code];
+    if (g) { c.lat = g[0]; c.lon = g[1]; c.iso = g[2]; }
+    COUNTRIES.push(Object.assign({ continent: ct.id, continentName: ct.name }, c));
+  }));
   // Bandera como emoji (letras regionales)
   const flag = code => String.fromCodePoint(...[...code].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
   const api = { CONTINENTS, COUNTRIES, flag };
