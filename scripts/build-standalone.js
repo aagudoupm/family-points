@@ -22,7 +22,10 @@ const split = page.indexOf('<div class="app">');
 const head = page.slice(0, split), body = page.slice(split);
 const files = ['app.js', 'logic.js', 'emoji-map.js', 'countries.js', 'avatar.js', 'icons.js', 'characters.js', 'art.js', 'world-map.js'].concat(cloud ? FB_FILES : []);
 const src = f => f === 'firebase-config.js' ? cfgPath : path.join(root, f);
-const version = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(src(f), 'utf8')).join('')).digest('hex').slice(0, 10);
+// La versión cambia también si cambia una ilustración, para que el service worker la vuelva a descargar
+const hash = crypto.createHash('sha1').update(page + files.map(f => fs.readFileSync(src(f), 'utf8')).join(''));
+for (const f of ART_FILES) hash.update(fs.readFileSync(path.join(root, f)));
+const version = hash.digest('hex').slice(0, 10);
 
 fs.writeFileSync(path.join(out, 'index.html'), `<!doctype html>
 <html lang="es">
